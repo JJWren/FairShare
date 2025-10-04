@@ -15,5 +15,3 @@ jobs:
     steps:
       - name: Run release-please (manifest)
         uses: googleapis/release-please-action@v4
-        with:
-          command: manifest
