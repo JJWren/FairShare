@@ -1,6 +1,6 @@
 services:
   fairshare:
-    image: yourrepo/fairshare:0.1.0
+    image: FairShare/fairshare:0.1.0
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       # Tell the app which *internal* port to bind
