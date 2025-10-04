@@ -1,0 +1,51 @@
+﻿@model FairShare.ViewModels.ErrorViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = Model.Title ?? "Error";
+    IWebHostEnvironment? env = Context.RequestServices.GetService<IWebHostEnvironment>();
+    bool isDev = env != null && env.IsDevelopment();
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="display-6 me-3">😬</span>
+                        <div>
+                            <h1 class="h4 mb-0">@Model.Title</h1>
+                            <div class="text-muted">HTTP @Model.StatusCode</div>
+                        </div>
+                    </div>
+
+                    <p class="lead mb-4">@Model.Message</p>
+
+                    <div class="mb-3 small text-muted">
+                        Trace ID: <code>@Model.TraceId</code>
+                    </div>
+
+                    @if (isDev && !string.IsNullOrWhiteSpace(Model.Detail))
+                    {
+                        <details class="mb-4">
+                            <summary>Technical Details (Development Only)</summary>
+                            <pre class="mt-2 p-3 bg-light border rounded small" style="white-space:pre-wrap">@Model.Detail</pre>
+                        </details>
+                    }
+
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-primary" href="javascript:history.back()">Go back</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Cs42S" asp-action="Index">Home</a>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.StatusCode == 404)
+            {
+                <div class="alert alert-info mt-3">
+                    The page may have moved. You can try the <a asp-controller="CS42S" asp-action="Index">home page</a>.
+                </div>
+            }
+        </div>
+    </div>
+</div>

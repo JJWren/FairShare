@@ -1,0 +1,23 @@
+﻿@* Views/Shared/_ValidationScriptsPartial.cshtml *@
+@* Requires jQuery to be loaded before this partial (typically in _Layout). *@
+
+<environment include="Development">
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.js"></script>
+</environment>
+
+<environment exclude="Development">
+    <!-- CDN + fallback to local files if CDN fails -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4/dist/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // Fallback if CDN not available
+        if (!window.jQuery || !window.jQuery.validator) {
+            document.write('<script src="/lib/jquery-validation/dist/jquery.validate.min.js"><\/script>');
+        }
+        if (!window.jQuery || !window.jQuery.validator || !window.jQuery.validator.unobtrusive) {
+            document.write('<script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"><\/script>');
+        }
+    </script>
+</environment>

@@ -1,0 +1,134 @@
+################################################################################
+# OS-level cruft
+################################################################################
+# macOS
+.DS_Store
+.AppleDouble
+.apdisk
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+################################################################################
+# IDE / Editor
+################################################################################
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.iml
+
+################################################################################
+# .NET / Build Artifacts
+################################################################################
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+TestResults/
+*.VisualState.xml
+*.psess
+*.vsp
+*.vspx
+*.pidb
+*.svclog
+*_i.c
+*_p.c
+*.ipch
+*.dbmdl
+*.jfm
+
+# Publish output (if you publish to a known folder)
+publish/
+
+################################################################################
+# ASP.NET Core specifics
+################################################################################
+# User secrets (stored outside repo by default, but just in case)
+secrets.json
+
+# Kestrel dev certs (don’t commit machine certs)
+*.pfx
+*.p12
+
+# Configuration overrides
+appsettings.*.local.json
+
+################################################################################
+# Package / Dependency Managers
+################################################################################
+# NuGet
+*.nupkg
+*.snupkg
+# Lock file is usually committed; ignore only if your team prefers not to
+# packages/
+
+# LibMan (keep libman.json, but ignore caches)
+libman.cache/
+
+# npm / yarn / pnpm (if you wire a front-end build)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+package-lock.json
+# If you commit lockfiles for determinism, remove the ignore above.
+
+################################################################################
+# Coverage / Analysis
+################################################################################
+coverage/
+.coverage
+*.coverage
+*.coveragexml
+.coverlet/
+TestResults/
+
+################################################################################
+# Docker / Compose
+################################################################################
+# Local dotenv with secrets/ports; commit an example instead (e.g., .env.example)
+.env
+
+# Docker build cache and miscellaneous
+**/.dockerignore~
+docker-compose.override.yml
+
+################################################################################
+# Misc tools / caches
+################################################################################
+# Resharper / DotCover / etc.
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Tye
+.tye/
+
+# Temporary files
+tmp/
+temp/
+
+################################################################################
+# Logs & runtime artifacts
+################################################################################
+*.log
+*.log.*
+*.trace
+*.etl

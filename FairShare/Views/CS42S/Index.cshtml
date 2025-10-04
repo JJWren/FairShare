@@ -1,0 +1,169 @@
+﻿@model FairShare.ViewModels.CS42SViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Index";
+}
+
+<div class="container my-4">
+    <h1 class="h3 mb-3 text-center">CS-42-S Calculator</h1>
+
+    <form asp-controller="CS42S" asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- Top-level inputs -->
+        <div class="row g-3 mb-4 d-flex justify-content-center">
+            <div class="col-12 col-sm-6 col-lg-4 text-center">
+                <label asp-for="NumberOfChildren" class="form-label">Number of Children</label>
+                <input asp-for="NumberOfChildren" class="form-control" inputmode="numeric" />
+                <span asp-validation-for="NumberOfChildren" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Plaintiff column (card) -->
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header text-center"><strong>Plaintiff</strong></div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Plaintiff.MonthlyGrossIncome" class="form-label">Monthly Gross Income</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Plaintiff.MonthlyGrossIncome" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Plaintiff.MonthlyGrossIncome" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Plaintiff.PreexistingChildSupport" class="form-label">Preexisting Child Support</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Plaintiff.PreexistingChildSupport" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Plaintiff.PreexistingChildSupport" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Plaintiff.PreexistingAlimony" class="form-label">Preexisting Alimony</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Plaintiff.PreexistingAlimony" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Plaintiff.PreexistingAlimony" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Plaintiff.WorkRelatedChildcareCosts" class="form-label">Work-Related Childcare Costs</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Plaintiff.WorkRelatedChildcareCosts" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Plaintiff.WorkRelatedChildcareCosts" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Plaintiff.HealthcareCoverageCosts" class="form-label">Children's Healthcare Costs</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Plaintiff.HealthcareCoverageCosts" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Plaintiff.HealthcareCoverageCosts" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defendant column (card) -->
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header text-center"><strong>Defendant</strong></div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Defendant.MonthlyGrossIncome" class="form-label">Monthly Gross Income</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Defendant.MonthlyGrossIncome" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Defendant.MonthlyGrossIncome" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Defendant.PreexistingChildSupport" class="form-label">Preexisting Child Support</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Defendant.PreexistingChildSupport" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Defendant.PreexistingChildSupport" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Defendant.PreexistingAlimony" class="form-label">Preexisting Alimony</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Defendant.PreexistingAlimony" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Defendant.PreexistingAlimony" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Defendant.WorkRelatedChildcareCosts" class="form-label">Work-Related Childcare Costs</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Defendant.WorkRelatedChildcareCosts" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Defendant.WorkRelatedChildcareCosts" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Defendant.HealthcareCoverageCosts" class="form-label">Children's Healthcare Costs</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Defendant.HealthcareCoverageCosts" class="form-control" inputmode="numeric" />
+                            </div>
+                            <span asp-validation-for="Defendant.HealthcareCoverageCosts" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Calculate</button>
+                    <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation summary (optional) -->
+        <div class="mt-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="results" class="mt-5">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <strong>Provisional Results</strong>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.Saved)
+                    {
+                        <div class="row justify-content-center g-3">
+                            <div class="col-12 col-md-6 col-lg-5">
+                                <div class="alert alert-info mb-0">
+                                    <p class="fw-bold mb-0 text-center">
+                                        @(string.IsNullOrWhiteSpace(Model.Results.Payer)
+                                            ? "No net transfer."
+                                            : $"{Model.Results.Payer} owes ${Model.Results.FinalAmount}.")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Fill out the form and click <em>Calculate</em> to see results here.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

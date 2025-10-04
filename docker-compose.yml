@@ -1,0 +1,13 @@
+services:
+  fairshare:
+    image: yourrepo/fairshare:0.1.0
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      # Tell the app which *internal* port to bind
+      ASPNETCORE_HTTP_PORTS: "${APP_HTTP_PORT:-9090}"
+      # ASPNETCORE_HTTPS_PORTS: "${APP_HTTPS_PORT:-9091}"   # only if you actually run HTTPS in-container
+    ports:
+      # Host port : Container port
+      - "9090:9090"
+      # - "9091:9091"
+    restart: unless-stopped
