@@ -25,6 +25,7 @@ court-approved worksheets.
 
 ## Features
 
+- **Light/dark mode** toggle and presets added!
 - **CS-42-S (SPCA)** calculations for Alabama
   - Additional forms planned as well extending to other states.
 - **Two-column responsive form** (Bootstrap 5): Plaintiff vs Defendant; collapses to stacked cards on mobile
@@ -56,6 +57,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_HTTP_PORTS: "9090"   # container listens on 9090
+      UI__DefaultTheme: "dark"   # <— set default here (light|dark|auto)
     ports:
       - "9090:9090"                   # host:container
     healthcheck:
