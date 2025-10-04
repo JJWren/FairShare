@@ -4,6 +4,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Production}"
       ASPNETCORE_HTTP_PORTS: "${APP_HTTP_PORT:-9090}"
+      UI__DefaultTheme: "dark"   # <— set default here (light|dark|auto)
     ports:
       - "${HOST_HTTP_PORT:-9090}:${APP_HTTP_PORT:-9090}"
     healthcheck:
