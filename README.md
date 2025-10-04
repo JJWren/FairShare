@@ -246,7 +246,7 @@ Outside of PRs:
 
 ## License
 
-Apache-2.0 — see `LICENSE`.
+Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE for details.
 
 ---
 
