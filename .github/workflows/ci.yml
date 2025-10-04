@@ -28,4 +28,7 @@ jobs:
       #   run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Docker build (no push)
-        run: docker build -t fairshare-ci:latest .
+        run: |
+          echo "Looking for Dockerfile at repo root:"
+          ls -la
+          docker build -t fairshare-ci:latest -f Dockerfile .
