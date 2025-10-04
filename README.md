@@ -1,3 +1,5 @@
+![CI](https://github.com/JJWren/FairShare/actions/workflows/ci.yml/badge.svg)
+
 # FairShare
 
 **FairShare** is a lightweight ASP.NET Core 8 web app that gives a quick, transparent estimate
