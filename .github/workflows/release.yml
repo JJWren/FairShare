@@ -13,8 +13,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - name: Release Please
-        uses: google-github-actions/release-please-action@v4
+      - name: Run release-please (manifest)
+        uses: googleapis/release-please-action@v4
         with:
-          # manifest mode so we can bump csproj + CHANGELOG at repo root
           command: manifest
