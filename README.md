@@ -19,6 +19,8 @@ I hope that this can help someone else!
 It is **not legal advice** and is **not** a substitute for a licensed attorney or
 court-approved worksheets.
 
+![FairShare UI](docs/example-ss.png)
+
 ---
 
 ## Features
