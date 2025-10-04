@@ -1,30 +1,13 @@
 {
-  "bootstrap-sha": "",
   "release-type": "simple",
   "packages": {
     ".": {
       "package-name": "fairshare",
       "extra-files": [
-        {
-          "type": "xml",
-          "path": "FairShare/FairShare.csproj",
-          "xpath": "//Project/PropertyGroup/Version"
-        },
-        {
-          "type": "xml",
-          "path": "FairShare/FairShare.csproj",
-          "xpath": "//Project/PropertyGroup/AssemblyVersion"
-        },
-        {
-          "type": "xml",
-          "path": "FairShare/FairShare.csproj",
-          "xpath": "//Project/PropertyGroup/FileVersion"
-        },
-        {
-          "type": "xml",
-          "path": "FairShare/FairShare.csproj",
-          "xpath": "//Project/PropertyGroup/InformationalVersion"
-        }
+        { "type": "xml", "path": "FairShare/FairShare.csproj", "xpath": "//Project/PropertyGroup/Version" },
+        { "type": "xml", "path": "FairShare/FairShare.csproj", "xpath": "//Project/PropertyGroup/AssemblyVersion" },
+        { "type": "xml", "path": "FairShare/FairShare.csproj", "xpath": "//Project/PropertyGroup/FileVersion" },
+        { "type": "xml", "path": "FairShare/FairShare.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" }
       ]
     }
   }
