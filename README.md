@@ -52,7 +52,7 @@ If you publish images (e.g., to Docker Hub or GHCR), you can run with a one-file
 # docker-compose.yml
 services:
   fairshare:
-    image: FairShare/fairshare:0.1.0
+    image: ghcr.io/jjwren/fairshare:0.1.0
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_HTTP_PORTS: "9090"   # container listens on 9090
