@@ -83,7 +83,7 @@ docker compose up -d
 1) Clone the repo:
 
 ```bash
-git clone https://github.com/youruser/fairshare.git
+git clone https://github.com/JJWren/fairshare.git
 cd fairshare
 ```
 
