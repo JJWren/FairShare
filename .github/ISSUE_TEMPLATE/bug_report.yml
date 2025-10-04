@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a problem
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the issue and expected behavior.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Steps to reproduce the behavior
+      placeholder: 1) ..., 2) ...
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
