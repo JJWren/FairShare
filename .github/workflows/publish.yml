@@ -3,7 +3,7 @@ name: Publish container
 on:
   push:
     branches: [ "main" ]
-    tags:     [ "v*", "*.*.*" ]   # push on version tags too
+    tags:     [ "v*.*.*", "*.*.*" ]   # push on version tags too
 
 permissions:
   contents: read
@@ -32,9 +32,11 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/fairshare
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=sha
+            type=ref,event=branch      # :main on pushes to main
+            type=ref,event=tag         # :0.1.1 when you push a git tag 0.1.1
+            type=sha                   # :sha-<short> for debugging
+          flavor: |
+            latest=true                # also publish :latest (optional)
 
       - name: Build and push
         uses: docker/build-push-action@v6
