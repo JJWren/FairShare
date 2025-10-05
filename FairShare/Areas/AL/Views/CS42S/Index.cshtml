@@ -1,6 +1,5 @@
 @model FairShare.ViewModels.CS42SViewModel
 @{
-    Layout = "/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Index";
 }
 
@@ -122,7 +121,7 @@
             <div class="col-12">
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Calculate</button>
-                    <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                    <button type="submit" name="action" value="reset" class="btn btn-outline-secondary" formnovalidate>Reset</button>
                 </div>
             </div>
         </div>

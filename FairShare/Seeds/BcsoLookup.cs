@@ -25,15 +25,21 @@ namespace FairShare.Seeds
         public static int Get(int cagi, int children, bool autoRound = true)
         {
             if (children < 1 || children > 6)
+            {
                 throw new ArgumentOutOfRangeException(nameof(children), "Children must be between 1 and 6.");
+            }
 
             if (Table.TryGetValue((cagi, children), out int value))
+            {
                 return value;
+            }
 
             if (autoRound)
             {
                 if (Table.TryGetValue((RoundToNearest50(cagi), children), out int roundedValue))
+                {
                     return roundedValue;
+                }
             }
 
             throw new KeyNotFoundException($"No BCSO entry for CAGI={cagi} and Children={children}.");
@@ -54,7 +60,10 @@ namespace FairShare.Seeds
             {
                 string[] parts = line.Split('|');
 
-                if (parts.Length != 7) continue;
+                if (parts.Length != 7)
+                {
+                    continue;
+                }
 
                 int cagi = int.Parse(parts[0], CultureInfo.InvariantCulture);
 
