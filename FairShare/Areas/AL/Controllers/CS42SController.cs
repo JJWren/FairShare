@@ -1,11 +1,12 @@
-﻿using FairShare.CustomObjects;
+using FairShare.CustomObjects;
 using FairShare.Managers;
 using FairShare.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
-namespace FairShare.Controllers
+namespace FairShare.Areas.AL.Controllers
 {
+    [Area("AL")]
     public class CS42SController(ILogger<CS42SController> logger) : Controller
     {
         private readonly ILogger<CS42SController> _logger = logger;
@@ -75,7 +76,7 @@ namespace FairShare.Controllers
             return new()
             {
                 Payer = finalCalcWithPayer.Payer,
-                FinalAmount = (finalCalcWithPayer.FinalAmount < 0) ? finalCalcWithPayer.FinalAmount * -1 : finalCalcWithPayer.FinalAmount,
+                FinalAmount = finalCalcWithPayer.FinalAmount < 0 ? finalCalcWithPayer.FinalAmount * -1 : finalCalcWithPayer.FinalAmount,
             };
         }
     }

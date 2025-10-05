@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+
 using FairShare.ViewModels;
+
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -21,7 +23,7 @@ public class ErrorController(ILogger<ErrorController> logger, ProblemDetailsFact
         IExceptionHandlerFeature? feature = HttpContext.Features.Get<IExceptionHandlerFeature>();
         Exception? ex = feature?.Error;
 
-        string? traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+        var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         _logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", traceId);
 
         if (WantsJson())
@@ -35,11 +37,13 @@ public class ErrorController(ILogger<ErrorController> logger, ProblemDetailsFact
                     : null,
                 instance: HttpContext.Request?.Path.Value
             );
+
             problem.Extensions["traceId"] = traceId;
             return StatusCode(problem.Status!.Value, problem);
         }
 
         Response.StatusCode = StatusCodes.Status500InternalServerError;
+
         return View("~/Views/Shared/Error.cshtml", new ErrorViewModel
         {
             StatusCode = 500,
@@ -54,16 +58,20 @@ public class ErrorController(ILogger<ErrorController> logger, ProblemDetailsFact
     [Route("error/{statusCode:int}")]
     public IActionResult HttpError(int statusCode)
     {
-        string? traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+        var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
 
         if (statusCode >= 500)
+        {
             _logger.LogError("HTTP {StatusCode}. TraceId={TraceId}", statusCode, traceId);
+        }
         else
+        {
             _logger.LogWarning("HTTP {StatusCode}. TraceId={TraceId}", statusCode, traceId);
+        }
 
         if (WantsJson())
         {
-            (string title, string message) = MapStatus(statusCode);
+            (var title, var message) = MapStatus(statusCode);
             ProblemDetails? problem = _problemFactory.CreateProblemDetails(
                 HttpContext,
                 statusCode: statusCode,
@@ -77,6 +85,7 @@ public class ErrorController(ILogger<ErrorController> logger, ProblemDetailsFact
 
         Response.StatusCode = statusCode;
         (string title, string message) mapped = MapStatus(statusCode);
+
         return View("~/Views/Shared/Error.cshtml", new ErrorViewModel
         {
             StatusCode = statusCode,
@@ -108,15 +117,21 @@ public class ErrorController(ILogger<ErrorController> logger, ProblemDetailsFact
         // If the client explicitly asks for JSON or it's an AJAX/fetch call, return ProblemDetails JSON
         IList<MediaTypeHeaderValue> accept = Request.GetTypedHeaders().Accept;
         if (accept is { Count: > 0 } && accept.Any(h => h.MediaType.Value != null && h.MediaType.Value.Contains("json", StringComparison.OrdinalIgnoreCase)))
+        {
             return true;
+        }
 
         // Heuristic for AJAX
         if (Request.Headers.TryGetValue("X-Requested-With", out StringValues v) && v.ToString() == "XMLHttpRequest")
+        {
             return true;
+        }
 
         // If it's an API route (optional: adjust as needed)
         if (Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         return false;
     }
