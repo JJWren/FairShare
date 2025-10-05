@@ -1,6 +1,5 @@
-﻿@model FairShare.ViewModels.ErrorViewModel
+@model FairShare.ViewModels.ErrorViewModel
 @{
-    Layout = "_Layout";
     ViewData["Title"] = Model.Title ?? "Error";
     IWebHostEnvironment? env = Context.RequestServices.GetService<IWebHostEnvironment>();
     bool isDev = env != null && env.IsDevelopment();
@@ -35,7 +34,7 @@
 
                     <div class="d-flex gap-2">
                         <a class="btn btn-primary" href="javascript:history.back()">Go back</a>
-                        <a class="btn btn-outline-secondary" asp-controller="Cs42S" asp-action="Index">Home</a>
+                        <a class="btn btn-outline-secondary" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </div>
                 </div>
             </div>
@@ -43,7 +42,7 @@
             @if (Model.StatusCode == 404)
             {
                 <div class="alert alert-info mt-3">
-                    The page may have moved. You can try the <a asp-controller="CS42S" asp-action="Index">home page</a>.
+                    The page may have moved. You can try the <a asp-area="" asp-controller="Home" asp-action="Index">home page</a>.
                 </div>
             }
         </div>

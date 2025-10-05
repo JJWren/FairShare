@@ -16,35 +16,19 @@ namespace FairShare.Areas.AL.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            // Sample data for demonstration purposes
-            CS42SViewModel vm = new ()
-            {
-                NumberOfChildren = 4,
-                Plaintiff = new ()
-                {
-                    MonthlyGrossIncome = 4244,
-                    PreexistingChildSupport = 0,
-                    PreexistingAlimony = 0,
-                    WorkRelatedChildcareCosts = 0,
-                    HealthcareCoverageCosts = 0,
-                },
-                Defendant = new ()
-                {
-                    MonthlyGrossIncome = 8462,
-                    PreexistingChildSupport = 0,
-                    PreexistingAlimony = 1000,
-                    WorkRelatedChildcareCosts = 0,
-                    HealthcareCoverageCosts = 292,
-                },
-            };
-
-            return View(vm);
+            return View(SeedCS42SViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Index(CS42SViewModel vm)
+        public IActionResult Index(CS42SViewModel vm, string? action)
         {
+            if (string.Equals(action, "reset", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.Clear();
+                return View(SeedCS42SViewModel());
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(vm);
@@ -68,6 +52,30 @@ namespace FairShare.Areas.AL.Controllers
                 _logger.LogWarning(ex, "Out-of-range input");
                 return View(vm);
             }
+        }
+
+        private static CS42SViewModel SeedCS42SViewModel()
+        {
+            return new()
+            {
+                NumberOfChildren = 4,
+                Plaintiff = new()
+                {
+                    MonthlyGrossIncome = 4244,
+                    PreexistingChildSupport = 0,
+                    PreexistingAlimony = 0,
+                    WorkRelatedChildcareCosts = 0,
+                    HealthcareCoverageCosts = 0,
+                },
+                Defendant = new()
+                {
+                    MonthlyGrossIncome = 8462,
+                    PreexistingChildSupport = 0,
+                    PreexistingAlimony = 1000,
+                    WorkRelatedChildcareCosts = 0,
+                    HealthcareCoverageCosts = 292,
+                },
+            };
         }
 
         private ResultsViewModel GetFinalCalculation(CS42SViewModel vm)

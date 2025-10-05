@@ -1,4 +1,4 @@
-﻿using FairShare.Interfaces;
+using FairShare.Interfaces;
 
 namespace FairShare.Services
 {
@@ -11,8 +11,8 @@ namespace FairShare.Services
         /// <summary>
         /// Provides a mapping of (State, Form) tuples to their corresponding <see cref="IChildSupportCalculator"/> instances.
         /// </summary>
-        private readonly Dictionary<(string State, string Form), IChildSupportCalculator> _map = calculators.ToDictionary(
-                c => (c.State.ToUpperInvariant(), c.Form.ToUpperInvariant()));
+        private readonly Dictionary<(string State, string Form), IChildSupportCalculator> _map =
+            calculators.ToDictionary(c => (c.State.ToUpperInvariant(), c.Form.ToUpperInvariant()));
 
         /// <summary>
         /// Gets the child support calculator for the specified state and form.

@@ -1,4 +1,4 @@
-﻿namespace FairShare.ViewModels
+namespace FairShare.ViewModels
 {
     using FairShare.Models;
     using System.ComponentModel;
@@ -29,7 +29,7 @@
         /// </summary>
         [Required]
         [Display(Name = "Defendant")]
-        public ParentData Defendant { get; set; } = new ();
+        public ParentData Defendant { get; set; } = new();
 
         /// <summary>
         /// Gets or sets a value for client-side scroll logic.
