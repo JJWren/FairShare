@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v0.1.1...fairshare-v1.0.0) (2025-10-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* Revamped view and controller organization to prepare for additional states and forms.
+* Work in progress.
+
+### Features
+
+* Revamped view and controller organization to prepare for additional states and forms. ([eac7111](https://github.com/JJWren/FairShare/commit/eac7111fc82742ac1ac7883cc8f17dd0e3863c15))
+* Work in progress. ([800d24d](https://github.com/JJWren/FairShare/commit/800d24d48989c5e8cc724d2752ca85cf7e64754c))
+
 ## [0.1.1](https://github.com/JJWren/FairShare/compare/fairshare-v0.1.0...fairshare-v0.1.1) (2025-10-04)
 
 
