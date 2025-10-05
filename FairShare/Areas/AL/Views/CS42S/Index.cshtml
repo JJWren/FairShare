@@ -1,13 +1,13 @@
-﻿@model FairShare.ViewModels.CS42SViewModel
+@model FairShare.ViewModels.CS42SViewModel
 @{
-    Layout = "_Layout";
+    Layout = "/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Index";
 }
 
 <div class="container my-4">
     <h1 class="h3 mb-3 text-center">CS-42-S Calculator</h1>
 
-    <form asp-controller="CS42S" asp-action="Index" method="post">
+    <form asp-area="AL" asp-controller="CS42S" asp-action="Index" method="post">
         @Html.AntiForgeryToken()
 
         <!-- Top-level inputs -->

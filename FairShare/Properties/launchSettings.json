@@ -2,14 +2,22 @@
   "profiles": {
     "FairShare": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5099;https://localhost:7099",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5099;https://localhost:7099"
     },
     "IIS Express": {
       "commandName": "IISExpress"
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:59482/",
+      "sslPort": 44346
     }
   }
 }

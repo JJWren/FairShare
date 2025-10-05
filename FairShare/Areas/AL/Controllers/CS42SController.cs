@@ -1,13 +1,16 @@
-﻿using FairShare.CustomObjects;
-using FairShare.Managers;
-using FairShare.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using FairShare.CustomObjects;
+using FairShare.Interfaces;
+using FairShare.ViewModels;
 
-namespace FairShare.Controllers
+using Microsoft.AspNetCore.Mvc;
+
+namespace FairShare.Areas.AL.Controllers
 {
-    public class CS42SController(ILogger<CS42SController> logger) : Controller
+    [Area("AL")]
+    public class CS42SController(IChildSupportCalculator calculator, ILogger<CS42SController> logger) : Controller
     {
+        private readonly IChildSupportCalculator _calculator = calculator;
         private readonly ILogger<CS42SController> _logger = logger;
 
         [HttpGet]
@@ -67,15 +70,14 @@ namespace FairShare.Controllers
             }
         }
 
-        private static ResultsViewModel GetFinalCalculation(CS42SViewModel cS42SViewModel)
+        private ResultsViewModel GetFinalCalculation(CS42SViewModel vm)
         {
-            FinalCalcWithPayerCO finalCalcWithPayer =
-                CS42SManager.GetFinalCalculation(cS42SViewModel.Plaintiff, cS42SViewModel.Defendant, cS42SViewModel.NumberOfChildren);
+            CalculationResult calculationResult = _calculator.Calculate(vm.Plaintiff, vm.Defendant, vm.NumberOfChildren);
 
-            return new()
+            return new ()
             {
-                Payer = finalCalcWithPayer.Payer,
-                FinalAmount = (finalCalcWithPayer.FinalAmount < 0) ? finalCalcWithPayer.FinalAmount * -1 : finalCalcWithPayer.FinalAmount,
+                Payer = calculationResult.Payer,
+                FinalAmount = calculationResult.FinalAmount < 0 ? calculationResult.FinalAmount * -1 : calculationResult.FinalAmount,
             };
         }
     }

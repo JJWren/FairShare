@@ -1,0 +1,44 @@
+﻿@model HomeViewModel
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Index";
+}
+
+<h1>FairShare</h1>
+<form asp-action="Go" method="post" class="row gy-3">
+    <div class="col-12 col-md-6">
+        <label class="form-label">State</label>
+        <select id="state" name="state" class="form-select" required>
+            <option value="" selected disabled>Choose...</option>
+            @foreach (string? s in Model.States)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Form</label>
+        <select id="form" name="form" class="form-select" required disabled>
+            <option value="" selected disabled>Choose a state first</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Open</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const st = document.getElementById('state');
+        const fm = document.getElementById('form');
+        st.addEventListener('change', async () => {
+          fm.innerHTML = '<option disabled selected>Loading…</option>';
+          fm.disabled = true;
+          const res = await fetch(`/Home/Forms?state=${encodeURIComponent(st.value)}`);
+          const forms = await res.json();
+          fm.innerHTML = '<option value="" disabled selected>Choose…</option>' +
+            forms.map(f => `<option value="${f}">${f}</option>`).join('');
+          fm.disabled = false;
+        });
+    </script>
+}
