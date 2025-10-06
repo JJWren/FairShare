@@ -80,9 +80,7 @@
         document.addEventListener('change', e => {
             if (!e.target.matches('input[name="Plaintiff.HasPrimaryCustody"], input[name="Defendant.HasPrimaryCustody"]')) return;
 
-            const form = '@Model.Form'.toUpperCase();
-
-            if (form !== 'CS42') return;
+            if (@Model.IsSharedCustodyForm) return;
 
             if (e.target.checked) {
                 if (e.target.name === 'Plaintiff.HasPrimaryCustody') {
