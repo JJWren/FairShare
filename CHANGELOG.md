@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v1.0.0...fairshare-v2.0.0) (2025-10-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Overhauled the views again O_O ([#10](https://github.com/JJWren/FairShare/issues/10))
+
+### Features
+
+* Overhauled the views again O_O ([#10](https://github.com/JJWren/FairShare/issues/10)) ([f619222](https://github.com/JJWren/FairShare/commit/f619222eabad975695bccaf79ae7b4b7c0623104))
+
 ## [1.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v0.1.1...fairshare-v1.0.0) (2025-10-05)
 
 
