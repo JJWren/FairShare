@@ -1,6 +1,4 @@
-﻿using FairShare.Helpers;
-
-namespace FairShare.CustomObjects
+namespace FairShare.Helpers
 {
     /// <summary>
     /// Provides the result of a child support calculation, including which parent is the payer and the final amount owed.

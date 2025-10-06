@@ -1,44 +1,30 @@
-﻿@model HomeViewModel
+@model IReadOnlyCollection<string>
 @{
-    Layout = "/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Select State";
 }
-
-<h1>FairShare</h1>
-<form asp-action="Go" method="post" class="row gy-3">
-    <div class="col-12 col-md-6">
-        <label class="form-label">State</label>
-        <select id="state" name="state" class="form-select" required>
-            <option value="" selected disabled>Choose...</option>
-            @foreach (string? s in Model.States)
-            {
-                <option value="@s">@s</option>
-            }
-        </select>
-    </div>
-    <div class="col-12 col-md-6">
-        <label class="form-label">Form</label>
-        <select id="form" name="form" class="form-select" required disabled>
-            <option value="" selected disabled>Choose a state first</option>
-        </select>
-    </div>
-    <div class="col-12">
-        <button class="btn btn-primary" type="submit">Open</button>
-    </div>
-</form>
-
-@section Scripts {
-    <script>
-        const st = document.getElementById('state');
-        const fm = document.getElementById('form');
-        st.addEventListener('change', async () => {
-          fm.innerHTML = '<option disabled selected>Loading…</option>';
-          fm.disabled = true;
-          const res = await fetch(`/Home/Forms?state=${encodeURIComponent(st.value)}`);
-          const forms = await res.json();
-          fm.innerHTML = '<option value="" disabled selected>Choose…</option>' +
-            forms.map(f => `<option value="${f}">${f}</option>`).join('');
-          fm.disabled = false;
-        });
-    </script>
-}
+<div class="container my-5">
+    <h1 class="h4 mb-4 text-center">Choose Your State</h1>
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-warning">No calculators registered.</div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-6 col-md-4">
+                <form method="get" asp-controller="States" asp-action="Index">
+                    <label for="state" class="form-label">State</label>
+                    <select id="state" name="state" class="form-select">
+                        @foreach (string? state in Model)
+                        {
+                            <option value="@state">@state</option>
+                        }
+                    </select>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary" type="submit">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>

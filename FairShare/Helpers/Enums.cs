@@ -1,4 +1,4 @@
-﻿namespace FairShare.Helpers
+namespace FairShare.Helpers
 {
     /// <summary>
     /// Organizes various enumerations used throughout the FairShare application.
@@ -22,6 +22,23 @@
             Info,
             Warning,
             Error
+        }
+
+        /// <summary>
+        /// Represents the states in the United States.
+        /// </summary>
+        public enum States
+        {
+            AL
+        }
+
+        /// <summary>
+        /// Represents the available forms used in the application.
+        /// </summary>
+        public enum Forms
+        {
+            CS42,
+            CS42S
         }
     }
 }
