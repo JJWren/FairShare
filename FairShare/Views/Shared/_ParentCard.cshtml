@@ -1,0 +1,61 @@
+@model FairShare.ViewModels.ParentCardViewModel
+@{
+    ViewData.TemplateInfo.HtmlFieldPrefix = Model.Prefix;
+    bool showPrimary = string.Equals(ViewContext.ViewData["CalculatorForm"] as string, "CS42", StringComparison.OrdinalIgnoreCase);
+}
+<div class="col-12 col-lg-6">
+    <div class="card h-100 shadow-sm">
+        <div class="card-header text-center d-flex justify-content-between align-items-center">
+            <strong>@Model.Title</strong>
+            @if (showPrimary)
+            {
+                <div class="form-check form-switch m-0">
+                    <input asp-for="HasPrimaryCustody" class="form-check-input" />
+                    <label asp-for="HasPrimaryCustody" class="form-check-label small"></label>
+                </div>
+            }
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="MonthlyGrossIncome" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="MonthlyGrossIncome" class="form-control" inputmode="numeric" />
+                </div>
+                <span asp-validation-for="MonthlyGrossIncome" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PreexistingChildSupport" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="PreexistingChildSupport" class="form-control" inputmode="numeric" />
+                </div>
+                <span asp-validation-for="PreexistingChildSupport" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PreexistingAlimony" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="PreexistingAlimony" class="form-control" inputmode="numeric" />
+                </div>
+                <span asp-validation-for="PreexistingAlimony" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="WorkRelatedChildcareCosts" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="WorkRelatedChildcareCosts" class="form-control" inputmode="numeric" />
+                </div>
+                <span asp-validation-for="WorkRelatedChildcareCosts" class="text-danger"></span>
+            </div>
+            <div class="mb-0">
+                <label asp-for="HealthcareCoverageCosts" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="HealthcareCoverageCosts" class="form-control" inputmode="numeric" />
+                </div>
+                <span asp-validation-for="HealthcareCoverageCosts" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+</div>

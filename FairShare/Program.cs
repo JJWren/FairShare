@@ -2,28 +2,32 @@ using FairShare.Calculators;
 using FairShare.Interfaces;
 using FairShare.Services;
 
-WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewOptions(o => { /* place view conventions if needed */ });
+
 builder.Services.AddProblemDetails();
 
-// === Calculator services ===
-builder.Services.AddSingleton<CS42SCalculator>();                           // AL CS-42-S engine
-builder.Services.AddSingleton<IChildSupportCalculator, CS42SCalculator>();  // wraps CS42SCalculator
-builder.Services.AddSingleton<ICalculatorRegistry, CalculatorRegistry>();   // global registry
+// Calculators & catalog
+builder.Services.AddScoped<IChildSupportCalculator, CS42Calculator>();
+builder.Services.AddScoped<IChildSupportCalculator, CS42SCalculator>();
+builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>(); // Changed from AddSingleton to AddScoped
 
-WebApplication? app = builder.Build();
-
-app.UseExceptionHandler("/error");
+WebApplication app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
+    app.UseExceptionHandler("/Error/500");
     app.UseHsts();
 }
+else
+{
+    app.UseDeveloperExceptionPage();
+}
 
-// For non-exception status codes (404, 400, 403, etc.)
-app.UseStatusCodePagesWithReExecute("/error/{0}");
+// Status code pages (404, etc.)
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -31,9 +35,16 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
+// Routes
 app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+    name: "calculator",
+    pattern: "States/{state}/{form}",
+    defaults: new { controller = "Support", action = "Index" });
+
+app.MapControllerRoute(
+    name: "stateForms",
+    pattern: "States/{state}",
+    defaults: new { controller = "States", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",

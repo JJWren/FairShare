@@ -1,0 +1,41 @@
+@model IReadOnlyCollection<(string Form, string DisplayName)>
+@{
+    string? state = (string)ViewData["State"]!;
+    ViewData["Title"] = $"{state} Forms";
+}
+
+<div class="container my-5">
+    <h1 class="h4 mb-4 text-center">Forms Available for @state</h1>
+
+    @if (TempData["Error"] is string err)
+    {
+        <div class="alert alert-danger">@err</div>
+    }
+
+    <form asp-controller="States"
+          asp-action="Select"
+          asp-route-state="@state"
+          method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-6 col-md-4">
+                <label class="form-label" for="selectedForm">Select Form</label>
+                <select id="selectedForm" name="selectedForm" class="form-select">
+                    <option value="">-- choose --</option>
+                    @foreach (var f in Model)
+                    {
+                        <option value="@f.Form">@f.DisplayName</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">Continue</button>
+        </div>
+    </form>
+
+    <div class="text-center mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-link">&larr; Back to States</a>
+    </div>
+</div>

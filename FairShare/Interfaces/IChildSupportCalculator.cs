@@ -1,4 +1,4 @@
-﻿using FairShare.CustomObjects;
+using FairShare.Helpers;
 using FairShare.Models;
 
 namespace FairShare.Interfaces
@@ -8,12 +8,17 @@ namespace FairShare.Interfaces
         /// <summary>
         /// The two-letter abbreviation for the state this calculator is designed for.
         /// </summary>
-        string State { get; }   // "AL"
+        string State { get; }
 
         /// <summary>
         /// The specific form or guideline this calculator implements within the state.
         /// </summary>
-        string Form { get; }    // "CS42S"
+        string Form { get; }
+
+        /// <summary>
+        /// Indicates whether this calculator implements a shared custody guideline variant.
+        /// </summary>
+        bool IsSharedCustody { get; }
 
         /// <summary>
         /// Calculates the final child support obligation for both parents and determines which parent is the payer based on the

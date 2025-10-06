@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace FairShare.Models
 {
@@ -7,6 +7,12 @@ namespace FairShare.Models
     /// </summary>
     public class ParentData
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether the parent has primary custody of the children.
+        /// </summary>
+        [Display(Name = "Primary Custody")]
+        public bool HasPrimaryCustody { get; set; } = false;
+
         /// <summary>
         /// Gets or sets the monthly gross income.
         /// </summary>

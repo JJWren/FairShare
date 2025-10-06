@@ -1,0 +1,94 @@
+@using FairShare.Helpers
+@using FairShare.ViewModels
+@model FairShare.ViewModels.CalculatorViewModel
+@{
+    ViewData["Title"] = $"{Model.State} - {Model.Form} Calculator";
+    ViewData["CalculatorForm"] = Model.Form;
+}
+
+<div class="container my-4">
+    <h1 class="h4 mb-3 text-center">@ViewData["Title"]</h1>
+    <form method="post" asp-route-state="@Model.State" asp-route-form="@Model.Form">
+        @Html.AntiForgeryToken()
+        <div class="row g-3 mb-4 justify-content-center">
+            <div class="col-12 col-sm-5 col-lg-3 text-center">
+                <label class="form-label" for="NumberOfChildren">Number of Children</label>
+                <input asp-for="NumberOfChildren" class="form-control" inputmode="numeric" />
+                <span asp-validation-for="NumberOfChildren" class="text-danger"></span>
+            </div>
+        </div>
+
+        @if (Model.Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="alert alert-info py-2 small">
+                Mark exactly one parent as having Primary Custody.
+            </div>
+        }
+
+        <div class="row g-4">
+            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Plaintiff", "Plaintiff", Model.Plaintiff))
+            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Defendant", "Defendant", Model.Defendant))
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Calculate</button>
+            <button type="submit" name="action" value="reset" class="btn btn-outline-secondary" formnovalidate>Reset</button>
+        </div>
+
+        <div class="mt-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        </div>
+
+        <div class="mt-5">
+            <div class="card shadow-sm">
+                <div class="card-header text-center"><strong>Results</strong></div>
+                <div class="card-body">
+                    @if (Model.Submitted && Model.Result is not null && Model.Result.Success)
+                    {
+                        <p class="fw-bold text-center mb-0">
+                            @(string.IsNullOrWhiteSpace(Model.Result.Payer)
+                                ? "No net transfer."
+                                : $"{Model.Result.Payer} owes ${Model.Result.FinalAmount}.")
+                        </p>
+                    }
+                    else if (Model.Submitted && Model.Result is not null && !Model.Result.Success)
+                    {
+                        <ul class="text-danger mb-0">
+                            @foreach (CalcError? e in Model.Result.Errors)
+                            {
+                                <li>@e.Code: @e.Message</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="mt-4">
+        <a asp-controller="States" asp-action="Index" asp-route-state="@Model.State" class="btn btn-link">&larr; Back to @Model.State Forms</a>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Enforce only one primary custody checkbox
+        document.addEventListener('change', e => {
+            if (!e.target.matches('input[name="Plaintiff.HasPrimaryCustody"], input[name="Defendant.HasPrimaryCustody"]')) return;
+
+            if (@Model.IsSharedCustodyForm) return;
+
+            if (e.target.checked) {
+                if (e.target.name === 'Plaintiff.HasPrimaryCustody') {
+                    document.querySelector('input[name="Defendant.HasPrimaryCustody"]').checked = false;
+                } else {
+                    document.querySelector('input[name="Plaintiff.HasPrimaryCustody"]').checked = false;
+                }
+            }
+        });
+    </script>
+}
