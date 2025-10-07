@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.0.0...fairshare-v3.0.0) (2025-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add parent profile management and database support ([#13](https://github.com/JJWren/FairShare/issues/13))
+
+### Features
+
+* Add parent profile management and database support ([#13](https://github.com/JJWren/FairShare/issues/13)) ([8bd586a](https://github.com/JJWren/FairShare/commit/8bd586a2f251e82ad64aec1637d5985d02efb589))
+
 ## [2.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v1.0.0...fairshare-v2.0.0) (2025-10-06)
 
 
