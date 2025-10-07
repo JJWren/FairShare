@@ -175,13 +175,6 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
         existing.HealthcareCoverageCosts = request.HealthcareCoverageCosts;
         existing.HasPrimaryCustody = request.HasPrimaryCustody;
 
-        // Concurrency: if RowVersion supplied, compare
-        if (request.RowVersion is not null && existing.RowVersion is not null &&
-            !existing.RowVersion.SequenceEqual(request.RowVersion))
-        {
-            return Conflict("Concurrency conflict. Reload and retry.");
-        }
-
         bool ok = await _service.UpdateAsync(existing, ct);
 
         if (!ok)
