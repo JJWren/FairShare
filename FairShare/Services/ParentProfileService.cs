@@ -15,7 +15,7 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            q = q.Where(p => p.DisplayName.Contains(search));
+            q = q.Where(p => p.DisplayName.ToLower().Contains(search.ToLower()));
         }
         return await q.OrderBy(p => p.DisplayName).Take(100).ToListAsync(ct);
     }
