@@ -1,0 +1,51 @@
+@model IReadOnlyList<FairShare.Models.ParentProfile>
+@{
+    ViewData["Title"] = "Parent Profiles";
+    string? q = Context.Request.Query["q"];
+}
+<div class="container my-4">
+    <h1 class="h4 mb-3">Parent Profiles</h1>
+    <form method="get" class="mb-3 d-flex gap-2">
+        <input name="q" value="@q" class="form-control" placeholder="Search display name..." />
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+    </form>
+    @if (TempData["Msg"] is string msg)
+    {
+        <div class="alert alert-success py-2">@msg</div>
+    }
+    <table class="table table-sm table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Income</th>
+                <th>Child Supp.</th>
+                <th>Alimony</th>
+                <th>Childcare</th>
+                <th>Healthcare</th>
+                <th>Primary?</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.DisplayName</td>
+                <td>@p.MonthlyGrossIncome</td>
+                <td>@p.PreexistingChildSupport</td>
+                <td>@p.PreexistingAlimony</td>
+                <td>@p.WorkRelatedChildcareCosts</td>
+                <td>@p.HealthcareCoverageCosts</td>
+                <td>@(p.HasPrimaryCustody ? "Yes" : "No")</td>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form asp-action="Archive" asp-route-id="@p.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Archive this profile?');">Archive</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

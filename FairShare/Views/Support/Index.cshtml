@@ -26,8 +26,8 @@
         }
 
         <div class="row g-4">
-            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Plaintiff", "Plaintiff", Model.Plaintiff))
-            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Defendant", "Defendant", Model.Defendant))
+            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Plaintiff", "Plaintiff", Model.Plaintiff, Model.PlaintiffName))
+            @await Html.PartialAsync("_ParentCard", new ParentCardViewModel("Defendant", "Defendant", Model.Defendant, Model.DefendantName))
         </div>
 
         <div class="mt-3 d-flex gap-2">
@@ -79,9 +79,7 @@
         // Enforce only one primary custody checkbox
         document.addEventListener('change', e => {
             if (!e.target.matches('input[name="Plaintiff.HasPrimaryCustody"], input[name="Defendant.HasPrimaryCustody"]')) return;
-
             if (@Model.IsSharedCustodyForm) return;
-
             if (e.target.checked) {
                 if (e.target.name === 'Plaintiff.HasPrimaryCustody') {
                     document.querySelector('input[name="Defendant.HasPrimaryCustody"]').checked = false;
@@ -90,5 +88,111 @@
                 }
             }
         });
+
+        (function () {
+            const selects = document.querySelectorAll('.parent-profile-select');
+            if (selects.length === 0) return;
+
+            let cache = null;
+
+            function formatSummary(p) {
+                return `Income: $${p.monthlyGrossIncome}
+Child Supp: $${p.preexistingChildSupport}
+Alimony: $${p.preexistingAlimony}
+Childcare: $${p.workRelatedChildcareCosts}
+Healthcare: $${p.healthcareCoverageCosts}
+Primary: ${p.hasPrimaryCustody ? 'Yes' : 'No'}`;
+            }
+
+            function applyToForm(prefix, parent) {
+                const setVal = (name, val) => {
+                    const el = document.querySelector(`[name="${prefix}.${name}"]`);
+                    if (el) el.value = val;
+                };
+                setVal('MonthlyGrossIncome', parent.monthlyGrossIncome);
+                setVal('PreexistingChildSupport', parent.preexistingChildSupport);
+                setVal('PreexistingAlimony', parent.preexistingAlimony);
+                setVal('WorkRelatedChildcareCosts', parent.workRelatedChildcareCosts);
+                setVal('HealthcareCoverageCosts', parent.healthcareCoverageCosts);
+                const custodyEl = document.querySelector(`[name="${prefix}.HasPrimaryCustody"]`);
+                if (custodyEl) {
+                    custodyEl.checked = parent.hasPrimaryCustody;
+                    custodyEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                const nameEl = document.querySelector(`[name="${prefix}Name"]`);
+                if (nameEl && parent.displayName) nameEl.value = parent.displayName;
+
+                const summaryDiv = document.querySelector(`[data-parent-summary="${prefix}"]`);
+                if (summaryDiv) summaryDiv.textContent = parent.displayName + ' | ' + formatSummary(parent).replace(/\n/g, ' | ');
+            }
+
+            function clearForm(prefix) {
+                const fields = ['MonthlyGrossIncome','PreexistingChildSupport','PreexistingAlimony','WorkRelatedChildcareCosts','HealthcareCoverageCosts'];
+                fields.forEach(f => {
+                    const el = document.querySelector(`[name="${prefix}.${f}"]`);
+                    if (el) el.value = '';
+                });
+                const nameEl = document.querySelector(`[name="${prefix}Name"]`);
+                if (nameEl) nameEl.value = '';
+                const custodyEl = document.querySelector(`[name="${prefix}.HasPrimaryCustody"]`);
+                if (custodyEl) custodyEl.checked = false;
+                const summaryDiv = document.querySelector(`[data-parent-summary="${prefix}"]`);
+                if (summaryDiv) summaryDiv.textContent = '';
+                const select = document.querySelector(`.parent-profile-select[data-parent-prefix="${prefix}"]`);
+                if (select) select.value = '';
+            }
+
+            async function loadParents() {
+                if (cache) return cache;
+                const resp = await fetch('/api/parents');
+                if (!resp.ok) return [];
+                const data = await resp.json();
+                // Convert server response property names to camelCase for use in client code
+                cache = data.map(p => ({
+                    id: p.id,
+                    displayName: p.displayName,
+                    monthlyGrossIncome: p.monthlyGrossIncome,
+                    preexistingChildSupport: p.preexistingChildSupport,
+                    preexistingAlimony: p.preexistingAlimony,
+                    workRelatedChildcareCosts: p.workRelatedChildcareCosts,
+                    healthcareCoverageCosts: p.healthcareCoverageCosts,
+                    hasPrimaryCustody: p.hasPrimaryCustody
+                }));
+                return cache;
+            }
+
+            function populateSelect(select, parents) {
+                parents.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.displayName} ($${p.monthlyGrossIncome})`;
+                    opt.title = formatSummary(p); // basic tooltip (native)
+                    select.appendChild(opt);
+                });
+            }
+
+            loadParents().then(parents => {
+                selects.forEach(sel => populateSelect(sel, parents));
+            });
+
+            document.addEventListener('change', e => {
+                if (!e.target.matches('.parent-profile-select')) return;
+                const id = e.target.value;
+                const prefix = e.target.getAttribute('data-parent-prefix');
+                if (!prefix) return;
+                if (!id) {
+                    clearForm(prefix);
+                    return;
+                }
+                const parent = cache.find(p => p.id === id);
+                if (parent) applyToForm(prefix, parent);
+            });
+
+            document.addEventListener('click', e => {
+                if (!e.target.matches('[data-clear-parent]')) return;
+                const prefix = e.target.getAttribute('data-clear-parent');
+                if (prefix) clearForm(prefix);
+            });
+        })();
     </script>
 }

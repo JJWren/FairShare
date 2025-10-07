@@ -62,7 +62,7 @@ publish/
 # User secrets (stored outside repo by default, but just in case)
 secrets.json
 
-# Kestrel dev certs (don’t commit machine certs)
+# Kestrel dev certs (donâ€™t commit machine certs)
 *.pfx
 *.p12
 
@@ -132,3 +132,5 @@ temp/
 *.log.*
 *.trace
 *.etl
+*.db
+*/appsettings.Development.json

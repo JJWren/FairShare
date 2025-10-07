@@ -2,20 +2,46 @@
 @{
     ViewData.TemplateInfo.HtmlFieldPrefix = Model.Prefix;
     bool showPrimary = string.Equals(ViewContext.ViewData["CalculatorForm"] as string, "CS42", StringComparison.OrdinalIgnoreCase);
+    string nameInputName = Model.Prefix + "Name";
+    string nameInputId = Model.Prefix + "_Name";
 }
 <div class="col-12 col-lg-6">
     <div class="card h-100 shadow-sm">
-        <div class="card-header text-center d-flex justify-content-between align-items-center">
-            <strong>@Model.Title</strong>
-            @if (showPrimary)
-            {
-                <div class="form-check form-switch m-0">
-                    <input asp-for="HasPrimaryCustody" class="form-check-input" />
-                    <label asp-for="HasPrimaryCustody" class="form-check-label small"></label>
-                </div>
-            }
+        <div class="card-header text-center d-flex flex-column gap-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>@Model.Title</strong>
+                @if (showPrimary)
+                {
+                    <div class="form-check form-switch m-0">
+                        <input asp-for="HasPrimaryCustody" class="form-check-input" />
+                        <label asp-for="HasPrimaryCustody" class="form-check-label small"></label>
+                    </div>
+                }
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <select class="form-select form-select-sm parent-profile-select"
+                        data-parent-prefix="@Model.Prefix"
+                        aria-label="Select saved parent to populate @Model.Title fields">
+                    <option value="">-- Select saved parent --</option>
+                </select>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-clear-parent="@Model.Prefix"
+                        title="Clear populated values">
+                    Clear
+                </button>
+            </div>
         </div>
         <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label" for="@nameInputId">Name (optional)</label>
+                <input type="text"
+                       class="form-control"
+                       id="@nameInputId"
+                       name="@nameInputName"
+                       value="@(Model.DisplayName ?? string.Empty)"
+                       maxlength="100"
+                       placeholder="e.g. John D." />
+            </div>
             <div class="mb-3">
                 <label asp-for="MonthlyGrossIncome" class="form-label"></label>
                 <div class="input-group">

@@ -11,11 +11,13 @@ namespace FairShare.ViewModels
     {
         public string Title { get; }
         public string Prefix { get; }
+        public string? DisplayName { get; }
 
-        public ParentCardViewModel(string title, string prefix, ParentData source)
+        public ParentCardViewModel(string title, string prefix, ParentData source, string? displayName)
         {
             Title = title;
             Prefix = prefix;
+            DisplayName = displayName;
             MonthlyGrossIncome = source.MonthlyGrossIncome;
             PreexistingChildSupport = source.PreexistingChildSupport;
             PreexistingAlimony = source.PreexistingAlimony;
