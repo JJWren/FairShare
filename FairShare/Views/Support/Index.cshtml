@@ -147,7 +147,7 @@ Primary: ${p.hasPrimaryCustody ? 'Yes' : 'No'}`;
                 const resp = await fetch('/api/parents');
                 if (!resp.ok) return [];
                 const data = await resp.json();
-                // Normalize property names to camelCase for easier usage (already likely in camel from anonymous object)
+                // Convert server response property names to camelCase for use in client code
                 cache = data.map(p => ({
                     id: p.id,
                     displayName: p.displayName,
