@@ -12,6 +12,8 @@ namespace FairShare.ViewModels
         public ParentData Defendant { get; set; } = new();
         public CalculationResult? Result { get; set; }
         public bool Submitted { get; set; }
+        public string? PlaintiffName { get; set; }
+        public string? DefendantName { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the form being used is a shared custody form.

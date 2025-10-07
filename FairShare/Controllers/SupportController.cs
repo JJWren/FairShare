@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FairShare.Controllers;
 
-public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportController> logger) : Controller
+public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportController> logger, IParentProfileService parentService) : Controller
 {
     private readonly IStateGuidelineCatalog _catalog = catalog;
+    private readonly IParentProfileService _parentService = parentService;
 
     [HttpGet]
     public IActionResult Index(string state, string form)
@@ -31,7 +32,7 @@ public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportCo
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Index(string state, string form, string? action, CalculatorViewModel vm)
+    public async Task<IActionResult> Index(string state, string form, string? action, CalculatorViewModel vm, CancellationToken ct)
     {
         vm.State = state.ToUpperInvariant();
         vm.Form = form.ToUpperInvariant();
@@ -47,22 +48,22 @@ public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportCo
         if (action == "reset")
         {
             ModelState.Clear();
+
             CalculatorViewModel clean = new()
             {
                 State = vm.State,
                 Form = vm.Form,
                 IsSharedCustodyForm = vm.IsSharedCustodyForm
             };
+
             ViewData["Title"] = $"{clean.State} - {clean.Form} Calculator";
             return View(clean);
         }
 
-        if (!vm.IsSharedCustodyForm)
+        if (!vm.IsSharedCustodyForm &&
+            vm.Plaintiff.HasPrimaryCustody == vm.Defendant.HasPrimaryCustody)
         {
-            if (vm.Plaintiff.HasPrimaryCustody == vm.Defendant.HasPrimaryCustody)
-            {
-                ModelState.AddModelError(string.Empty, "For this form, you must mark exactly one parent as having Primary Custody.");
-            }
+            ModelState.AddModelError(string.Empty, "For this form, you must mark exactly one parent as having Primary Custody.");
         }
 
         if (!ModelState.IsValid)
@@ -73,6 +74,13 @@ public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportCo
 
         vm.Result = calc.Calculate(vm.Plaintiff, vm.Defendant, vm.NumberOfChildren);
         vm.Submitted = true;
+
+        if (vm.Result.Success)
+        {
+            await _parentService.GetOrCreateAsync(vm.Plaintiff, vm.PlaintiffName, ct);
+            await _parentService.GetOrCreateAsync(vm.Defendant, vm.DefendantName, ct);
+        }
+
         ViewData["Title"] = $"{vm.State} - {vm.Form} Calculator";
         return View(vm);
     }

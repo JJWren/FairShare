@@ -1,0 +1,56 @@
+@model FairShare.Models.ParentProfile
+@{
+    ViewData["Title"] = "Edit Parent";
+}
+<div class="container my-4">
+    <h1 class="h5 mb-3">Edit Parent</h1>
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="DisplayName" class="form-label"></label>
+            <input asp-for="DisplayName" class="form-control" />
+            <span asp-validation-for="DisplayName" class="text-danger"></span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="MonthlyGrossIncome" class="form-label"></label>
+                <input asp-for="MonthlyGrossIncome" class="form-control" />
+                <span asp-validation-for="MonthlyGrossIncome" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="PreexistingChildSupport" class="form-label"></label>
+                <input asp-for="PreexistingChildSupport" class="form-control" />
+                <span asp-validation-for="PreexistingChildSupport" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="PreexistingAlimony" class="form-label"></label>
+                <input asp-for="PreexistingAlimony" class="form-control" />
+                <span asp-validation-for="PreexistingAlimony" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="WorkRelatedChildcareCosts" class="form-label"></label>
+                <input asp-for="WorkRelatedChildcareCosts" class="form-control" />
+                <span asp-validation-for="WorkRelatedChildcareCosts" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="HealthcareCoverageCosts" class="form-label"></label>
+                <input asp-for="HealthcareCoverageCosts" class="form-control" />
+                <span asp-validation-for="HealthcareCoverageCosts" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 form-check mt-4">
+                <input asp-for="HasPrimaryCustody" class="form-check-input" />
+                <label asp-for="HasPrimaryCustody" class="form-check-label"></label>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+        <div class="mt-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

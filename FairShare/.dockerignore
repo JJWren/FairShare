@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+
+# User secrets & local settings
+secrets.json
+appsettings.*.local.json
+
+# SQLite databases & backups
+*.db
+*.db-shm
+*.db-wal
+db_backups/
+
+# IDE / tooling
+.vscode/
+.vs/
+*.user
+*.suo
+
+# Git
+.git
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# OS noise
+[Tt]humbs.db
+[Dd]esktop.ini
