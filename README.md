@@ -39,7 +39,8 @@ court-approved worksheets.
 
 ## Tech Stack
 
-- **.NET 8** (ASP.NET Core MVC + Razor Views)
+- **.NET 9** (ASP.NET Core MVC + Razor Views)
+- **SQLite** for the database
 - **Bootstrap 5** (CDN or local)
 - **Docker** & **Docker Compose**
 
@@ -53,7 +54,7 @@ If you publish images (e.g., to Docker Hub or GHCR), you can run with a one-file
 # docker-compose.yml
 services:
   fairshare:
-    image: ghcr.io/jjwren/fairshare:0.1.0
+    image: ghcr.io/jjwren/fairshare:latest
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_HTTP_PORTS: "9090"   # container listens on 9090
