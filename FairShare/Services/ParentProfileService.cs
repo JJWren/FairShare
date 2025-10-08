@@ -2,12 +2,14 @@ using FairShare.Data;
 using FairShare.Interfaces;
 using FairShare.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FairShare.Services;
 
-public class ParentProfileService(FairShareDbContext db) : IParentProfileService
+public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileService> logger) : IParentProfileService
 {
     private readonly FairShareDbContext _db = db;
+    private readonly ILogger<ParentProfileService> _logger = logger;
 
     public async Task<IReadOnlyList<ParentProfile>> ListAsync(string? search = null, CancellationToken ct = default)
     {
@@ -31,7 +33,11 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
     {
         if (profile.OwnerUserId is null)
         {
-            throw new InvalidOperationException("OwnerUserId must be set before creating a ParentProfile.");
+            _logger.LogWarning(
+                "Creating ParentProfile {ProfileId} with DisplayName '{DisplayName}' without an OwnerUserId. " +
+                "This is allowed for backward compatibility but should be avoided in new code.",
+                profile.Id,
+                profile.DisplayName);
         }
 
         if (profile.CreatedUtc == default)
@@ -106,6 +112,11 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
                 existing.OwnerUserId = ownerUserId;
                 existing.UpdatedUtc = DateTime.UtcNow;
                 await _db.SaveChangesAsync(ct);
+                
+                _logger.LogInformation(
+                    "Bound existing unowned ParentProfile {ProfileId} to user {UserId}",
+                    existing.Id,
+                    ownerUserId);
             }
 
             return existing;
@@ -131,6 +142,21 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
         _db.ParentProfiles.Add(profile);
         await _db.SaveChangesAsync(ct);
+        
+        if (ownerUserId is not null)
+        {
+            _logger.LogInformation(
+                "Created new ParentProfile {ProfileId} owned by user {UserId}",
+                profile.Id,
+                ownerUserId);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Created new ParentProfile {ProfileId} without an owner. This should be avoided in new code.",
+                profile.Id);
+        }
+        
         return profile;
     }
 }
