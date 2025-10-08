@@ -137,8 +137,22 @@
     </main>
 
     <footer class="container small text-muted py-4">
-        &copy; @DateTime.UtcNow.Year - FairShare - jmykitta@theguywiththedogs.dev
+        &copy; @DateTime.UtcNow.Year - FairShare -
+        <span id="contact-email"></span>
     </footer>
+    <script>
+        // Obfuscate and display email address to reduce spam bot harvesting
+        (function() {
+            var user = "jmykitta";
+            var domain = "theguywiththedogs";
+            var tld = "dev";
+            var email = user + "@" + domain + "." + tld;
+            var span = document.getElementById("contact-email");
+            if (span) {
+                span.textContent = email;
+            }
+        })();
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
