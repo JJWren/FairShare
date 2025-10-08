@@ -159,7 +159,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> CreateBatch([FromBody] ParentCreateRequest[] requests, CancellationToken ct)
     {
-        if (requests.Length is < 1 or > 10)
+        if (requests.Length == 0 || requests.Length > 10)
         {
             return BadRequest("Provide 1-10 items.");
         }
