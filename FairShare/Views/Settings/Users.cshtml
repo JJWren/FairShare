@@ -1,0 +1,73 @@
+@model IEnumerable<UserListItemViewModel>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Users";
+    var filter = HttpContextAccessor.HttpContext?.Request.Query["filter"].ToString();
+}
+
+<div class="container my-4">
+    <h2>Users</h2>
+
+    @if (TempData["SuccessMessage"] is string successMsg)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @successMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form method="get" class="mb-3 d-flex gap-2 align-items-center">
+        <label for="filter" class="form-label mb-0">Filter:</label>
+        <select name="filter" id="filter" class="form-select" style="width: auto;" onchange="this.form.submit()">
+            <option value="all" selected="@(filter == "all" ? "selected" : null)">All</option>
+            <option value="enabled" selected="@(filter == "enabled" ? "selected" : null)">Enabled</option>
+            <option value="disabled" selected="@(filter == "disabled" ? "selected" : null)">Disabled</option>
+        </select>
+        <a class="btn btn-primary ms-auto" asp-action="CreateUser">
+            <i class="bi bi-plus-circle"></i> New User
+        </a>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>UserName</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                    <th>Last Seen</th>
+                    <th>Updated</th>
+                    <th>Disabled</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.UserName</td>
+                <td>@u.Role</td>
+                <td>@u.CreatedUtc.ToLocalTime().ToString("g")</td>
+                <td>@(u.LastSeenUtc?.ToLocalTime().ToString("g") ?? "-")</td>
+                <td>@(u.UpdatedUtc?.ToLocalTime().ToString("g") ?? "-")</td>
+                <td>
+                    <span class="badge bg-@(u.IsDisabled ? "danger" : "success")">
+                        @(u.IsDisabled ? "Yes" : "No")
+                    </span>
+                </td>
+                <td class="text-end">
+                    <div class="btn-group" role="group">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditUser" asp-route-id="@u.Id" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" asp-page="/Admin/Users/Delete" asp-route-id="@u.Id" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FairShare.Controllers;
 
-public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportController> logger, IParentProfileService parentService) : Controller
+public class SupportController(IStateGuidelineCatalog catalog, IParentProfileService parentService) : Controller
 {
     private readonly IStateGuidelineCatalog _catalog = catalog;
     private readonly IParentProfileService _parentService = parentService;
@@ -77,8 +77,8 @@ public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportCo
 
         if (vm.Result.Success)
         {
-            await _parentService.GetOrCreateAsync(vm.Plaintiff, vm.PlaintiffName, ct);
-            await _parentService.GetOrCreateAsync(vm.Defendant, vm.DefendantName, ct);
+            await _parentService.GetOrCreateAsync(vm.Plaintiff, vm.PlaintiffName, null, ct);
+            await _parentService.GetOrCreateAsync(vm.Defendant, vm.DefendantName, null, ct);
         }
 
         ViewData["Title"] = $"{vm.State} - {vm.Form} Calculator";

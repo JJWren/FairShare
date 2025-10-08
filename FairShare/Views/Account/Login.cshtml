@@ -1,0 +1,23 @@
+@inject Microsoft.Extensions.Options.IOptions<FairShare.Models.AuthOptions> Auth
+@model string
+@{
+    ViewData["Title"] = "Sign In";
+    bool allowReg = Auth.Value.AllowSelfRegistration;
+}
+<h2>Sign In</h2>
+<form asp-action="Login" method="post">
+    <input type="hidden" name="returnUrl" value="@Model" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label class="form-label">User Name</label>
+        <input name="userName" class="form-control" autocomplete="username" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input name="password" class="form-control" type="password" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary">Sign In</button>
+</form>
+<div class="mt-3 alert alert-info">
+    Demo credentials: demo / Demo@123456!
+</div>

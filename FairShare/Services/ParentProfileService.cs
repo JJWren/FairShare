@@ -2,12 +2,14 @@ using FairShare.Data;
 using FairShare.Interfaces;
 using FairShare.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FairShare.Services;
 
-public class ParentProfileService(FairShareDbContext db) : IParentProfileService
+public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileService> logger) : IParentProfileService
 {
     private readonly FairShareDbContext _db = db;
+    private readonly ILogger<ParentProfileService> _logger = logger;
 
     public async Task<IReadOnlyList<ParentProfile>> ListAsync(string? search = null, CancellationToken ct = default)
     {
@@ -15,9 +17,13 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            q = q.Where(p => p.DisplayName.ToLower().Contains(search.ToLower()));
+            string term = search.Trim().ToLower();
+            q = q.Where(p => p.DisplayName.ToLower().Contains(term));
         }
-        return await q.OrderBy(p => p.DisplayName).Take(100).ToListAsync(ct);
+
+        return await q.OrderBy(p => p.DisplayName)
+                      .Take(100)
+                      .ToListAsync(ct);
     }
 
     public Task<ParentProfile?> GetAsync(Guid id, CancellationToken ct = default)
@@ -25,6 +31,20 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
     public async Task<ParentProfile> CreateAsync(ParentProfile profile, CancellationToken ct = default)
     {
+        if (profile.OwnerUserId is null)
+        {
+            _logger.LogWarning(
+                "Creating ParentProfile {ProfileId} with DisplayName '{DisplayName}' without an OwnerUserId. " +
+                "This is allowed for backward compatibility but should be avoided in new code.",
+                profile.Id,
+                profile.DisplayName);
+        }
+
+        if (profile.CreatedUtc == default)
+        {
+            profile.CreatedUtc = DateTime.UtcNow;
+        }
+
         _db.ParentProfiles.Add(profile);
         await _db.SaveChangesAsync(ct);
         return profile;
@@ -32,8 +52,8 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
     public async Task<bool> UpdateAsync(ParentProfile profile, CancellationToken ct = default)
     {
-        _db.ParentProfiles.Update(profile);
         profile.UpdatedUtc = DateTime.UtcNow;
+        _db.ParentProfiles.Update(profile);
 
         try
         {
@@ -80,12 +100,25 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
         return q.OrderBy(p => p.CreatedUtc).FirstOrDefaultAsync(ct);
     }
 
-    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, CancellationToken ct = default)
+    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default)
     {
         ParentProfile? existing = await FindDuplicateAsync(data, displayNameHint, ct);
 
         if (existing is not null)
         {
+            // If duplicate is unowned and caller passes an owner, bind it now.
+            if (existing.OwnerUserId is null && ownerUserId is not null)
+            {
+                existing.OwnerUserId = ownerUserId;
+                existing.UpdatedUtc = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                
+                _logger.LogInformation(
+                    "Bound existing unowned ParentProfile {ProfileId} to user {UserId}",
+                    existing.Id,
+                    ownerUserId);
+            }
+
             return existing;
         }
 
@@ -102,11 +135,28 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
             PreexistingAlimony = data.PreexistingAlimony,
             WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
             HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-            HasPrimaryCustody = data.HasPrimaryCustody
+            HasPrimaryCustody = data.HasPrimaryCustody,
+            CreatedUtc = DateTime.UtcNow,
+            OwnerUserId = ownerUserId
         };
 
         _db.ParentProfiles.Add(profile);
         await _db.SaveChangesAsync(ct);
+        
+        if (ownerUserId is not null)
+        {
+            _logger.LogInformation(
+                "Created new ParentProfile {ProfileId} owned by user {UserId}",
+                profile.Id,
+                ownerUserId);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Created new ParentProfile {ProfileId} without an owner. This should be avoided in new code.",
+                profile.Id);
+        }
+        
         return profile;
     }
 }

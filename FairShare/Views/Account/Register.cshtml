@@ -1,0 +1,44 @@
+@model FairShare.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+<h2>Create Account</h2>
+
+@if (!Model.Allowed)
+{
+    <div class="alert alert-warning">
+        Self-registration is disabled.
+    </div>
+}
+else
+{
+    <form asp-action="Register" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="UserName" class="form-label"></label>
+            <input asp-for="UserName" class="form-control" />
+            <span asp-validation-for="UserName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" type="password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+            <small class="form-text text-muted">
+                Minimum 8 characters (current policy). Admins can adjust stronger rules later.
+            </small>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ConfirmPassword" class="form-label"></label>
+            <input asp-for="ConfirmPassword" type="password" class="form-control" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+        </div>
+
+        <button class="btn btn-primary">Register</button>
+    </form>
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

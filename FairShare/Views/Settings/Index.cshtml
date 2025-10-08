@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="container my-4">
+    <h2>Settings</h2>
+    
+    <div class="alert alert-info">
+        <h5>Theme Settings</h5>
+        <p>Use the sun/moon toggle in the navigation bar to change between light and dark themes.</p>
+        <p class="mb-0">Your theme preference is saved locally in your browser.</p>
+    </div>
+
+    <hr />
+
+    <h4>Account Settings</h4>
+    <p>
+        <a asp-page="/Account/Manage/Index" class="btn btn-primary">Manage Profile</a>
+        @if (!User.HasClaim("guest", "true") && User.Identity?.Name != "demo")
+        {
+            <a asp-page="/Account/Manage/ChangePassword" class="btn btn-outline-primary">Change Password</a>
+        }
+    </p>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <hr />
+        <h4>Admin Settings</h4>
+        <p>
+            <a asp-page="/Admin/Users/Index" class="btn btn-secondary">Manage Users</a>
+        </p>
+    }
+</div>

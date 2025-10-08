@@ -1,0 +1,24 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<FairShare.Models.ApplicationUser> SignInManager
+@inject UserManager<FairShare.Models.ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item"><a class="nav-link" asp-page="/Account/Manage/Index">Profile</a></li>
+    @if (User.IsInRole("Admin"))
+    {
+        <li class="nav-item"><a class="nav-link" asp-page="/Admin/Users/Index">Users</a></li>
+    }
+    <li class="nav-item">
+        <form method="post" asp-area="" asp-page="/Account/Logout">
+            <button type="submit" class="btn btn-link nav-link">Logout</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item"><a class="nav-link" asp-page="/Account/Register">Register</a></li>
+    <li class="nav-item"><a class="nav-link" asp-page="/Account/Login">Login</a></li>
+}
+</ul>

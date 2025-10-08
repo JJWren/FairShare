@@ -18,6 +18,8 @@ public class ParentProfile : ParentData
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 
+    public Guid? OwnerUserId { get; set; }    // nullable for legacy existing rows
+
     public void ApplyFrom(ParentData source)
     {
         MonthlyGrossIncome = source.MonthlyGrossIncome;
