@@ -4,7 +4,7 @@
 
 *Lightweight child-support “what-if” calculator (currently Alabama). Runs anywhere with Docker. Built with ASP.NET Core, SQLite, and Bootstrap.*
 
-FairShare gives a quick, transparent estimate of who pays child support and how much under Alabama’s guidelines (CS-42 / CS-42-S). It’s meant for fast scenario modeling—not official filings or legal advice.
+FairShare gives a quick, transparent estimate of who pays child support and how much under Alabama’s guidelines (CS-42 / CS-42-S). It’s meant for fast scenario modeling — not official filings or legal advice.
 
 > ⚠️ Disclaimer: Informational/educational only. Not legal advice. Not a substitute for an attorney or court-approved worksheets. 
 
