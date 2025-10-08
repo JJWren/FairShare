@@ -14,27 +14,33 @@ namespace FairShare.Controllers
         private readonly RoleManager<IdentityRole<Guid>> _roleManager = rm;
 
         [Authorize(Policy = "AdminOnly")]
-        public IActionResult Users(string filter = "all")
+        public async Task<IActionResult> Users(string filter = "all")
         {
-            IQueryable<ApplicationUser> users = _userManager.Users.AsQueryable();
+            IQueryable<ApplicationUser> usersQuery = _userManager.Users.AsQueryable();
             filter = filter.ToLowerInvariant();
-            users = filter switch
+            usersQuery = filter switch
             {
-                "enabled" => users.Where(u => !u.IsDisabled),
-                "disabled" => users.Where(u => u.IsDisabled),
-                _ => users
+                "enabled" => usersQuery.Where(u => !u.IsDisabled),
+                "disabled" => usersQuery.Where(u => u.IsDisabled),
+                _ => usersQuery
             };
 
-            List<UserListItemViewModel> vm = users
-                .Select(u => new UserListItemViewModel
+            var users = usersQuery.ToList();
+            var vm = new List<UserListItemViewModel>();
+            foreach (var u in users)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                vm.Add(new UserListItemViewModel
                 {
                     Id = u.Id,
                     UserName = u.UserName!,
                     IsDisabled = u.IsDisabled,
                     CreatedUtc = u.CreatedUtc,
                     LastSeenUtc = u.LastSeenUtc,
-                    UpdatedUtc = u.UpdatedUtc
-                }).ToList();
+                    UpdatedUtc = u.UpdatedUtc,
+                    Role = roles.FirstOrDefault() ?? "User"
+                });
+            }
 
             return View(vm);
         }
