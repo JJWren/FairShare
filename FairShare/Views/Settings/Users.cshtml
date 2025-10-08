@@ -30,7 +30,7 @@
 {
     <tr>
         <td>@u.UserName</td>
-        <td><!-- load role server-side or via separate call if needed --></td>
+        <td>@u.Role</td>
         <td>@u.CreatedUtc.ToLocalTime()</td>
         <td>@(u.LastSeenUtc?.ToLocalTime().ToString() ?? "-")</td>
         <td>@(u.UpdatedUtc?.ToLocalTime().ToString() ?? "-")</td>
