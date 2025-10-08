@@ -174,25 +174,4 @@ using (IServiceScope scope = app.Services.CreateScope())
     await seeder.SeedAsync();
 }
 
-// comment out to disable admin password reset at startup
-//using (var scope = app.Services.CreateScope())
-//{
-//    var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-//    var admin = await userMgr.FindByNameAsync("admin");
-//    if (admin != null)
-//    {
-//        string newPwd = "Adm!nReset1!";
-//        var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
-//        var result = await userMgr.ResetPasswordAsync(admin, token, newPwd);
-//        if (!result.Succeeded)
-//        {
-//            Console.WriteLine("Reset failed: " + string.Join(';', result.Errors.Select(e => e.Description)));
-//        }
-//        else
-//        {
-//            Console.WriteLine($"Admin password reset to: {newPwd}");
-//        }
-//    }
-//}
-
 app.Run();
