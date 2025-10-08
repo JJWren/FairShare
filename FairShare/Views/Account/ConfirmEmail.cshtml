@@ -1,0 +1,23 @@
+@model bool
+@{
+    ViewData["Title"] = "Email Confirmation";
+}
+@if (Model)
+{
+    <div class="alert alert-success">
+        Your email has been confirmed and you are now signed in.
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        Email confirmation failed. The link may be invalid or expired.
+    </div>
+}
+<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Continue</a>
+@{
+    ViewData["Title"] = "Email Confirmation Disabled";
+}
+<div class="alert alert-info">
+    Email confirmation is not used in this deployment.
+</div>

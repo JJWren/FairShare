@@ -10,5 +10,5 @@ public interface IParentProfileService
     Task<bool> UpdateAsync(ParentProfile profile, CancellationToken ct = default);
     Task<bool> ArchiveAsync(Guid id, CancellationToken ct = default);
     Task<ParentProfile?> FindDuplicateAsync(ParentData data, string? displayName, CancellationToken ct = default);
-    Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, CancellationToken ct = default);
+    Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default);
 }

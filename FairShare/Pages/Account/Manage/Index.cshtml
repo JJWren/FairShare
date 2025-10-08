@@ -1,0 +1,40 @@
+@page
+@model FairShare.Pages.Account.Manage.IndexModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container my-4">
+    <h2>My Profile</h2>
+
+    @if (Model.Status is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="Input.DisplayName" class="form-label"></label>
+            <input asp-for="Input.DisplayName" class="form-control" />
+            <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+        </div>
+        <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+
+    @if (!User.HasClaim("guest", "true") && User.Identity?.Name != "demo")
+    {
+        <hr class="my-4" />
+        <h4>Security</h4>
+        <p>
+            <a asp-page="ChangePassword" class="btn btn-outline-primary">Change Password</a>
+        </p>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -3,6 +3,7 @@ using System;
 using FairShare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FairShare.Migrations
 {
     [DbContext(typeof(FairShareDbContext))]
-    partial class FairShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007180810_AddUserTrackingFields")]
+    partial class AddUserTrackingFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -30,13 +33,7 @@ namespace FairShare.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DisplayName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -83,9 +80,6 @@ namespace FairShare.Migrations
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("UpdatedUtc")
                         .HasColumnType("TEXT");

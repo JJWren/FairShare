@@ -3,6 +3,7 @@ using System;
 using FairShare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FairShare.Migrations
 {
     [DbContext(typeof(FairShareDbContext))]
-    partial class FairShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007211319_RemovedEmailAndUpdateUserManagement")]
+    partial class RemovedEmailAndUpdateUserManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -34,9 +37,6 @@ namespace FairShare.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DisplayName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")

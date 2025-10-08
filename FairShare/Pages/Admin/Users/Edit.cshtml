@@ -1,0 +1,113 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "AdminOnly")]
+@model FairShare.Pages.Admin.Users.EditModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="container my-4">
+    <h2>Edit User</h2>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.StatusMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form method="post" id="editUserForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Input.Id" />
+
+        <div class="mb-3">
+            <label asp-for="Input.UserName" class="form-label"></label>
+            <input asp-for="Input.UserName" class="form-control" />
+            <span asp-validation-for="Input.UserName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.DisplayName" class="form-label"></label>
+            <input asp-for="Input.DisplayName" class="form-control" />
+            <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Role (select one)</label>
+            @for (int i = 0; i < Model.RoleChoices.Count; i++)
+            {
+                <div class="form-check">
+                    <input type="hidden" asp-for="RoleChoices[i].Name" />
+                    <input asp-for="RoleChoices[i].Selected" 
+                           class="form-check-input role-checkbox" 
+                           type="checkbox"
+                           id="role_@i" />
+                    <label class="form-check-label" for="role_@i">
+                        @Model.RoleChoices[i].Name
+                    </label>
+                </div>
+            }
+            <div id="roleError" class="text-danger" style="display: none;"></div>
+        </div>
+
+        <div class="mb-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        </div>
+
+        <div class="d-flex gap-2 mb-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a asp-page="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+
+    <hr />
+
+    <h4>Reset Password</h4>
+    <p class="text-muted">Set a new password for this user. The user will need to be provided with this password.</p>
+    <form method="post" asp-page-handler="ResetPassword">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Input.Id" />
+
+        <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <input type="password" name="newPassword" class="form-control" required minlength="8" />
+            <small class="form-text text-muted">Minimum 8 characters required.</small>
+        </div>
+
+        <button type="submit" class="btn btn-warning">Reset Password</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Ensure only one role can be selected
+        document.addEventListener('change', function(e) {
+            if (!e.target.matches('.role-checkbox')) return;
+            
+            if (e.target.checked) {
+                // Uncheck all other role checkboxes
+                document.querySelectorAll('.role-checkbox').forEach(function(checkbox) {
+                    if (checkbox !== e.target) {
+                        checkbox.checked = false;
+                    }
+                });
+            }
+        });
+
+        // Validate at least one role is selected on submit
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            const checked = document.querySelectorAll('.role-checkbox:checked');
+            const errorDiv = document.getElementById('roleError');
+            
+            if (checked.length === 0) {
+                e.preventDefault();
+                errorDiv.textContent = 'Please select a role.';
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        });
+    </script>
+}

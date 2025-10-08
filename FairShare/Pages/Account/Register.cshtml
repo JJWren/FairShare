@@ -1,0 +1,30 @@
+@page
+@attribute [IgnoreAntiforgeryToken]
+@model FairShare.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+<h2>Register</h2>
+@if (!Model.AllowRegistration)
+{
+    <div class="alert alert-warning">Self-registration is disabled.</div>
+}
+else
+{
+    <form method="post">
+        <div class="mb-3">
+            <label asp-for="Input.UserName" class="form-label"></label>
+            <input asp-for="Input.UserName" class="form-control" />
+            <span asp-validation-for="Input.UserName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Input.Password" class="form-label"></label>
+            <input asp-for="Input.Password" class="form-control" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        <button class="btn btn-primary" type="submit">Create Account</button>
+    </form>
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

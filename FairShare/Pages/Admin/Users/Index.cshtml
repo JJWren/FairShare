@@ -1,0 +1,37 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "AdminOnly")]
+@model FairShare.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Users";
+}
+<h2>Users</h2>
+<p><a class="btn btn-sm btn-primary" asp-page="Create">Create User</a></p>
+<table class="table table-sm align-middle">
+    <thead>
+        <tr>
+            <th>UserName</th>
+            <th>Display Name</th>
+            <th>Id</th>
+            <th>Roles</th>
+            <th>Created (UTC)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model.Users)
+        {
+            <tr>
+                <td>@u.UserName</td>
+                <td>@u.DisplayName</td>
+                <td>@u.Id</td>
+                <td>@string.Join(',', u.Roles)</td>
+                <td>@u.CreatedUtc?.ToString("u")</td>
+                <td class="text-end">
+                    <a asp-page="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-secondary">Edit</a>
+                    <a asp-page="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

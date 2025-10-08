@@ -1,9 +1,17 @@
-using FairShare.Calculators;
-using FairShare.Interfaces;
-using FairShare.Services;
-using FairShare.Data;
-using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
+
+using FairShare.Calculators;
+using FairShare.Data;
+using FairShare.Interfaces;
+using FairShare.Middleware;
+using FairShare.Models;
+using FairShare.Options;
+using FairShare.Services;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 static void BackupSqliteDatabase(string dbPath, string backupDir)
 {
@@ -16,7 +24,6 @@ static void BackupSqliteDatabase(string dbPath, string backupDir)
     string stamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
     string backupFile = Path.Combine(backupDir, $"fairshare_{stamp}.db");
     File.Copy(dbPath, backupFile, overwrite: false);
-    // Optional: compress older backups
     string zipPath = backupFile + ".zip";
     using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
     zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
@@ -25,12 +32,20 @@ static void BackupSqliteDatabase(string dbPath, string backupDir)
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews()
-    .AddViewOptions(o => { /* place view conventions if needed */ });
+builder.Services.AddScoped<AdminSeeder>();
 
+builder.Services.AddControllersWithViews(options =>
+{
+    AuthorizationPolicy fallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(fallbackPolicy));
+});
+
+builder.Services.AddRazorPages();
 builder.Services.AddProblemDetails();
 
-// EF Core (SQLite)
+// EF Core
 builder.Services.AddDbContext<FairShareDbContext>(o =>
     o.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
@@ -39,6 +54,32 @@ builder.Services.AddScoped<IChildSupportCalculator, CS42Calculator>();
 builder.Services.AddScoped<IChildSupportCalculator, CS42SCalculator>();
 builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
 builder.Services.AddScoped<IParentProfileService, ParentProfileService>();
+
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(opt =>
+{
+    opt.SignIn.RequireConfirmedAccount = false;
+    opt.User.RequireUniqueEmail = false;
+    opt.Password.RequireNonAlphanumeric = false;
+    opt.Password.RequireUppercase = false;
+    opt.Password.RequiredLength = 8;
+})
+.AddEntityFrameworkStores<FairShareDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    // Example placeholder for future guest logic:
+    // o.Events.OnSigningIn = ctx => { /* modify ctx.Principal */ return Task.CompletedTask; };
+});
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", p => p.RequireRole("Admin"))
+    .AddPolicy("NotGuest", p => p.RequireAssertion(ctx =>
+        !ctx.User.HasClaim(c => c.Type == "guest" && c.Value == "true")));
+
+builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection("AdminSeed"));
 
 WebApplication app = builder.Build();
 
@@ -52,7 +93,6 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
     {
         string dbPath = db.Database.GetDbConnection().DataSource;
 
-        // Basic integrity check before touching schema
         try
         {
             using System.Data.Common.DbCommand cmd = db.Database.GetDbConnection().CreateCommand();
@@ -87,7 +127,7 @@ if (app.Environment.IsDevelopment() ||
 {
     using IServiceScope scope = app.Services.CreateScope();
     FairShareDbContext db = scope.ServiceProvider.GetRequiredService<FairShareDbContext>();
-    db.Database.Migrate(); // No EnsureDeleted(); no EnsureCreated() once migrations exist.
+    db.Database.Migrate();
 }
 
 if (!app.Environment.IsDevelopment())
@@ -100,16 +140,16 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-// Status code pages (404, etc.)
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseMiddleware<UserActivityMiddleware>();
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Routes
 app.MapControllerRoute(
     name: "calculator",
     pattern: "States/{state}/{form}",
@@ -125,5 +165,34 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapGet("/healthz", () => Results.Ok("OK"));
+
+app.MapRazorPages();
+
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    AdminSeeder seeder = scope.ServiceProvider.GetRequiredService<AdminSeeder>();
+    await seeder.SeedAsync();
+}
+
+// comment out to disable admin password reset at startup
+//using (var scope = app.Services.CreateScope())
+//{
+//    var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+//    var admin = await userMgr.FindByNameAsync("admin");
+//    if (admin != null)
+//    {
+//        string newPwd = "Adm!nReset1!";
+//        var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
+//        var result = await userMgr.ResetPasswordAsync(admin, token, newPwd);
+//        if (!result.Succeeded)
+//        {
+//            Console.WriteLine("Reset failed: " + string.Join(';', result.Errors.Select(e => e.Description)));
+//        }
+//        else
+//        {
+//            Console.WriteLine($"Admin password reset to: {newPwd}");
+//        }
+//    }
+//}
 
 app.Run();

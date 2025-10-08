@@ -3,6 +3,7 @@ using System;
 using FairShare.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FairShare.Migrations
 {
     [DbContext(typeof(FairShareDbContext))]
-    partial class FairShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007112214_AddIdentity")]
+    partial class AddIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -30,27 +33,12 @@ namespace FairShare.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DisplayName")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDisabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("LastSeenUtc")
-                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -69,9 +57,6 @@ namespace FairShare.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Permissions")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("TEXT");
 
@@ -83,12 +68,6 @@ namespace FairShare.Migrations
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("UpdatedUtc")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

@@ -1,9 +1,12 @@
 using FairShare.Interfaces;
 using FairShare.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FairShare.Controllers;
 
+[Authorize]
 [Route("api/parents")]
 [ApiController]
 public class ParentsController(IParentProfileService service, ILogger<ParentsController> logger) : ControllerBase
@@ -31,9 +34,27 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
         bool HasPrimaryCustody,
         byte[]? RowVersion);
 
+    private Guid? CurrentUserId =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var g) ? g : null;
+
+    private bool IsAdmin => User.IsInRole("Admin");
+    private bool IsGuest => User.HasClaim(c => c.Type == "guest" && c.Value == "true");
+
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] string? q, CancellationToken ct)
-        => Ok((await _service.ListAsync(q, ct)).Select(p => new
+    {
+        IReadOnlyList<ParentProfile> all = await _service.ListAsync(q, ct);
+
+        if (!IsAdmin)
+        {
+            Guid? uid = CurrentUserId;
+            if (uid is null || IsGuest)
+                return Ok(Enumerable.Empty<object>());
+
+            all = all.Where(p => p.OwnerUserId == uid).ToList();
+        }
+
+        return Ok(all.Select(p => new
         {
             p.Id,
             p.DisplayName,
@@ -44,6 +65,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             p.HealthcareCoverageCosts,
             p.HasPrimaryCustody
         }));
+    }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken ct)
@@ -53,6 +75,13 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
         if (p is null)
         {
             return NotFound();
+        }
+
+        if (!IsAdmin)
+        {
+            if (IsGuest) return NotFound();
+            Guid? uid = CurrentUserId;
+            if (p.OwnerUserId != uid) return NotFound();
         }
 
         return Ok(new
@@ -70,8 +99,18 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     }
 
     [HttpPost]
+    [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Create([FromBody] ParentCreateRequest request, CancellationToken ct)
     {
+        Guid? uid = CurrentUserId;
+
+        if (!IsAdmin && uid is null)
+        {
+            return Forbid();
+        }
+
+        bool allowDedup = IsAdmin && request.Deduplicate;
+
         ParentData data = new()
         {
             MonthlyGrossIncome = request.MonthlyGrossIncome,
@@ -82,9 +121,15 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             HasPrimaryCustody = request.HasPrimaryCustody
         };
 
-        ParentProfile profile = request.Deduplicate
-            ? await _service.GetOrCreateAsync(data, request.DisplayName, ct)
-            : await _service.CreateAsync(new ParentProfile
+        ParentProfile profile;
+
+        if (allowDedup)
+        {
+            profile = await _service.GetOrCreateAsync(data, request.DisplayName, uid, ct);
+        }
+        else
+        {
+            profile = await _service.CreateAsync(new ParentProfile
             {
                 Id = Guid.NewGuid(),
                 DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
@@ -95,8 +140,11 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
                 PreexistingAlimony = data.PreexistingAlimony,
                 WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
                 HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-                HasPrimaryCustody = data.HasPrimaryCustody
+                HasPrimaryCustody = data.HasPrimaryCustody,
+                CreatedUtc = DateTime.UtcNow,
+                OwnerUserId = uid
             }, ct);
+        }
 
         return CreatedAtAction(nameof(Get), new { id = profile.Id }, new { profile.Id, profile.DisplayName });
     }
@@ -108,17 +156,26 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The results of the creation.</returns>
     [HttpPost("batch")]
+    [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> CreateBatch([FromBody] ParentCreateRequest[] requests, CancellationToken ct)
     {
-        if (requests.Length == 0 || requests.Length > 10)
+        if (requests.Length is < 1 or > 10)
         {
             return BadRequest("Provide 1-10 items.");
         }
 
-        List<object> results = [];
+        Guid? uid = CurrentUserId;
+
+        if (!IsAdmin && uid is null)
+        {
+            return Forbid();
+        }
+
+        List<object> results = new (requests.Length);
 
         foreach (ParentCreateRequest r in requests)
         {
+            bool allowDedup = IsAdmin && r.Deduplicate;
             ParentData data = new()
             {
                 MonthlyGrossIncome = r.MonthlyGrossIncome,
@@ -128,9 +185,15 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
                 HealthcareCoverageCosts = r.HealthcareCoverageCosts,
                 HasPrimaryCustody = r.HasPrimaryCustody
             };
-            ParentProfile p = r.Deduplicate
-                ? await _service.GetOrCreateAsync(data, r.DisplayName, ct)
-                : await _service.CreateAsync(new ParentProfile
+
+            ParentProfile p;
+            if (allowDedup)
+            {
+                p = await _service.GetOrCreateAsync(data, r.DisplayName, uid, ct);
+            }
+            else
+            {
+                p = await _service.CreateAsync(new ParentProfile
                 {
                     Id = Guid.NewGuid(),
                     DisplayName = string.IsNullOrWhiteSpace(r.DisplayName)
@@ -141,8 +204,11 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
                     PreexistingAlimony = data.PreexistingAlimony,
                     WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
                     HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-                    HasPrimaryCustody = data.HasPrimaryCustody
+                    HasPrimaryCustody = data.HasPrimaryCustody,
+                    CreatedUtc = DateTime.UtcNow,
+                    OwnerUserId = uid
                 }, ct);
+            }
 
             results.Add(new { p.Id, p.DisplayName });
         }
@@ -158,6 +224,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The results of the update.</returns>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Update(Guid id, [FromBody] ParentUpdateRequest request, CancellationToken ct)
     {
         ParentProfile? existing = await _service.GetAsync(id, ct);
@@ -167,6 +234,16 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             return NotFound();
         }
 
+        if (!IsAdmin)
+        {
+            Guid? uid = CurrentUserId;
+
+            if (IsGuest || existing.OwnerUserId != uid)
+            {
+                return NotFound();
+            }
+        }
+
         existing.DisplayName = request.DisplayName.Trim();
         existing.MonthlyGrossIncome = request.MonthlyGrossIncome;
         existing.PreexistingChildSupport = request.PreexistingChildSupport;
@@ -174,6 +251,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
         existing.WorkRelatedChildcareCosts = request.WorkRelatedChildcareCosts;
         existing.HealthcareCoverageCosts = request.HealthcareCoverageCosts;
         existing.HasPrimaryCustody = request.HasPrimaryCustody;
+        existing.UpdatedUtc = DateTime.UtcNow;
 
         bool ok = await _service.UpdateAsync(existing, ct);
 
@@ -195,8 +273,26 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     /// <returns>A <see cref="NoContentResult"/> if the resource was successfully archived;  otherwise, a <see
     /// cref="NotFoundResult"/> if the resource could not be found.</returns>
     [HttpPost("{id:guid}/archive")]
+    [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Archive(Guid id, CancellationToken ct)
     {
+        ParentProfile? existing = await _service.GetAsync(id, ct);
+
+        if (existing is null)
+        {
+            return NotFound();
+        }
+
+        if (!IsAdmin)
+        {
+            Guid? uid = CurrentUserId;
+
+            if (IsGuest || existing.OwnerUserId != uid)
+            {
+                return NotFound();
+            }
+        }
+
         bool ok = await _service.ArchiveAsync(id, ct);
         return ok ? NoContent() : NotFound();
     }

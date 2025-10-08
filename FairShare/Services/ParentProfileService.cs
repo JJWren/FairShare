@@ -15,9 +15,13 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            q = q.Where(p => p.DisplayName.ToLower().Contains(search.ToLower()));
+            string term = search.Trim().ToLower();
+            q = q.Where(p => p.DisplayName.ToLower().Contains(term));
         }
-        return await q.OrderBy(p => p.DisplayName).Take(100).ToListAsync(ct);
+
+        return await q.OrderBy(p => p.DisplayName)
+                      .Take(100)
+                      .ToListAsync(ct);
     }
 
     public Task<ParentProfile?> GetAsync(Guid id, CancellationToken ct = default)
@@ -25,6 +29,16 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
     public async Task<ParentProfile> CreateAsync(ParentProfile profile, CancellationToken ct = default)
     {
+        if (profile.OwnerUserId is null)
+        {
+            throw new InvalidOperationException("OwnerUserId must be set before creating a ParentProfile.");
+        }
+
+        if (profile.CreatedUtc == default)
+        {
+            profile.CreatedUtc = DateTime.UtcNow;
+        }
+
         _db.ParentProfiles.Add(profile);
         await _db.SaveChangesAsync(ct);
         return profile;
@@ -32,8 +46,8 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
 
     public async Task<bool> UpdateAsync(ParentProfile profile, CancellationToken ct = default)
     {
-        _db.ParentProfiles.Update(profile);
         profile.UpdatedUtc = DateTime.UtcNow;
+        _db.ParentProfiles.Update(profile);
 
         try
         {
@@ -80,12 +94,20 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
         return q.OrderBy(p => p.CreatedUtc).FirstOrDefaultAsync(ct);
     }
 
-    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, CancellationToken ct = default)
+    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default)
     {
         ParentProfile? existing = await FindDuplicateAsync(data, displayNameHint, ct);
 
         if (existing is not null)
         {
+            // If duplicate is unowned and caller passes an owner, bind it now.
+            if (existing.OwnerUserId is null && ownerUserId is not null)
+            {
+                existing.OwnerUserId = ownerUserId;
+                existing.UpdatedUtc = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+            }
+
             return existing;
         }
 
@@ -102,7 +124,9 @@ public class ParentProfileService(FairShareDbContext db) : IParentProfileService
             PreexistingAlimony = data.PreexistingAlimony,
             WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
             HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-            HasPrimaryCustody = data.HasPrimaryCustody
+            HasPrimaryCustody = data.HasPrimaryCustody,
+            CreatedUtc = DateTime.UtcNow,
+            OwnerUserId = ownerUserId
         };
 
         _db.ParentProfiles.Add(profile);

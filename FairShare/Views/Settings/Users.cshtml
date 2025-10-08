@@ -1,0 +1,55 @@
+@model IEnumerable<UserListItemViewModel>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Users";
+    var filter = HttpContextAccessor.HttpContext?.Request.Query["filter"].ToString();
+}
+<h2>Users</h2>
+<form method="get" class="mb-2">
+    <select name="filter" onchange="this.form.submit()">
+        <option value="all" selected="@(filter == "all" ? "selected" : null)">All</option>
+        <option value="enabled" selected="@(filter == "enabled" ? "selected" : null)">Enabled</option>
+        <option value="disabled" selected="@(filter == "disabled" ? "selected" : null)">Disabled</option>
+    </select>
+    <a class="btn btn-sm btn-primary ms-2" asp-action="CreateUser">New User</a>
+</form>
+<table class="table table-striped table-sm align-middle">
+    <thead>
+        <tr>
+            <th>UserName</th>
+            <th>Role</th>
+            <th>Created</th>
+            <th>Last Seen</th>
+            <th>Updated</th>
+            <th>Disabled</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var u in Model)
+{
+    <tr>
+        <td>@u.UserName</td>
+        <td><!-- load role server-side or via separate call if needed --></td>
+        <td>@u.CreatedUtc.ToLocalTime()</td>
+        <td>@(u.LastSeenUtc?.ToLocalTime().ToString() ?? "-")</td>
+        <td>@(u.UpdatedUtc?.ToLocalTime().ToString() ?? "-")</td>
+        <td>
+            <span class="badge bg-@(u.IsDisabled ? "danger" : "success")">
+                @(u.IsDisabled ? "Yes" : "No")
+            </span>
+        </td>
+        <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" asp-action="EditUser" asp-route-id="@u.Id" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" asp-action="DeleteUser" asp-route-id="@u.Id" class="d-inline" onsubmit="return confirm('Delete user @u.UserName ?')">
+                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </td>
+    </tr>
+}
+    </tbody>
+</table>

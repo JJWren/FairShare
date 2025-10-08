@@ -1,0 +1,43 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "AdminOnly")]
+@model FairShare.Pages.Admin.Users.CreateModel
+@{
+    ViewData["Title"] = "Create User";
+}
+<h2>Create User</h2>
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Input.UserName" class="form-label"></label>
+        <input asp-for="Input.UserName" class="form-control" />
+        <span asp-validation-for="Input.UserName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.DisplayName" class="form-label"></label>
+        <input asp-for="Input.DisplayName" class="form-control" />
+        <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Password" class="form-label"></label>
+        <input asp-for="Input.Password" class="form-control" />
+        <span asp-validation-for="Input.Password" class="text-danger"></span>
+    </div>
+    <fieldset class="mb-3">
+        <legend class="h6">Roles</legend>
+        @for (int i = 0; i < Model.RoleChoices.Count; i++)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       asp-for="RoleChoices[i].Selected" />
+                <input type="hidden" asp-for="RoleChoices[i].Name" />
+                <label class="form-check-label">@Model.RoleChoices[i].Name</label>
+            </div>
+        }
+    </fieldset>
+    <button class="btn btn-primary" type="submit">Create</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
