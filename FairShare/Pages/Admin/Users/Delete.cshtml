@@ -23,7 +23,7 @@
             This action cannot be undone.
         </div>
 
-        @if (!string.IsNullOrEmpty(ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage))
+        @if (!ViewData.ModelState.IsValid)
         {
             <div class="alert alert-danger">
                 <div asp-validation-summary="All" class="text-danger"></div>
