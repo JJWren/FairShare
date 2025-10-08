@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.0.0...fairshare-v4.0.0) (2025-10-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* Implement user management and authorization features ([#17](https://github.com/JJWren/FairShare/issues/17))
+
+### Features
+
+* Implement user management and authorization features ([#17](https://github.com/JJWren/FairShare/issues/17)) ([413fc4f](https://github.com/JJWren/FairShare/commit/413fc4feda1073dadedd55933a147c69b9f68b77))
+
 ## [3.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.0.0...fairshare-v3.0.0) (2025-10-07)
 
 
