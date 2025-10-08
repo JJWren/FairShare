@@ -5,20 +5,40 @@
 @{
     ViewData["Title"] = "Delete User";
 }
-<h2>Delete User</h2>
-@if (Model.UserName is null)
-{
-    <div class="alert alert-danger">User not found.</div>
-    <a asp-page="Index" class="btn btn-secondary">Back</a>
-}
-else
-{
-    <div class="alert alert-warning">
-        Are you sure you want to delete user <strong>@Model.UserName</strong>? This cannot be undone.
-    </div>
-    <form method="post">
-        <input type="hidden" asp-for="UserId" />
-        <button class="btn btn-danger" type="submit">Delete</button>
-        <a asp-page="Index" class="btn btn-secondary">Cancel</a>
-    </form>
-}
+
+<div class="container my-4">
+    <h2>Delete User</h2>
+
+    @if (Model.UserName is null)
+    {
+        <div class="alert alert-danger">User not found.</div>
+        <a asp-page="Index" class="btn btn-secondary">Back to Users</a>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Warning:</strong> Are you sure you want to delete user <strong>@Model.UserName</strong>?
+            <br />
+            This action cannot be undone.
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="UserId" />
+            <div class="d-flex gap-2">
+                <button class="btn btn-danger" type="submit">
+                    <i class="bi bi-trash"></i> Confirm Delete
+                </button>
+                <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    }
+</div>
