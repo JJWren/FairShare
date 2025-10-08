@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FairShare.Controllers;
 
-public class SupportController(IStateGuidelineCatalog catalog, ILogger<SupportController> logger, IParentProfileService parentService) : Controller
+public class SupportController(IStateGuidelineCatalog catalog, IParentProfileService parentService) : Controller
 {
     private readonly IStateGuidelineCatalog _catalog = catalog;
     private readonly IParentProfileService _parentService = parentService;
