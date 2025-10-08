@@ -121,7 +121,7 @@ public class ParentProfilesController(IParentProfileService service) : Controlle
 
         if (string.IsNullOrEmpty(nameId))
         {
-            return Forbid(); // or handle appropriately
+            return Forbid();
         }
         Guid currentId = Guid.Parse(nameId);
         model.OwnerUserId = currentId;
@@ -142,7 +142,7 @@ public class ParentProfilesController(IParentProfileService service) : Controlle
 
         if (string.IsNullOrEmpty(nameId))
         {
-            return false; // or handle appropriately
+            return false;
         }
 
         Guid currentId = Guid.Parse(nameId);
