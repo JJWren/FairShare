@@ -52,18 +52,18 @@ namespace FairShare.Controllers
 
             Guid currentId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var user = new ApplicationUser
+            ApplicationUser user = new ApplicationUser
             {
                 UserName = model.UserName,
                 CreatedUtc = DateTime.UtcNow,
                 CreatedByUserId = currentId
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            IdentityResult result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
             {
-                foreach (var e in result.Errors)
+                foreach (IdentityError e in result.Errors)
                 {
                     ModelState.AddModelError("", e.Description);
                 }

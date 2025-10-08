@@ -26,7 +26,7 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var u in Model)
+@foreach (UserListItemViewModel u in Model)
 {
     <tr>
         <td>@u.UserName</td>
@@ -43,7 +43,9 @@
             <a class="btn btn-sm btn-outline-secondary" asp-action="EditUser" asp-route-id="@u.Id" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            <form method="post" asp-action="DeleteUser" asp-route-id="@u.Id" class="d-inline" onsubmit="return confirm('Delete user @u.UserName ?')">
+            <form method="post" asp-action="DeleteUser" asp-route-id="@u.Id" class="d-inline" 
+                  onsubmit="return confirm('Delete user \u0027' + this.getAttribute('data-username') + '\u0027?');"
+                  data-username="@u.UserName">
                 <button class="btn btn-sm btn-outline-danger" title="Delete">
                     <i class="bi bi-trash"></i>
                 </button>

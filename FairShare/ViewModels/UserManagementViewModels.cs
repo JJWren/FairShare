@@ -8,6 +8,8 @@ namespace FairShare.ViewModels
 
         public string UserName { get; set; } = "";
 
+        public string? Role { get; set; }
+
         public bool IsDisabled { get; set; }
 
         public DateTime CreatedUtc { get; set; }
