@@ -1,14 +1,18 @@
 services:
   fairshare:
-    image: ghcr.io/jjwren/fairshare:0.1.0
+    image: ghcr.io/jjwren/fairshare:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Production}"
-      ASPNETCORE_HTTP_PORTS: "${APP_HTTP_PORT:-9090}"
-      UI__DefaultTheme: "dark"   # <— set default here (light|dark|auto)
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_HTTP_PORTS: "9090"   # container listens on 9090
+      UI__DefaultTheme: "dark"        # light|dark|auto
+      AdminSeed__Enabled: "true"      # this pulls the initial admin config from the docker-compose/env that you will create for this
+      AdminSeed__User: "${AdminSeed__User}"    # this should be set in an .env file
+      AdminSeed__Password: "${AdminSeed__Password}"    # this should be set in an .env file
+      AdminSeed__LogGeneratedPassword: "true"
     ports:
-      - "${HOST_HTTP_PORT:-9090}:${APP_HTTP_PORT:-9090}"
+      - "9090:9090"
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:${APP_HTTP_PORT:-9090}/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:9090/healthz"]
       interval: 10s
       timeout: 2s
       retries: 6
