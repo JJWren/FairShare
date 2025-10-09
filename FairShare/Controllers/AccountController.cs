@@ -26,7 +26,7 @@ public class AccountController(
     {
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
-            return Redirect("/");
+            return RedirectToAction("Index", "Home");
         }
 
         ViewData["ReturnUrl"] = returnUrl;
