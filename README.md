@@ -131,12 +131,15 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_HTTP_PORTS: "9090"   # container listens on 9090
       UI__DefaultTheme: "dark"        # light|dark|auto
+      ConnectionStrings__Default: "Data Source=/data/fairshare.db"    # you need a data folder in your fairshare container
       AdminSeed__Enabled: "true"      # this pulls the initial admin config from the docker-compose/env that you will create for this
       AdminSeed__User: "${AdminSeed__User}"    # this should be set in an .env file
       AdminSeed__Password: "${AdminSeed__Password}"
       AdminSeed__LogGeneratedPassword: "true"
     ports:
       - "9090:9090"
+    volumes:
+      - "path/to/your/fairshare/container/data:/data"    # you need a data folder in your fairshare container
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:9090/healthz"]
       interval: 10s
