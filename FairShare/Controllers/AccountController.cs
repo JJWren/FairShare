@@ -22,7 +22,16 @@ public class AccountController(
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null) => View(model: returnUrl);
+    public IActionResult Login(string? returnUrl = null)
+    {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
 
     [AllowAnonymous]
     [HttpPost]
