@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.0...fairshare-v4.0.1) (2026-02-25)
+
+
+### Bug Fixes
+
+* updated packages ([bb1c1a7](https://github.com/JJWren/FairShare/commit/bb1c1a761aef74125773d1bf098ed38dc84bab31))
+
 ## [4.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.0.0...fairshare-v4.0.0) (2025-10-08)
 
 
