@@ -98,7 +98,8 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
             }
             else if (db.Database.GetPendingMigrations().Any())
             {
-                BackupSqliteDatabase(dbPath, Path.Combine(AppContext.BaseDirectory, "db_backups"));
+                string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
+                BackupSqliteDatabase(dbPath, backupDir);
                 db.Database.Migrate();
                 app.Logger.LogInformation("Applied pending migrations.");
             }
