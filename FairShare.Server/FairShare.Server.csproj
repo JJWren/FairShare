@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-FairShare_Blazor-d3f43296-78d2-4e4a-a5cf-9b8274f367d2</UserSecretsId>
+    <UserSecretsId>aspnet-FairShare.Server-v5-migration</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
