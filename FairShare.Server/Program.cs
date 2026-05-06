@@ -134,6 +134,9 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseMiddleware<UserActivityMiddleware>();
 
 app.MapRazorComponents<App>()
