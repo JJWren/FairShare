@@ -165,3 +165,9 @@ data/
 volumes/
 /FairShare/fairshare.db-shm
 /FairShare/fairshare.db-wal
+
+################################################################################
+# AI DLC Documentation (Private)
+################################################################################
+aidlc-docs/
+
