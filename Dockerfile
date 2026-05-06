@@ -5,20 +5,22 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy all project files first for efficient caching
+COPY ["FairShare.sln", "./"]
 COPY ["FairShare.Server/FairShare.Server.csproj", "FairShare.Server/"]
 COPY ["FairShare.Client/FairShare.Client.csproj", "FairShare.Client/"]
 COPY ["FairShare.Shared/FairShare.Shared.csproj", "FairShare.Shared/"]
 
-RUN dotnet restore "FairShare.Server/FairShare.Server.csproj"
+# Restore all projects via the solution file
+RUN dotnet restore FairShare.sln
 
-# Copy everything else and build
+# Copy everything else and build the solution
 COPY . .
-WORKDIR "/src/FairShare.Server"
-RUN dotnet build "FairShare.Server.csproj" -c Release -o /app/build
+RUN dotnet build FairShare.sln -c Release
 
-# Publish (Release)
+# Publish the Server project (Release)
+# This will include the pre-built Client project assets
 FROM build AS publish
-RUN dotnet publish "FairShare.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "FairShare.Server/FairShare.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # =========================
 # Runtime stage
