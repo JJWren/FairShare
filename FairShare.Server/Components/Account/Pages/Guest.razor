@@ -1,0 +1,34 @@
+@page "/Account/Guest"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Guest Access</PageTitle>
+
+<div class="container my-5 text-center">
+    <p>Entering guest mode...</p>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // For Blazor Web App (SSR/Server components), we can sign in directly if on the server.
+        // This component runs on the server during initial navigation.
+        
+        List<Claim> claims =
+        [
+            new (ClaimTypes.Name, "Guest"),
+            new ("guest", "true")
+        ];
+
+        ClaimsIdentity identity = new (claims, IdentityConstants.ApplicationScheme);
+        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, new ClaimsPrincipal(identity));
+
+        Navigation.NavigateTo("/");
+    }
+}

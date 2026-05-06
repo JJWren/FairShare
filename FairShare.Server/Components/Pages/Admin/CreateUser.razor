@@ -1,0 +1,87 @@
+@page "/admin/users/create"
+@using FairShare.Shared.ViewModels
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Create User</PageTitle>
+
+<div class="container my-4">
+    <h2>Create User</h2>
+
+    @if (errors.Any())
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <EditForm Model="model" OnValidSubmit="HandleSubmit" FormName="createUserForm">
+                <DataAnnotationsValidator />
+                
+                <div class="mb-3">
+                    <label for="userName" class="form-label">UserName</label>
+                    <InputText id="userName" @bind-Value="model.UserName" class="form-control" />
+                    <ValidationMessage For="() => model.UserName" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" type="password" @bind-Value="model.Password" class="form-control" />
+                    <ValidationMessage For="() => model.Password" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <InputText id="confirmPassword" type="password" @bind-Value="model.ConfirmPassword" class="form-control" />
+                    <ValidationMessage For="() => model.ConfirmPassword" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <InputSelect id="role" @bind-Value="model.Role" class="form-select">
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </InputSelect>
+                    <ValidationMessage For="() => model.Role" class="text-danger" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateUserViewModel model = new();
+    private List<string> errors = new();
+
+    private async Task HandleSubmit()
+    {
+        errors.Clear();
+        var response = await Http.PostAsJsonAsync("api/admin/users", model);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/admin/users");
+        }
+        else
+        {
+            // In a real app, parse IdentityError objects from response
+            errors.Add("Failed to create user. Please check if the username is taken or the password doesn't meet requirements.");
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/admin/users");
+}

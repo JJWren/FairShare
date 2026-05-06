@@ -4,12 +4,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy everything and restore
+# Copy all project files first for efficient caching
+COPY ["FairShare.Server/FairShare.Server.csproj", "FairShare.Server/"]
+COPY ["FairShare.Client/FairShare.Client.csproj", "FairShare.Client/"]
+COPY ["FairShare.Shared/FairShare.Shared.csproj", "FairShare.Shared/"]
+
+RUN dotnet restore "FairShare.Server/FairShare.Server.csproj"
+
+# Copy everything else and build
 COPY . .
-RUN dotnet restore
+WORKDIR "/src/FairShare.Server"
+RUN dotnet build "FairShare.Server.csproj" -c Release -o /app/build
 
 # Publish (Release)
-RUN dotnet publish -c Release -o /app/out --no-restore
+FROM build AS publish
+RUN dotnet publish "FairShare.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # =========================
 # Runtime stage
@@ -27,7 +36,7 @@ RUN apt-get update \
 EXPOSE 9090
 
 # App bits
-COPY --from=build /app/out .
+COPY --from=publish /app/publish .
 
 # Run
-ENTRYPOINT ["dotnet", "FairShare.dll"]
+ENTRYPOINT ["dotnet", "FairShare.Server.dll"]
