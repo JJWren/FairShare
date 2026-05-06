@@ -1,5 +1,5 @@
-using FairShare.Shared.Interfaces;
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Interfaces;
+using global::FairShare.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

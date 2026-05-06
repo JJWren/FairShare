@@ -1,4 +1,4 @@
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 

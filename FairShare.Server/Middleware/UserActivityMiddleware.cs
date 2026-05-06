@@ -1,4 +1,4 @@
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace FairShare.Server.Middleware;

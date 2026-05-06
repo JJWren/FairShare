@@ -1,6 +1,6 @@
 using global::FairShare.Server.Data;
-using FairShare.Shared.Interfaces;
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Interfaces;
+using global::FairShare.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

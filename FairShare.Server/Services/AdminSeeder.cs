@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Models;
 using global::FairShare.Server.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;

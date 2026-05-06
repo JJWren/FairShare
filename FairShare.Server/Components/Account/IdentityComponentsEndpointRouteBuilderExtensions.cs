@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using global::FairShare.Server.Components.Account.Pages;
 using global::FairShare.Server.Components.Account.Pages.Manage;
-using FairShare.Shared.Models;
+using global::FairShare.Shared.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Routing;
