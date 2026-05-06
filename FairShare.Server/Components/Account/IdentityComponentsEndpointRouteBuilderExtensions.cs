@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using FairShare.Server.Components.Account.Pages;
-using FairShare.Server.Components.Account.Pages.Manage;
+using global::FairShare.Server.Components.Account.Pages;
+using global::FairShare.Server.Components.Account.Pages.Manage;
 using FairShare.Shared.Models;
 using Microsoft.AspNetCore.Http;
 

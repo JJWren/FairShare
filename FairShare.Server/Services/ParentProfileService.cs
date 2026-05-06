@@ -1,4 +1,4 @@
-using FairShare.Server.Data;
+using global::FairShare.Server.Data;
 using FairShare.Shared.Interfaces;
 using FairShare.Shared.Models;
 using Microsoft.EntityFrameworkCore;

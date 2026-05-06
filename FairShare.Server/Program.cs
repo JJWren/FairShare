@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FairShare.Client.Pages;
-using FairShare.Server.Components;
-using FairShare.Server.Components.Account;
-using FairShare.Server.Data;
+using global::FairShare.Server.Components;
+using global::FairShare.Server.Components.Account;
+using global::FairShare.Server.Data;
 using FairShare.Shared.Models;
 using FairShare.Shared.Interfaces;
 using FairShare.Shared.Calculators;
 using FairShare.Shared.Services;
-using FairShare.Server.Services;
-using FairShare.Server.Options;
-using FairShare.Server.Middleware;
+using global::FairShare.Server.Services;
+using global::FairShare.Server.Options;
+using global::FairShare.Server.Middleware;
 using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
