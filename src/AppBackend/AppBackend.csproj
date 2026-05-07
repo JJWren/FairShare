@@ -8,10 +8,10 @@
     <RootNamespace>FairShare.AppBackend</RootNamespace>
     <UserSecretsId>aspnet-FairShare.AppBackend-v5-migration</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <Version>6.0.0</Version>
-    <AssemblyVersion>6.0.0</AssemblyVersion>
-    <FileVersion>6.0.0</FileVersion>
-    <InformationalVersion>6.0.0</InformationalVersion>
+    <Version>7.0.0</Version>
+    <AssemblyVersion>7.0.0</AssemblyVersion>
+    <FileVersion>7.0.0</FileVersion>
+    <InformationalVersion>7.0.0</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
