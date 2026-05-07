@@ -19,6 +19,7 @@ global using FairShare.AppShared.Models;
 global using FairShare.AppShared.Interfaces;
 global using FairShare.AppShared.Helpers;
 global using FairShare.AppShared.ViewModels;
-global using FairShare.AppBackend.Data;
+global using FairShare.AppBackend.Persistence;
+
 
 

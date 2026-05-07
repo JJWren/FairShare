@@ -2,7 +2,7 @@
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
-@using FairShare.AppBackend.Data
+@using FairShare.AppBackend.Persistence
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -101,6 +101,8 @@
         public bool RememberMachine { get; set; }
     }
 }
+
+
 
 
 

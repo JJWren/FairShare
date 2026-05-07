@@ -11,3 +11,5 @@ global using FairShare.AppShared.Helpers;
 global using FairShare.AppShared.ViewModels;
 
 
+global using System.ComponentModel.DataAnnotations;
+

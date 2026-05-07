@@ -686,11 +686,11 @@
       }
 
       this._element = element;
-      Data.set(this._element, this.constructor.DATA_KEY, this);
+      Data.set(this._element, this.constructor.Persistence_KEY, this);
     }
 
     dispose() {
-      Data.remove(this._element, this.constructor.DATA_KEY);
+      Data.remove(this._element, this.constructor.Persistence_KEY);
       EventHandler.off(this._element, this.constructor.EVENT_KEY);
       Object.getOwnPropertyNames(this).forEach(propertyName => {
         this[propertyName] = null;
@@ -704,7 +704,7 @@
 
 
     static getInstance(element) {
-      return Data.get(getElement(element), this.DATA_KEY);
+      return Data.get(getElement(element), this.Persistence_KEY);
     }
 
     static getOrCreateInstance(element, config = {}) {
@@ -724,7 +724,7 @@
     }
 
     static get EVENT_KEY() {
-      return `.${this.DATA_KEY}`;
+      return `.${this.Persistence_KEY}`;
     }
 
   }
@@ -859,7 +859,7 @@
   const NAME$c = 'button';
   const DATA_KEY$b = 'bs.button';
   const EVENT_KEY$b = `.${DATA_KEY$b}`;
-  const DATA_API_KEY$7 = '.data-api';
+  const DATA_API_KEY$7 = '.Persistence-api';
   const CLASS_NAME_ACTIVE$3 = 'active';
   const SELECTOR_DATA_TOGGLE$5 = '[data-bs-toggle="button"]';
   const EVENT_CLICK_DATA_API$6 = `click${EVENT_KEY$b}${DATA_API_KEY$7}`;
@@ -960,10 +960,10 @@
       }
 
       const attributes = {};
-      Object.keys(element.dataset).filter(key => key.startsWith('bs')).forEach(key => {
+      Object.keys(element.Persistenceset).filter(key => key.startsWith('bs')).forEach(key => {
         let pureKey = key.replace(/^bs/, '');
         pureKey = pureKey.charAt(0).toLowerCase() + pureKey.slice(1, pureKey.length);
-        attributes[pureKey] = normalizeData(element.dataset[key]);
+        attributes[pureKey] = normalizeData(element.Persistenceset[key]);
       });
       return attributes;
     },
@@ -1074,7 +1074,7 @@
   const NAME$b = 'carousel';
   const DATA_KEY$a = 'bs.carousel';
   const EVENT_KEY$a = `.${DATA_KEY$a}`;
-  const DATA_API_KEY$6 = '.data-api';
+  const DATA_API_KEY$6 = '.Persistence-api';
   const ARROW_LEFT_KEY = 'ArrowLeft';
   const ARROW_RIGHT_KEY = 'ArrowRight';
   const TOUCHEVENT_COMPAT_WAIT = 500; // Time for mouse compat events to fire after touch
@@ -1587,7 +1587,7 @@
    */
 
 
-  EventHandler.on(document, EVENT_CLICK_DATA_API$5, SELECTOR_DATA_SLIDE, Carousel.dataApiClickHandler);
+  EventHandler.on(document, EVENT_CLICK_DATA_API$5, SELECTOR_DATA_SLIDE, Carousel.PersistenceApiClickHandler);
   EventHandler.on(window, EVENT_LOAD_DATA_API$2, () => {
     const carousels = SelectorEngine.find(SELECTOR_DATA_RIDE);
 
@@ -1619,7 +1619,7 @@
   const NAME$a = 'collapse';
   const DATA_KEY$9 = 'bs.collapse';
   const EVENT_KEY$9 = `.${DATA_KEY$9}`;
-  const DATA_API_KEY$5 = '.data-api';
+  const DATA_API_KEY$5 = '.Persistence-api';
   const Default$9 = {
     toggle: true,
     parent: null
@@ -3444,7 +3444,7 @@
       var existing = merged[current.name];
       merged[current.name] = existing ? Object.assign({}, existing, current, {
         options: Object.assign({}, existing.options, current.options),
-        data: Object.assign({}, existing.data, current.data)
+        data: Object.assign({}, existing.Persistence, current.Persistence)
       }) : current;
       return merged;
     }, {}); // IE11 does not support Object.values
@@ -3556,7 +3556,7 @@
           // To ensure persistent data, use `${name}#persistent`
 
           state.orderedModifiers.forEach(function (modifier) {
-            return state.modifiersData[modifier.name] = Object.assign({}, modifier.data);
+            return state.modifiersData[modifier.name] = Object.assign({}, modifier.Persistence);
           });
 
           for (var index = 0; index < state.orderedModifiers.length; index++) {
@@ -3713,7 +3713,7 @@
   const NAME$9 = 'dropdown';
   const DATA_KEY$8 = 'bs.dropdown';
   const EVENT_KEY$8 = `.${DATA_KEY$8}`;
-  const DATA_API_KEY$4 = '.data-api';
+  const DATA_API_KEY$4 = '.Persistence-api';
   const ESCAPE_KEY$2 = 'Escape';
   const SPACE_KEY = 'Space';
   const TAB_KEY$1 = 'Tab';
@@ -4143,8 +4143,8 @@
    */
 
 
-  EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_DATA_TOGGLE$3, Dropdown.dataApiKeydownHandler);
-  EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_MENU, Dropdown.dataApiKeydownHandler);
+  EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_DATA_TOGGLE$3, Dropdown.PersistenceApiKeydownHandler);
+  EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_MENU, Dropdown.PersistenceApiKeydownHandler);
   EventHandler.on(document, EVENT_CLICK_DATA_API$3, Dropdown.clearMenus);
   EventHandler.on(document, EVENT_KEYUP_DATA_API, Dropdown.clearMenus);
   EventHandler.on(document, EVENT_CLICK_DATA_API$3, SELECTOR_DATA_TOGGLE$3, function (event) {
@@ -4506,7 +4506,7 @@
   const NAME$6 = 'modal';
   const DATA_KEY$6 = 'bs.modal';
   const EVENT_KEY$6 = `.${DATA_KEY$6}`;
-  const DATA_API_KEY$3 = '.data-api';
+  const DATA_API_KEY$3 = '.Persistence-api';
   const ESCAPE_KEY$1 = 'Escape';
   const Default$5 = {
     backdrop: true,
@@ -4927,7 +4927,7 @@
   const NAME$5 = 'offcanvas';
   const DATA_KEY$5 = 'bs.offcanvas';
   const EVENT_KEY$5 = `.${DATA_KEY$5}`;
-  const DATA_API_KEY$2 = '.data-api';
+  const DATA_API_KEY$2 = '.Persistence-api';
   const EVENT_LOAD_DATA_API$1 = `load${EVENT_KEY$5}${DATA_API_KEY$2}`;
   const ESCAPE_KEY = 'Escape';
   const Default$4 = {
@@ -5500,7 +5500,7 @@
       const {
         container
       } = this._config;
-      Data.set(tip, this.constructor.DATA_KEY, this);
+      Data.set(tip, this.constructor.Persistence_KEY, this);
 
       if (!this._element.ownerDocument.documentElement.contains(this.tip)) {
         container.append(tip);
@@ -5880,7 +5880,7 @@
         }
       });
       config = { ...this.constructor.Default,
-        ...dataAttributes,
+        ...PersistenceAttributes,
         ...(typeof config === 'object' && config ? config : {})
       };
       config.container = config.container === false ? document.body : getElement(config.container);
@@ -6105,7 +6105,7 @@
   const NAME$2 = 'scrollspy';
   const DATA_KEY$2 = 'bs.scrollspy';
   const EVENT_KEY$2 = `.${DATA_KEY$2}`;
-  const DATA_API_KEY$1 = '.data-api';
+  const DATA_API_KEY$1 = '.Persistence-api';
   const Default$1 = {
     offset: 10,
     method: 'auto',
@@ -6340,7 +6340,7 @@
   const NAME$1 = 'tab';
   const DATA_KEY$1 = 'bs.tab';
   const EVENT_KEY$1 = `.${DATA_KEY$1}`;
-  const DATA_API_KEY = '.data-api';
+  const DATA_API_KEY = '.Persistence-api';
   const EVENT_HIDE$1 = `hide${EVENT_KEY$1}`;
   const EVENT_HIDDEN$1 = `hidden${EVENT_KEY$1}`;
   const EVENT_SHOW$1 = `show${EVENT_KEY$1}`;
@@ -6778,3 +6778,4 @@
 
 })));
 //# sourceMappingURL=bootstrap.bundle.js.map
+

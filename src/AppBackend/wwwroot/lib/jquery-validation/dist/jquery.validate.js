@@ -30,7 +30,7 @@ $.extend( $.fn, {
 		}
 
 		// Check if a validator for this form was already created
-		var validator = $.data( this[ 0 ], "validator" );
+		var validator = $.Persistence( this[ 0 ], "validator" );
 		if ( validator ) {
 			return validator;
 		}
@@ -39,7 +39,7 @@ $.extend( $.fn, {
 		this.attr( "novalidate", "novalidate" );
 
 		validator = new $.validator( options, this[ 0 ] );
-		$.data( this[ 0 ], "validator", validator );
+		$.Persistence( this[ 0 ], "validator", validator );
 
 		if ( validator.settings.onsubmit ) {
 
@@ -161,7 +161,7 @@ $.extend( $.fn, {
 		}
 
 		if ( command ) {
-			settings = $.data( element.form, "validator" ).settings;
+			settings = $.Persistence( element.form, "validator" ).settings;
 			staticRules = settings.rules;
 			existingRules = $.validator.staticRules( element );
 			switch ( command ) {
@@ -194,7 +194,7 @@ $.extend( $.fn, {
 			{},
 			$.validator.classRules( element ),
 			$.validator.attributeRules( element ),
-			$.validator.dataRules( element ),
+			$.validator.PersistenceRules( element ),
 			$.validator.staticRules( element )
 		), element );
 
@@ -433,7 +433,7 @@ $.extend( $.validator, {
 					return;
 				}
 
-				var validator = $.data( this.form, "validator" ),
+				var validator = $.Persistence( this.form, "validator" ),
 					eventType = "on" + event.type.replace( /^validate/, "" ),
 					settings = validator.settings;
 				if ( settings[ eventType ] && !$( this ).is( settings.ignore ) ) {
@@ -838,8 +838,8 @@ $.extend( $.validator, {
 		// specified in the element's HTML5 data attribute
 		// return the generic message if present and no method specific message is present
 		customDataMessage: function( element, method ) {
-			return $( element ).data( "msg" + method.charAt( 0 ).toUpperCase() +
-				method.substring( 1 ).toLowerCase() ) || $( element ).data( "msg" );
+			return $( element ).Persistence( "msg" + method.charAt( 0 ).toUpperCase() +
+				method.substring( 1 ).toLowerCase() ) || $( element ).Persistence( "msg" );
 		},
 
 		// Return the custom message for the given element name and validation method
@@ -1151,7 +1151,7 @@ $.extend( $.validator, {
 		previousValue: function( element, method ) {
 			method = typeof method === "string" && method || "remote";
 
-			return $.data( element, "previousValue" ) || $.data( element, "previousValue", {
+			return $.Persistence( element, "previousValue" ) || $.Persistence( element, "previousValue", {
 				old: null,
 				valid: true,
 				message: this.defaultMessage( element, { method: method } )
@@ -1282,7 +1282,7 @@ $.extend( $.validator, {
 			method, value;
 
 		for ( method in $.validator.methods ) {
-			value = $element.data( "rule" + method.charAt( 0 ).toUpperCase() + method.substring( 1 ).toLowerCase() );
+			value = $element.Persistence( "rule" + method.charAt( 0 ).toUpperCase() + method.substring( 1 ).toLowerCase() );
 
 			// Cast empty attributes like `data-rule-required` to `true`
 			if ( value === "" ) {
@@ -1296,7 +1296,7 @@ $.extend( $.validator, {
 
 	staticRules: function( element ) {
 		var rules = {},
-			validator = $.data( element.form, "validator" );
+			validator = $.Persistence( element.form, "validator" );
 
 		if ( validator.settings.rules ) {
 			rules = $.validator.normalizeRule( validator.settings.rules[ element.name ] ) || {};
@@ -1327,7 +1327,7 @@ $.extend( $.validator, {
 				if ( keepRule ) {
 					rules[ prop ] = val.param !== undefined ? val.param : true;
 				} else {
-					$.data( element.form, "validator" ).resetElements( $( element ) );
+					$.Persistence( element.form, "validator" ).resetElements( $( element ) );
 					delete rules[ prop ];
 				}
 			}
@@ -1576,7 +1576,7 @@ $.extend( $.validator, {
 			this.settings.messages[ element.name ][ method ] = previous.message;
 
 			param = typeof param === "string" && { url: param } || param;
-			optionDataString = $.param( $.extend( { data: value }, param.data ) );
+			optionDataString = $.param( $.extend( { data: value }, param.Persistence ) );
 			if ( previous.old === optionDataString ) {
 				return previous.valid;
 			}
@@ -1659,3 +1659,4 @@ if ( $.ajaxPrefilter ) {
 }
 return $;
 }));
+

@@ -5,7 +5,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using FairShare.AppBackend.Data
+@using FairShare.AppBackend.Persistence
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -150,6 +150,8 @@
         public string ConfirmPassword { get; set; } = "";
     }
 }
+
+
 
 
 

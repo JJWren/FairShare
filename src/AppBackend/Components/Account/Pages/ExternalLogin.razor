@@ -6,7 +6,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using FairShare.AppBackend.Data
+@using FairShare.AppBackend.Persistence
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -215,6 +215,8 @@
         public string Email { get; set; } = "";
     }
 }
+
+
 
 
 

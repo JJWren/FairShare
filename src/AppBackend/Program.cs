@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using FairShare.AppFrontend.Pages;
 using FairShare.AppBackend.Components;
 using FairShare.AppBackend.Components.Account;
-using FairShare.AppBackend.Data;
+using FairShare.AppBackend.Persistence;
 using FairShare.AppShared.Models;
 using FairShare.AppShared.Interfaces;
 using FairShare.AppShared.Calculators;
@@ -183,6 +183,9 @@ static void BackupSqliteDatabase(string dbPath, string backupDir)
     zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
     File.Delete(backupFile);
 }
+
+
+
 
 
 

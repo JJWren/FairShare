@@ -1310,21 +1310,21 @@ $.validator.addMethod( "postcodeUK", function( value, element ) {
 $.validator.addMethod( "require_from_group", function( value, element, options ) {
 	var $fields = $( options[ 1 ], element.form ),
 		$fieldsFirst = $fields.eq( 0 ),
-		validator = $fieldsFirst.data( "valid_req_grp" ) ? $fieldsFirst.data( "valid_req_grp" ) : $.extend( {}, this ),
+		validator = $fieldsFirst.Persistence( "valid_req_grp" ) ? $fieldsFirst.Persistence( "valid_req_grp" ) : $.extend( {}, this ),
 		isValid = $fields.filter( function() {
 			return validator.elementValue( this );
 		} ).length >= options[ 0 ];
 
 	// Store the cloned validator for future validation
-	$fieldsFirst.data( "valid_req_grp", validator );
+	$fieldsFirst.Persistence( "valid_req_grp", validator );
 
 	// If element isn't being validated, run each require_from_group field's validation rules
-	if ( !$( element ).data( "being_validated" ) ) {
-		$fields.data( "being_validated", true );
+	if ( !$( element ).Persistence( "being_validated" ) ) {
+		$fields.Persistence( "being_validated", true );
 		$fields.each( function() {
 			validator.element( this );
 		} );
-		$fields.data( "being_validated", false );
+		$fields.Persistence( "being_validated", false );
 	}
 	return isValid;
 }, $.validator.format( "Please fill at least {0} of these fields." ) );
@@ -1353,22 +1353,22 @@ $.validator.addMethod( "require_from_group", function( value, element, options )
 $.validator.addMethod( "skip_or_fill_minimum", function( value, element, options ) {
 	var $fields = $( options[ 1 ], element.form ),
 		$fieldsFirst = $fields.eq( 0 ),
-		validator = $fieldsFirst.data( "valid_skip" ) ? $fieldsFirst.data( "valid_skip" ) : $.extend( {}, this ),
+		validator = $fieldsFirst.Persistence( "valid_skip" ) ? $fieldsFirst.Persistence( "valid_skip" ) : $.extend( {}, this ),
 		numberFilled = $fields.filter( function() {
 			return validator.elementValue( this );
 		} ).length,
 		isValid = numberFilled === 0 || numberFilled >= options[ 0 ];
 
 	// Store the cloned validator for future validation
-	$fieldsFirst.data( "valid_skip", validator );
+	$fieldsFirst.Persistence( "valid_skip", validator );
 
 	// If element isn't being validated, run each skip_or_fill_minimum field's validation rules
-	if ( !$( element ).data( "being_validated" ) ) {
-		$fields.data( "being_validated", true );
+	if ( !$( element ).Persistence( "being_validated" ) ) {
+		$fields.Persistence( "being_validated", true );
 		$fields.each( function() {
 			validator.element( this );
 		} );
-		$fields.data( "being_validated", false );
+		$fields.Persistence( "being_validated", false );
 	}
 	return isValid;
 }, $.validator.format( "Please either skip these fields or fill at least {0} of them." ) );
@@ -1510,3 +1510,4 @@ $.validator.addMethod( "ziprange", function( value, element ) {
 }, "Your ZIP-code must be in the range 902xx-xxxx to 905xx-xxxx." );
 return $;
 }));
+

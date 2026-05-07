@@ -3,7 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using FairShare.AppBackend.Data
+@using FairShare.AppBackend.Persistence
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
@@ -162,6 +162,8 @@
         public PasskeyInputModel? Passkey { get; set; }
     }
 }
+
+
 
 
 

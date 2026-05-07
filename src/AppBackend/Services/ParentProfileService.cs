@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using FairShare.AppBackend.Data;
+using FairShare.AppBackend.Persistence;
 using FairShare.AppShared.Interfaces;
 using FairShare.AppShared.Models;
 using Microsoft.EntityFrameworkCore;
@@ -165,6 +165,7 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         return profile;
     }
 }
+
 
 
 

@@ -5,7 +5,7 @@
 @using System.Text
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
-@using FairShare.AppBackend.Data
+@using FairShare.AppBackend.Persistence
 
 @inject UserManager<ApplicationUser> UserManager
 @inject UrlEncoder UrlEncoder
@@ -182,6 +182,8 @@ else
         public string Code { get; set; } = "";
     }
 }
+
+
 
 
 

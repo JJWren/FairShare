@@ -58,7 +58,7 @@
             replace = replaceAttrValue ? $.parseJSON(replaceAttrValue) !== false : null;
 
         container.removeClass("field-validation-valid").addClass("field-validation-error");
-        error.data("unobtrusiveContainer", container);
+        error.Persistence("unobtrusiveContainer", container);
 
         if (replace) {
             container.empty();
@@ -84,7 +84,7 @@
     }
 
     function onSuccess(error) {  // 'this' is the form element
-        var container = error.data("unobtrusiveContainer");
+        var container = error.Persistence("unobtrusiveContainer");
 
         if (container) {
             var replaceAttrValue = container.attr("data-valmsg-replace"),
@@ -102,13 +102,13 @@
     function onReset(event) {  // 'this' is the form element
         var $form = $(this),
             key = '__jquery_unobtrusive_validation_form_reset';
-        if ($form.data(key)) {
+        if ($form.Persistence(key)) {
             return;
         }
         // Set a flag that indicates we're currently resetting the form.
-        $form.data(key, true);
+        $form.Persistence(key, true);
         try {
-            $form.data("validator").resetForm();
+            $form.Persistence("validator").resetForm();
         } finally {
             $form.removeData(key);
         }
@@ -126,7 +126,7 @@
 
     function validationInfo(form) {
         var $form = $(form),
-            result = $form.data(data_validation),
+            result = $form.Persistence(data_validation),
             onResetProxy = $.proxy(onReset, form),
             defaultOptions = $jQval.unobtrusive.options || {},
             execInContext = function (name, args) {
@@ -165,7 +165,7 @@
                     return $form.valid();
                 }
             };
-            $form.data(data_validation, result);
+            $form.Persistence(data_validation, result);
         }
 
         return result;
@@ -397,7 +397,7 @@
 
         $.each(splitAndTrim(options.params.additionalfields || options.element.name), function (i, fieldName) {
             var paramName = appendModelPrefix(fieldName, prefix);
-            value.data[paramName] = function () {
+            value.Persistence[paramName] = function () {
                 var field = $(options.form).find(":input").filter("[name='" + escapeAttributeValue(paramName) + "']");
                 // For checkboxes and radio buttons, only pick up values from checked fields.
                 if (field.is(":checkbox")) {
@@ -433,3 +433,4 @@
 
     return $jQval.unobtrusive;
 }));
+
