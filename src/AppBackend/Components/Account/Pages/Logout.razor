@@ -1,0 +1,25 @@
+@page "/Account/Logout"
+@using Microsoft.AspNetCore.Identity
+@attribute [AllowAnonymous]
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Logging out</PageTitle>
+
+<div class="container my-5 text-center">
+    <p>Logging out...</p>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await SignInManager.SignOutAsync();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+    }
+}

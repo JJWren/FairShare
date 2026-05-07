@@ -40,13 +40,9 @@
                             </li>
                         }
                         <li class="nav-item">
-                            <form action="Account/Logout" method="post">
-                                <AntiforgeryToken />
-                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                <button type="submit" class="btn btn-link nav-link">
-                                    Logout
-                                </button>
-                            </form>
+                            <a href="Account/Logout" class="btn btn-link nav-link">
+                                Logout
+                            </a>
                         </li>
                     </Authorized>
                     <NotAuthorized>

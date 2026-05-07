@@ -2,13 +2,17 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using System.Security.Claims
+@attribute [AllowAnonymous]
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
 
 <PageTitle>FairShare - Guest Access</PageTitle>
 
 <div class="container my-5 text-center">
-    <p>Entering guest mode...</p>
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Preparing guest access...</p>
 </div>
 
 @code {
@@ -17,8 +21,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // For Blazor Web App (SSR/Server components), we can sign in directly if on the server.
-        // This component runs on the server during initial navigation.
+        // This component runs on the server during initial navigation (SSR).
         
         List<Claim> claims =
         [
@@ -27,8 +30,15 @@
         ];
 
         ClaimsIdentity identity = new (claims, IdentityConstants.ApplicationScheme);
-        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, new ClaimsPrincipal(identity));
+        
+        // Use standard SignInAsync to set the identity cookie
+        await HttpContext.SignInAsync(
+            IdentityConstants.ApplicationScheme, 
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties { IsPersistent = false });
 
-        Navigation.NavigateTo("/");
+        // Force a full page reload to the root to ensure the WASM client 
+        // picks up the new authentication cookie.
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

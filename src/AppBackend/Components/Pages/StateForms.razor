@@ -49,6 +49,22 @@
     private IEnumerable<(string Form, string DisplayName)>? forms;
     private string? selectedForm;
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            var authState = await AuthStateTask;
+            if (authState.User.Identity?.IsAuthenticated != true)
+            {
+                Navigation.NavigateTo("Account/Login", forceLoad: true);
+                return;
+            }
+        }
+    }
+
     protected override void OnParametersSet()
     {
         forms = Catalog.GetFormsForState(State);
