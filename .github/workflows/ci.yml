@@ -18,10 +18,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore FairShare.slnx
+        run: dotnet restore FairShare.sln
 
       - name: Build
-        run: dotnet build FairShare.slnx --configuration Release --no-restore
+        run: dotnet build FairShare.sln --configuration Release --no-restore
 
       # Uncomment when tests are added
       # - name: Test

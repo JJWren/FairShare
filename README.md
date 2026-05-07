@@ -101,7 +101,7 @@ services:
 
 ## Contributing
 
-Please ensure business logic is kept in the `FairShare.Shared` project to maintain compatibility between the WASM client and the API server.
+Please ensure business logic is kept in the `FairShareShared` project to maintain compatibility between the WASM client and the API server.
 
 ---
 
@@ -117,3 +117,4 @@ Issues → [GitHub Issues](https://github.com/JJWren/FairShare/issues).
 
 ### Enjoy my work?
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%23FFDD00?logo=buy-me-a-coffee&logoColor=black&labelColor=%23FFDD00)](https://www.buymeacoffee.com/jmykitta)
+

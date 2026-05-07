@@ -1,5 +1,2 @@
 <Solution>
-  <Project Path="FairShare.Backend/FairShare.Backend.csproj" />
-  <Project Path="FairShare.Frontend/FairShare.Frontend.csproj" />
-  <Project Path="FairShare.Shared/FairShare.Shared.csproj" />
 </Solution>

@@ -1,0 +1,126 @@
+@using FairShareShared.Models
+@using FairShareShared.ViewModels
+
+<div class="col-12 col-lg-6">
+    <div class="card h-100 shadow-sm">
+        <div class="card-header text-center d-flex flex-column gap-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>@Title</strong>
+                @if (ShowPrimary)
+                {
+                    <div class="form-check form-switch m-0">
+                        <input type="checkbox" @bind="Data.HasPrimaryCustody" class="form-check-input" id="@($"{Prefix}_Primary")" />
+                        <label class="form-check-label small" for="@($"{Prefix}_Primary")">Primary Custody</label>
+                    </div>
+                }
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <select class="form-select form-select-sm" 
+                        @onchange="OnParentSelected"
+                        aria-label="Select saved parent to populate @Title fields">
+                    <option value="">-- Select saved parent --</option>
+                    @if (SavedProfiles != null)
+                    {
+                        @foreach (var p in SavedProfiles)
+                        {
+                            <option value="@p.Id">@p.DisplayName ($@p.MonthlyGrossIncome)</option>
+                        }
+                    }
+                </select>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        @onclick="ClearData"
+                        title="Clear populated values">
+                    Clear
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Name")">Name (optional)</label>
+                <input type="text"
+                       class="form-control"
+                       id="@($"{Prefix}_Name")"
+                       @bind="ParentName"
+                       maxlength="100"
+                       placeholder="e.g. John D." />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Income")">Monthly Gross Income</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="@($"{Prefix}_Income")" @bind="Data.MonthlyGrossIncome" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Support")">Pre-existing Child Support</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="@($"{Prefix}_Support")" @bind="Data.PreexistingChildSupport" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Alimony")">Pre-existing Alimony</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="@($"{Prefix}_Alimony")" @bind="Data.PreexistingAlimony" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Childcare")">Work-related Childcare Costs</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="@($"{Prefix}_Childcare")" @bind="Data.WorkRelatedChildcareCosts" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-0">
+                <label class="form-label" for="@($"{Prefix}_Healthcare")">Healthcare Coverage Costs</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="@($"{Prefix}_Healthcare")" @bind="Data.HealthcareCoverageCosts" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Prefix { get; set; } = string.Empty;
+    [Parameter] public ParentData Data { get; set; } = new();
+    [Parameter] public string? ParentName { get; set; }
+    [Parameter] public bool ShowPrimary { get; set; }
+    [Parameter] public IEnumerable<ParentProfile>? SavedProfiles { get; set; }
+    [Parameter] public EventCallback<ParentProfile?> OnProfileSelected { get; set; }
+
+    private void OnParentSelected(ChangeEventArgs e)
+    {
+        var idString = e.Value?.ToString();
+        if (Guid.TryParse(idString, out var id))
+        {
+            var profile = SavedProfiles?.FirstOrDefault(p => p.Id == id);
+            if (profile != null)
+            {
+                Data.ApplyFrom(profile);
+                ParentName = profile.DisplayName;
+                OnProfileSelected.InvokeAsync(profile);
+            }
+        }
+        else
+        {
+            OnProfileSelected.InvokeAsync(null);
+        }
+    }
+
+    private void ClearData()
+    {
+        Data.MonthlyGrossIncome = 0;
+        Data.PreexistingChildSupport = 0;
+        Data.PreexistingAlimony = 0;
+        Data.WorkRelatedChildcareCosts = 0;
+        Data.HealthcareCoverageCosts = 0;
+        Data.HasPrimaryCustody = false;
+        ParentName = string.Empty;
+        OnProfileSelected.InvokeAsync(null);
+    }
+}
+

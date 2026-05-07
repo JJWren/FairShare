@@ -5,22 +5,21 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy all project files first for efficient caching
-COPY ["FairShare.slnx", "./"]
-COPY ["FairShare.Backend/FairShare.Backend.csproj", "FairShare.Backend/"]
-COPY ["FairShare.Frontend/FairShare.Frontend.csproj", "FairShare.Frontend/"]
-COPY ["FairShare.Shared/FairShare.Shared.csproj", "FairShare.Shared/"]
+COPY ["FairShare.sln", "./"]
+COPY ["FairShareBackend/FairShareBackend.csproj", "FairShareBackend/"]
+COPY ["FairShareFrontend/FairShareFrontend.csproj", "FairShareFrontend/"]
+COPY ["FairShareShared/FairShareShared.csproj", "FairShareShared/"]
 
 # Restore all projects via the solution file
-RUN dotnet restore FairShare.slnx
+RUN dotnet restore FairShare.sln
 
 # Copy everything else and build the solution
 COPY . .
-RUN dotnet build FairShare.slnx -c Release
+RUN dotnet build FairShare.sln -c Release
 
 # Publish the Backend project (Release)
-# This will include the pre-built Frontend project assets
 FROM build AS publish
-RUN dotnet publish "FairShare.Backend/FairShare.Backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "FairShareBackend/FairShareBackend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # =========================
 # Runtime stage
@@ -41,4 +40,4 @@ EXPOSE 9090
 COPY --from=publish /app/publish .
 
 # Run
-ENTRYPOINT ["dotnet", "FairShare.Backend.dll"]
+ENTRYPOINT ["dotnet", "FairShareBackend.dll"]
