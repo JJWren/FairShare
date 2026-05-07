@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using Microsoft.AspNetCore.Identity;
 
 namespace FairShareShared.Models;
@@ -28,4 +33,6 @@ public class ApplicationUser : IdentityUser<Guid>
     public Guid? UpdatedByUserId { get; set; }
     public string? DisplayName { get; set; }
 }
+
+
 

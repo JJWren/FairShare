@@ -1,3 +1,11 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FairShareFrontend.Pages;
@@ -175,4 +183,7 @@ static void BackupSqliteDatabase(string dbPath, string backupDir)
     zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
     File.Delete(backupFile);
 }
+
+
+
 

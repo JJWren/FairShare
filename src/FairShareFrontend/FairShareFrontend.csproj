@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>FairShare.Frontend.Client</AssemblyName>
     <RootNamespace>FairShareFrontend</RootNamespace>
@@ -21,4 +21,5 @@
   </ItemGroup>
 
 </Project>
+
 

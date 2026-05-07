@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using FairShareShared.Models;
 using Microsoft.AspNetCore.Identity;
 
@@ -34,4 +39,6 @@ public class UserActivityMiddleware(RequestDelegate next)
         await next(ctx);
     }
 }
+
+
 

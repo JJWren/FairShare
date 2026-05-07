@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using FairShareShared.Models;
 
 namespace FairShareShared.ViewModels
@@ -27,4 +32,6 @@ namespace FairShareShared.ViewModels
         }
     }
 }
+
+
 

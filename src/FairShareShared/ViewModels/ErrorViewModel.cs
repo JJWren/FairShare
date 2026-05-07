@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 namespace FairShareShared.ViewModels
 {
     public sealed class ErrorViewModel
@@ -13,4 +18,6 @@ namespace FairShareShared.ViewModels
         public string? Detail { get; set; }
     }
 }
+
+
 

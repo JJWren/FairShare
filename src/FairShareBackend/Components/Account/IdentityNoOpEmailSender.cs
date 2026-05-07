@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using FairShareShared.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -22,4 +27,6 @@ internal sealed class IdentityNoOpEmailSender : IEmailSender<ApplicationUser>
         public Task SendEmailAsync(string email, string subject, string htmlMessage) => Task.CompletedTask;
     }
 }
+
+
 

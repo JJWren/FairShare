@@ -1,3 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 using FairShareShared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
@@ -52,4 +57,6 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
     public void RedirectToInvalidUser(UserManager<ApplicationUser> userManager, HttpContext context)
         => RedirectToWithStatus("Account/InvalidUser", $"Error: Unable to load user with ID '{userManager.GetUserId(context.User)}'.", context);
 }
+
+
 
