@@ -8,38 +8,27 @@
     <RootNamespace>FairShare.AppBackend</RootNamespace>
     <UserSecretsId>aspnet-FairShare.AppBackend-v5-migration</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <Version>5.0.0</Version>
-    <AssemblyVersion>5.0.0</AssemblyVersion>
-    <FileVersion>5.0.0</FileVersion>
-    <InformationalVersion>5.0.0</InformationalVersion>
+    <Version>6.0.0</Version>
+    <AssemblyVersion>6.0.0</AssemblyVersion>
+    <FileVersion>6.0.0</FileVersion>
+    <InformationalVersion>6.0.0</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppFrontend\AppFrontend.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5" />
+    <ProjectReference Include="..\AppFrontend\AppFrontend.csproj"/>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5"/>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.5"/>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppShared\AppShared.csproj" />
+    <ProjectReference Include="..\AppShared\AppShared.csproj"/>
   </ItemGroup>
 
 </Project>
-
-
-
-
-
-
-
-
-
-
-
