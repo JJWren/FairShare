@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.0...fairshare-v5.0.0) (2026-05-06)
+
+### ⚠ BREAKING CHANGES
+
+* **Architecture**: Complete migration from ASP.NET Core MVC to Blazor WebAssembly SPA.
+* **Tech Stack**: Updated to .NET 10 (Preview).
+* **Identity**: Moved from Razor Pages to Pure Blazor Identity components with REST API backend.
+* **Namespace**: Renamed projects and namespaces to `AppBackend`, `AppFrontend`, and `AppShared` to resolve platform-specific build collisions.
+
+### Features
+
+* **Blazor WASM**: High-performance Single Page Application frontend.
+* **Client-side Logic**: Calculator logic now runs locally in the browser via WebAssembly for instant feedback.
+* **Modernized UI**: Refined Bootstrap 5 layout with dynamic theme switching and responsive components.
+* **Global Standards**: Integrated AIDLC development lifecycle and engineering standards.
+* **Enhanced DevOps**: Robust CI/CD pipeline and multi-project Docker builds.
+
+
 ## [4.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.0.0...fairshare-v4.0.0) (2025-10-08)
 
 
