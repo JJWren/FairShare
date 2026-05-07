@@ -6,9 +6,9 @@ WORKDIR /src
 
 # Copy all project files first for efficient caching
 COPY ["FairShare.sln", "./"]
-COPY ["src/FairShareBackend/FairShareBackend.csproj", "src/FairShareBackend/"]
-COPY ["src/FairShareFrontend/FairShareFrontend.csproj", "src/FairShareFrontend/"]
-COPY ["src/FairShareShared/FairShareShared.csproj", "src/FairShareShared/"]
+COPY ["src/AppBackend/AppBackend.csproj", "src/AppBackend/"]
+COPY ["src/AppFrontend/AppFrontend.csproj", "src/AppFrontend/"]
+COPY ["src/AppShared/AppShared.csproj", "src/AppShared/"]
 
 # Restore all projects via the solution file
 RUN dotnet restore FairShare.sln
@@ -19,7 +19,7 @@ RUN dotnet build FairShare.sln -c Release
 
 # Publish the Backend project (Release)
 FROM build AS publish
-RUN dotnet publish "src/FairShareBackend/FairShareBackend.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/AppBackend/AppBackend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # =========================
 # Runtime stage
