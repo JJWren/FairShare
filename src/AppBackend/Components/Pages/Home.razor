@@ -1,0 +1,61 @@
+@page "/"
+@using FairShare.AppShared.Interfaces
+@inject IStateGuidelineCatalog Catalog
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Select State</PageTitle>
+
+<div class="container my-5">
+    <h1 class="h4 mb-4 text-center">Choose Your State</h1>
+    
+    @if (states is null)
+    {
+        <p class="text-center">Loading states...</p>
+    }
+    else if (!states.Any())
+    {
+        <div class="alert alert-warning">No calculators registered.</div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-6 col-md-4">
+                <div class="mb-3">
+                    <label for="state" class="form-label">State</label>
+                    <select id="state" @bind="selectedState" class="form-select">
+                        @foreach (var state in states)
+                        {
+                            <option value="@state">@state</option>
+                        }
+                    </select>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" @onclick="Continue">Continue</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IEnumerable<string>? states;
+    private string? selectedState;
+
+    protected override void OnInitialized()
+    {
+        states = Catalog.GetStates();
+        selectedState = states.FirstOrDefault();
+    }
+
+    private void Continue()
+    {
+        if (!string.IsNullOrEmpty(selectedState))
+        {
+            Navigation.NavigateTo($"/States/{selectedState}");
+        }
+    }
+}
+
+
+
+
