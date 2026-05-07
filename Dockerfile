@@ -40,4 +40,4 @@ EXPOSE 9090
 COPY --from=publish /app/publish .
 
 # Run
-ENTRYPOINT ["dotnet", "FairShareBackend.dll"]
+ENTRYPOINT ["dotnet", "FairShare.Backend.Server.dll"]
