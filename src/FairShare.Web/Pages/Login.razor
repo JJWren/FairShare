@@ -1,0 +1,90 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@inject FairShare.Web.Auth.AuthApiClient AuthApi
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Login</PageTitle>
+
+<div class="container my-5" style="max-width: 420px;">
+    <h1 class="h4 mb-4 text-center">Sign in to FairShare</h1>
+
+    <EditForm Model="_model" OnValidSubmit="LoginAsync">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label class="form-label" for="userName">Username</label>
+            <InputText id="userName" class="form-control" @bind-Value="_model.UserName" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="password">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger py-2">@_error</div>
+        }
+
+        <button type="submit" class="btn btn-primary w-100" disabled="@_busy">Login</button>
+    </EditForm>
+
+    <div class="d-flex justify-content-between mt-3">
+        <a href="/register">Create an account</a>
+        <button class="btn btn-link p-0" @onclick="ContinueAsGuestAsync" disabled="@_busy">Continue as Guest</button>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _error;
+    private bool _busy;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private async Task LoginAsync()
+    {
+        _busy = true;
+        _error = null;
+
+        var result = await AuthApi.LoginAsync(_model.UserName, _model.Password);
+
+        _busy = false;
+
+        if (!result.Success)
+        {
+            _error = result.Error;
+            return;
+        }
+
+        Navigation.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+    }
+
+    private async Task ContinueAsGuestAsync()
+    {
+        _busy = true;
+        _error = null;
+
+        var result = await AuthApi.ContinueAsGuestAsync();
+
+        _busy = false;
+
+        if (!result.Success)
+        {
+            _error = result.Error;
+            return;
+        }
+
+        Navigation.NavigateTo("/");
+    }
+
+    private class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string UserName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}

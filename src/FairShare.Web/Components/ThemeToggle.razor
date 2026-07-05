@@ -1,0 +1,31 @@
+@inject IJSRuntime JS
+
+<div class="btn-group" role="group" aria-label="Theme">
+    <button type="button" class="btn btn-sm @(ButtonClass("light"))" title="Light" @onclick='() => SetTheme("light")'>
+        ☀
+    </button>
+    <button type="button" class="btn btn-sm @(ButtonClass("dark"))" title="Dark" @onclick='() => SetTheme("dark")'>
+        ☾
+    </button>
+    <button type="button" class="btn btn-sm @(ButtonClass("auto"))" title="Auto" @onclick='() => SetTheme("auto")'>
+        A
+    </button>
+</div>
+
+@code {
+    private string _current = "auto";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _current = await JS.InvokeAsync<string>("fairshareTheme.getTheme");
+    }
+
+    private async Task SetTheme(string theme)
+    {
+        _current = theme;
+        await JS.InvokeVoidAsync("fairshareTheme.setTheme", theme);
+    }
+
+    private string ButtonClass(string theme) =>
+        _current == theme ? "btn-secondary" : "btn-outline-secondary";
+}
