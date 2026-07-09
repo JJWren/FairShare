@@ -55,10 +55,17 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         return profile;
     }
 
-    public async Task<bool> UpdateAsync(ParentProfile profile, CancellationToken ct = default)
+    public async Task<bool> UpdateAsync(ParentProfile profile, byte[]? expectedRowVersion = null, CancellationToken ct = default)
     {
         profile.UpdatedUtc = DateTime.UtcNow;
         _db.ParentProfiles.Update(profile);
+
+        if (expectedRowVersion is not null)
+        {
+            // Enforce the caller's snapshot in the UPDATE's WHERE clause, so a write that
+            // landed between our read and this save fails instead of being overwritten.
+            _db.Entry(profile).Property(p => p.RowVersion).OriginalValue = expectedRowVersion;
+        }
 
         try
         {

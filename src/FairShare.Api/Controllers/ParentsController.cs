@@ -151,6 +151,20 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             }
         }
 
+        byte[]? expectedRowVersion = null;
+
+        if (!string.IsNullOrWhiteSpace(request.RowVersion))
+        {
+            try
+            {
+                expectedRowVersion = Convert.FromBase64String(request.RowVersion);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("RowVersion must be the base64 value returned by GET.");
+            }
+        }
+
         existing.DisplayName = request.DisplayName.Trim();
         existing.MonthlyGrossIncome = request.MonthlyGrossIncome;
         existing.PreexistingChildSupport = request.PreexistingChildSupport;
@@ -160,11 +174,11 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
         existing.HasPrimaryCustody = request.HasPrimaryCustody;
         existing.UpdatedUtc = DateTime.UtcNow;
 
-        bool ok = await _service.UpdateAsync(existing, ct);
+        bool ok = await _service.UpdateAsync(existing, expectedRowVersion, ct);
 
         if (!ok)
         {
-            return Conflict("Update failed (possibly concurrency).");
+            return Conflict("The profile was modified by another request. Reload and try again.");
         }
 
         return NoContent();

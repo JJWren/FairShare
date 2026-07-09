@@ -21,6 +21,14 @@ public class JwtAuthenticationStateProvider(ITokenStore tokenStore) : Authentica
 
         var claims = JwtParser.ParseClaimsFromJwt(token).ToList();
 
+        // A token that yields no claims is malformed/corrupted - treating it as authenticated
+        // would show a signed-in UI backed by a token the API will reject. Drop it instead.
+        if (claims.Count == 0)
+        {
+            await _tokenStore.ClearAsync();
+            return new AuthenticationState(Anonymous);
+        }
+
         // Map common JWT claim names to .NET claim types so role/name-based authorization works.
         foreach (var c in claims.Where(c => c.Type is "role" or "roles").ToList())
         {

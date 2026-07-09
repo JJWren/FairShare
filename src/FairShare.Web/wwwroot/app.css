@@ -74,7 +74,12 @@ h1:focus {
 }
 
     #blazor-error-ui .dismiss {
+        background: none;
+        border: none;
+        color: inherit;
         cursor: pointer;
+        font: inherit;
+        padding: 0;
         position: absolute;
         right: 0.75rem;
         top: 0.5rem;
