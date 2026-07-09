@@ -29,6 +29,11 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
             return response;
         }
 
+        if (request.RequestUri is { } uri &&
+            uri.ToString().Contains("api/v1/auth/refresh", StringComparison.OrdinalIgnoreCase))
+        {
+            return response;
+        }
         string? refreshToken = await _tokenStore.GetRefreshTokenAsync();
 
         if (string.IsNullOrWhiteSpace(refreshToken))
