@@ -58,7 +58,11 @@
             return;
         }
 
-        Navigation.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+var target = (!string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith("/", StringComparison.Ordinal) && !ReturnUrl.StartsWith("//", StringComparison.Ordinal))
+    ? ReturnUrl
+    : "/";
+
+Navigation.NavigateTo(target);
     }
 
     private async Task ContinueAsGuestAsync()
