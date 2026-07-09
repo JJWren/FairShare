@@ -45,12 +45,14 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
 
         if (!refreshResponse.IsSuccessStatusCode)
         {
+            refreshResponse.Dispose();
             await _tokenStore.ClearAsync();
             _authStateProvider.NotifyAuthenticationChanged();
             return response;
         }
 
         AuthTokenResponse? tokens = await refreshResponse.Content.ReadFromJsonAsync<AuthTokenResponse>(cancellationToken: cancellationToken);
+        refreshResponse.Dispose();
 
         if (tokens is null)
         {
@@ -61,6 +63,8 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
 
         await _tokenStore.SetTokensAsync(tokens.AccessToken, tokens.RefreshToken);
         _authStateProvider.NotifyAuthenticationChanged();
+
+        response.Dispose();
 
         HttpRequestMessage retryRequest = await CloneRequestAsync(request);
         retryRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
