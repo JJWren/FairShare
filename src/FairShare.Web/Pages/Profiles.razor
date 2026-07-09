@@ -112,8 +112,7 @@
             RowVersion = p.RowVersion
         };
 
-        HttpResponseMessage response = await Http.PutAsJsonAsync($"api/v1/parents/{p.Id}", request);
-
+        using HttpResponseMessage response = await Http.PutAsJsonAsync($"api/v1/parents/{p.Id}", request);
         if (!response.IsSuccessStatusCode)
         {
             error = "Could not rename the profile. Please reload and try again.";
