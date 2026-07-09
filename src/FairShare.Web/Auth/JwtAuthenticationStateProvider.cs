@@ -19,27 +19,27 @@ public class JwtAuthenticationStateProvider(ITokenStore tokenStore) : Authentica
             return new AuthenticationState(Anonymous);
         }
 
-var claims = JwtParser.ParseClaimsFromJwt(token).ToList();
+        var claims = JwtParser.ParseClaimsFromJwt(token).ToList();
 
-// Map common JWT claim names to .NET claim types so role/name-based authorization works.
-foreach (var c in claims.Where(c => c.Type is "role" or "roles").ToList())
-{
-    claims.Add(new Claim(ClaimTypes.Role, c.Value));
-}
+        // Map common JWT claim names to .NET claim types so role/name-based authorization works.
+        foreach (var c in claims.Where(c => c.Type is "role" or "roles").ToList())
+        {
+            claims.Add(new Claim(ClaimTypes.Role, c.Value));
+        }
 
-if (claims.All(c => c.Type != ClaimTypes.Name) && claims.FirstOrDefault(c => c.Type == "unique_name") is { } uniqueName)
-{
-    claims.Add(new Claim(ClaimTypes.Name, uniqueName.Value));
-}
+        if (claims.All(c => c.Type != ClaimTypes.Name) && claims.FirstOrDefault(c => c.Type == "unique_name") is { } uniqueName)
+        {
+            claims.Add(new Claim(ClaimTypes.Name, uniqueName.Value));
+        }
 
-if (claims.All(c => c.Type != ClaimTypes.NameIdentifier) && claims.FirstOrDefault(c => c.Type == "sub") is { } sub)
-{
-    claims.Add(new Claim(ClaimTypes.NameIdentifier, sub.Value));
-}
+        if (claims.All(c => c.Type != ClaimTypes.NameIdentifier) && claims.FirstOrDefault(c => c.Type == "sub") is { } sub)
+        {
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, sub.Value));
+        }
+
         // Access token expiry is handled by the HTTP pipeline (refresh-on-401); avoid forcing a UI logout here.
-
-ClaimsIdentity identity = new(claims, authenticationType: "jwt");
-return new AuthenticationState(new ClaimsPrincipal(identity));
+        ClaimsIdentity identity = new(claims, authenticationType: "jwt");
+        return new AuthenticationState(new ClaimsPrincipal(identity));
     }
 
     public void NotifyAuthenticationChanged() =>

@@ -157,26 +157,28 @@ public class AuthController(
     }
 
     // Scoped to the auth path so the cookie is never sent to (or exposed via) any other API route.
-    private void SetRefreshCookie(IssuedRefreshToken refresh)
-    {
-        Response.Cookies.Append(RefreshCookieName, refresh.Value, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = refresh.ExpiresUtc,
-            Path = "/api/v1/auth"
-        });
-    }
+    private void SetRefreshCookie(IssuedRefreshToken refresh) =>
+        Response.Cookies.Append(RefreshCookieName, refresh.Value, BuildRefreshCookieOptions(refresh.ExpiresUtc));
 
-    private void ClearRefreshCookie()
+    private void ClearRefreshCookie() =>
+        Response.Cookies.Delete(RefreshCookieName, BuildRefreshCookieOptions());
+
+    // SameSite=None requires Secure, which browsers only honor over HTTPS. Fall back to
+    // Secure=false/SameSite=Lax when the request itself arrived over plain HTTP (e.g. the
+    // "http" launch profile) so the cookie isn't silently dropped during local dev.
+    // Set and Clear must always agree on these attributes, or the browser won't match the
+    // cookie to delete it and a stale value is left behind.
+    private CookieOptions BuildRefreshCookieOptions(DateTimeOffset? expires = null)
     {
-        Response.Cookies.Delete(RefreshCookieName, new CookieOptions
+        bool isHttps = Request.IsHttps;
+
+        return new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
+            Secure = isHttps,
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            Expires = expires,
             Path = "/api/v1/auth"
-        });
+        };
     }
 }

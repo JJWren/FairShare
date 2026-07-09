@@ -14,7 +14,10 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
 
     public Task<AuthResult> LoginAsync(string userName, string password) =>
-        SendAuthRequestAsync("api/v1/auth/login", new LoginRequest { UserName = userName, Password = password });
+        SendAuthRequestAsync(
+            "api/v1/auth/login",
+            new LoginRequest { UserName = userName, Password = password },
+            unauthorizedMessage: "Invalid username or password.");
 
     public Task<AuthResult> RegisterAsync(string userName, string password) =>
         SendAuthRequestAsync("api/v1/auth/register", new RegisterRequest { UserName = userName, Password = password });
@@ -35,7 +38,7 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
     // The refresh token travels exclusively via the HttpOnly cookie the API sets/reads,
     // so every auth call needs credentials included for that cookie to be stored/sent.
-    private async Task<AuthResult> SendAuthRequestAsync(string url, object? body)
+    private async Task<AuthResult> SendAuthRequestAsync(string url, object? body, string? unauthorizedMessage = null)
     {
         using HttpRequestMessage request = new(HttpMethod.Post, url)
         {
@@ -47,9 +50,9 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
         if (!response.IsSuccessStatusCode)
         {
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized && unauthorizedMessage is not null)
             {
-                return new AuthResult(false, "Invalid username or password.");
+                return new AuthResult(false, unauthorizedMessage);
             }
 
             return new AuthResult(false, $"Authentication request failed ({(int)response.StatusCode}).");

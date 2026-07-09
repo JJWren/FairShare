@@ -86,6 +86,25 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
+    public async Task Guest_OverHttp_SetsCookieWithoutSecure_UsingSameSiteLax()
+    {
+        // SameSite=None requires Secure, which browsers drop over plain HTTP - fall back to
+        // Secure=false/SameSite=Lax so local HTTP dev scenarios don't silently lose the cookie.
+        using HttpClient httpClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("http://localhost")
+        });
+
+        HttpResponseMessage response = await httpClient.PostAsync("api/v1/auth/guest", content: null);
+
+        Assert.True(response.Headers.TryGetValues("Set-Cookie", out var cookies));
+        string cookie = Assert.Single(cookies!, c => c.StartsWith("fairshare_refresh=", StringComparison.Ordinal));
+
+        Assert.DoesNotContain("secure", cookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("samesite=lax", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Refresh_WithValidCookie_IssuesNewAccessToken()
     {
         // WebApplicationFactory's default client carries cookies across requests automatically.

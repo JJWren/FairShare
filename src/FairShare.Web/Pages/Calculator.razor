@@ -138,7 +138,14 @@
 
         if (!response.IsSuccessStatusCode)
         {
-            errors.Add("Calculator not found.");
+            errors.Add(response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
+                System.Net.HttpStatusCode.BadRequest => "The submitted inputs were invalid. Check the values and try again.",
+                System.Net.HttpStatusCode.Unauthorized => "Your session has expired. Please log in again.",
+                System.Net.HttpStatusCode.Forbidden => "You are not authorized to perform this calculation.",
+                _ => $"Calculation request failed ({(int)response.StatusCode})."
+            });
             return;
         }
 
