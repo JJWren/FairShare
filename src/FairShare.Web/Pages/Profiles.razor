@@ -14,7 +14,10 @@
     }
     else if (!profiles.Any())
     {
-        <div class="alert alert-info">No saved parent profiles yet. Save one from the calculator.</div>
+        @if (string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-info">No saved parent profiles yet. Save one from the calculator.</div>
+        }
     }
     else
     {
@@ -90,6 +93,7 @@
 
         resp.EnsureSuccessStatusCode();
         profiles = (await resp.Content.ReadFromJsonAsync<List<ParentProfileDto>>()) ?? [];
+        error = null;
     }
 
     private void StartRename(ParentProfileDto p)
