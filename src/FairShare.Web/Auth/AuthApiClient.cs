@@ -25,6 +25,24 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     public Task<AuthResult> ContinueAsGuestAsync() =>
         SendAuthRequestAsync("api/v1/auth/guest", body: null);
 
+    /// <summary>
+    /// Attempts a silent refresh using the HttpOnly refresh cookie, e.g. to re-hydrate the
+    /// in-memory access token after a page reload. Never throws; returns false when there is
+    /// no valid cookie or the API is unreachable.
+    /// </summary>
+    public async Task<bool> TryRefreshAsync()
+    {
+        try
+        {
+            AuthResult result = await SendAuthRequestAsync("api/v1/auth/refresh", body: null);
+            return result.Success;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
+
     public async Task LogoutAsync()
     {
         using HttpRequestMessage request = new(HttpMethod.Post, "api/v1/auth/logout");

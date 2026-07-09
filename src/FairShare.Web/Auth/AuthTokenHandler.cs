@@ -35,16 +35,27 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
             return response;
         }
 
-        // A 401 from login/register/guest is a real auth failure (bad credentials, disabled
-        // user, etc.), not an expired-token situation - don't let it trigger a refresh+retry,
-        // which could otherwise turn a failed login into an "authenticated" state.
-        if (request.RequestUri is { } uri &&
-            uri.AbsolutePath.Contains("/api/v1/auth/", StringComparison.OrdinalIgnoreCase))
+        // By this point HttpClient has already resolved the request URI against BaseAddress,
+        // so it's absolute; without one we can't build the refresh URI, so don't try.
+        if (request.RequestUri is not { IsAbsoluteUri: true } uri)
         {
             return response;
         }
 
-        string? newAccessToken = await RefreshAccessTokenAsync(accessToken, cancellationToken);
+        // A 401 from login/register/guest is a real auth failure (bad credentials, disabled
+        // user, etc.), not an expired-token situation - don't let it trigger a refresh+retry,
+        // which could otherwise turn a failed login into an "authenticated" state.
+        if (uri.AbsolutePath.Contains("/api/v1/auth/", StringComparison.OrdinalIgnoreCase))
+        {
+            return response;
+        }
+
+        // The refresh request bypasses HttpClient (base.SendAsync goes straight to the inner
+        // handler), so BaseAddress is never applied - derive an absolute URI from the failed
+        // request instead of using a relative one that would resolve against the wrong origin.
+        Uri refreshUri = new(uri, "/api/v1/auth/refresh");
+
+        string? newAccessToken = await RefreshAccessTokenAsync(refreshUri, accessToken, cancellationToken);
 
         if (newAccessToken is null)
         {
@@ -59,7 +70,7 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
         return await base.SendAsync(retryRequest, cancellationToken);
     }
 
-    private async Task<string?> RefreshAccessTokenAsync(string? accessTokenUsedForFailedRequest, CancellationToken cancellationToken)
+    private async Task<string?> RefreshAccessTokenAsync(Uri refreshUri, string? accessTokenUsedForFailedRequest, CancellationToken cancellationToken)
     {
         await RefreshLock.WaitAsync(cancellationToken);
 
@@ -73,7 +84,7 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
                 return current;
             }
 
-            using HttpRequestMessage refreshRequest = new(HttpMethod.Post, "api/v1/auth/refresh");
+            using HttpRequestMessage refreshRequest = new(HttpMethod.Post, refreshUri);
             refreshRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
             using HttpResponseMessage refreshResponse = await base.SendAsync(refreshRequest, cancellationToken);

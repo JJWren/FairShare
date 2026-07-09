@@ -1,15 +1,3 @@
-window.fairshareStorage = {
-    getItem: function (key) {
-        return localStorage.getItem(key);
-    },
-    setItem: function (key, value) {
-        localStorage.setItem(key, value);
-    },
-    removeItem: function (key) {
-        localStorage.removeItem(key);
-    }
-};
-
 window.fairshareTheme = {
     THEME_KEY: 'fairshare-theme',
     apply: function (theme) {

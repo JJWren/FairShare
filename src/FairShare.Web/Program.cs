@@ -19,9 +19,12 @@ builder.Services.AddAuthorizationCore(options =>
 });
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddScoped<ITokenStore, LocalStorageTokenStore>();
-builder.Services.AddScoped<JwtAuthenticationStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
+// Singletons (not scoped): IHttpClientFactory builds message handlers in its own DI
+// scope, so a scoped token store/state provider there would be a different instance
+// than the one the UI uses - stateful in-memory auth requires the shared instance.
+builder.Services.AddSingleton<ITokenStore, InMemoryTokenStore>();
+builder.Services.AddSingleton<JwtAuthenticationStateProvider>();
+builder.Services.AddSingleton<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
 builder.Services.AddTransient<AuthTokenHandler>();
 
 string apiBaseUrl = builder.Configuration["Api:BaseUrl"] is { Length: > 0 } configured
@@ -34,4 +37,10 @@ builder.Services.AddHttpClient("Api", client => client.BaseAddress = new Uri(api
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 builder.Services.AddScoped<AuthApiClient>();
 
-await builder.Build().RunAsync();
+WebAssemblyHost host = builder.Build();
+
+// The access token lives only in memory, so a page reload loses it. Re-hydrate it from
+// the HttpOnly refresh cookie before first render so an active session survives reloads.
+await host.Services.GetRequiredService<AuthApiClient>().TryRefreshAsync();
+
+await host.RunAsync();
