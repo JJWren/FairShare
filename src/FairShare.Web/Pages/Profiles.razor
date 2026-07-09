@@ -126,7 +126,7 @@
 
     private async Task ArchiveAsync(ParentProfileDto p)
     {
-        HttpResponseMessage response = await Http.PostAsync($"api/v1/parents/{p.Id}/archive", content: null);
+        using HttpResponseMessage response = await Http.PostAsync($"api/v1/parents/{p.Id}/archive", content: null);
 
         if (!response.IsSuccessStatusCode)
         {
