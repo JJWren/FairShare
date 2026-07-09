@@ -21,17 +21,10 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
-public class RefreshRequest
-{
-    [Required]
-    public string RefreshToken { get; set; } = string.Empty;
-}
-
 public class AuthTokenResponse
 {
     public string AccessToken { get; set; } = string.Empty;
     public DateTime AccessTokenExpiresUtc { get; set; }
-    public string RefreshToken { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public bool IsGuest { get; set; }

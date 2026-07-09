@@ -3,28 +3,20 @@ using Microsoft.JSInterop;
 
 namespace FairShare.Web.Auth;
 
+// The refresh token is no longer handled here: the API sets it as an HttpOnly
+// cookie (scoped to /api/v1/auth) so it's never readable from JS/localStorage.
 public class LocalStorageTokenStore(IJSRuntime js) : ITokenStore
 {
     private const string AccessTokenKey = "fairshare-access-token";
-    private const string RefreshTokenKey = "fairshare-refresh-token";
 
     private readonly IJSRuntime _js = js;
 
     public Task<string?> GetAccessTokenAsync() =>
         _js.InvokeAsync<string?>("fairshareStorage.getItem", AccessTokenKey).AsTask();
 
-    public Task<string?> GetRefreshTokenAsync() =>
-        _js.InvokeAsync<string?>("fairshareStorage.getItem", RefreshTokenKey).AsTask();
+    public Task SetAccessTokenAsync(string accessToken) =>
+        _js.InvokeVoidAsync("fairshareStorage.setItem", AccessTokenKey, accessToken).AsTask();
 
-    public async Task SetTokensAsync(string accessToken, string refreshToken)
-    {
-        await _js.InvokeVoidAsync("fairshareStorage.setItem", AccessTokenKey, accessToken);
-        await _js.InvokeVoidAsync("fairshareStorage.setItem", RefreshTokenKey, refreshToken);
-    }
-
-    public async Task ClearAsync()
-    {
-        await _js.InvokeVoidAsync("fairshareStorage.removeItem", AccessTokenKey);
-        await _js.InvokeVoidAsync("fairshareStorage.removeItem", RefreshTokenKey);
-    }
+    public Task ClearAsync() =>
+        _js.InvokeVoidAsync("fairshareStorage.removeItem", AccessTokenKey).AsTask();
 }

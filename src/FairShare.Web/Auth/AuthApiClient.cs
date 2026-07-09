@@ -1,7 +1,9 @@
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using FairShare.Contracts.Auth;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace FairShare.Web.Auth;
 
@@ -11,54 +13,58 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     private readonly ITokenStore _tokenStore = tokenStore;
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
 
-    public async Task<AuthResult> LoginAsync(string userName, string password)
-    {
-        HttpResponseMessage response = await _http.PostAsJsonAsync("api/v1/auth/login", new LoginRequest { UserName = userName, Password = password });
-        return await HandleTokenResponseAsync(response);
-    }
+    public Task<AuthResult> LoginAsync(string userName, string password) =>
+        SendAuthRequestAsync("api/v1/auth/login", new LoginRequest { UserName = userName, Password = password });
 
-    public async Task<AuthResult> RegisterAsync(string userName, string password)
-    {
-        HttpResponseMessage response = await _http.PostAsJsonAsync("api/v1/auth/register", new RegisterRequest { UserName = userName, Password = password });
-        return await HandleTokenResponseAsync(response);
-    }
+    public Task<AuthResult> RegisterAsync(string userName, string password) =>
+        SendAuthRequestAsync("api/v1/auth/register", new RegisterRequest { UserName = userName, Password = password });
 
-    public async Task<AuthResult> ContinueAsGuestAsync()
-    {
-        HttpResponseMessage response = await _http.PostAsync("api/v1/auth/guest", content: null);
-        return await HandleTokenResponseAsync(response);
-    }
+    public Task<AuthResult> ContinueAsGuestAsync() =>
+        SendAuthRequestAsync("api/v1/auth/guest", body: null);
 
     public async Task LogoutAsync()
     {
-        string? refreshToken = await _tokenStore.GetRefreshTokenAsync();
+        using HttpRequestMessage request = new(HttpMethod.Post, "api/v1/auth/logout");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
-        if (!string.IsNullOrWhiteSpace(refreshToken))
-        {
-            await _http.PostAsJsonAsync("api/v1/auth/logout", new RefreshRequest { RefreshToken = refreshToken });
-        }
+        using HttpResponseMessage response = await _http.SendAsync(request);
 
         await _tokenStore.ClearAsync();
         _authStateProvider.NotifyAuthenticationChanged();
     }
 
-    private async Task<AuthResult> HandleTokenResponseAsync(HttpResponseMessage response)
+    // The refresh token travels exclusively via the HttpOnly cookie the API sets/reads,
+    // so every auth call needs credentials included for that cookie to be stored/sent.
+    private async Task<AuthResult> SendAuthRequestAsync(string url, object? body)
     {
-        using (response)
+        using HttpRequestMessage request = new(HttpMethod.Post, url)
         {
-            if (!response.IsSuccessStatusCode)
+            Content = body is not null ? JsonContent.Create(body) : null
+        };
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        using HttpResponseMessage response = await _http.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) return new AuthResult(false, "Invalid username or password.");
-                return new AuthResult(false, $"Authentication request failed ({(int)response.StatusCode}).");
+                return new AuthResult(false, "Invalid username or password.");
             }
 
-            AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
-            if (tokens is null) return new AuthResult(false, "Unexpected response from server.");
-
-            await _tokenStore.SetTokensAsync(tokens.AccessToken, tokens.RefreshToken);
-            _authStateProvider.NotifyAuthenticationChanged();
-            return new AuthResult(true, null);
+            return new AuthResult(false, $"Authentication request failed ({(int)response.StatusCode}).");
         }
+
+        AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
+
+        if (tokens is null)
+        {
+            return new AuthResult(false, "Unexpected response from server.");
+        }
+
+        await _tokenStore.SetAccessTokenAsync(tokens.AccessToken);
+        _authStateProvider.NotifyAuthenticationChanged();
+        return new AuthResult(true, null);
     }
 }
 

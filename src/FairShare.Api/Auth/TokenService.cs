@@ -55,9 +55,10 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
         return new AccessToken(value, expiresUtc);
     }
 
-    public async Task<string> IssueRefreshTokenAsync(Guid? userId, bool isGuest, CancellationToken ct = default)
+    public async Task<IssuedRefreshToken> IssueRefreshTokenAsync(Guid? userId, bool isGuest, CancellationToken ct = default)
     {
         string raw = GenerateRawToken();
+        DateTime expiresUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenDays);
 
         RefreshToken entity = new()
         {
@@ -66,13 +67,13 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
             IsGuest = isGuest,
             TokenHash = Hash(raw),
             CreatedUtc = DateTime.UtcNow,
-            ExpiresUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
+            ExpiresUtc = expiresUtc
         };
 
         _db.RefreshTokens.Add(entity);
         await _db.SaveChangesAsync(ct);
 
-        return raw;
+        return new IssuedRefreshToken(raw, expiresUtc);
     }
 
     public async Task<RefreshToken?> ConsumeRefreshTokenAsync(string rawToken, CancellationToken ct = default)

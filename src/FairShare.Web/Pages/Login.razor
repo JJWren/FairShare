@@ -58,11 +58,13 @@
             return;
         }
 
-var target = (!string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith("/", StringComparison.Ordinal) && !ReturnUrl.StartsWith("//", StringComparison.Ordinal))
-    ? ReturnUrl
-    : "/";
+        string target = !string.IsNullOrWhiteSpace(ReturnUrl) &&
+            ReturnUrl.StartsWith("/", StringComparison.Ordinal) &&
+            !ReturnUrl.StartsWith("//", StringComparison.Ordinal)
+                ? ReturnUrl
+                : "/";
 
-Navigation.NavigateTo(target);
+        Navigation.NavigateTo(target);
     }
 
     private async Task ContinueAsGuestAsync()
