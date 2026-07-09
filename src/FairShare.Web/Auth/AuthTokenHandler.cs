@@ -35,8 +35,11 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
             return response;
         }
 
+        // A 401 from login/register/guest is a real auth failure (bad credentials, disabled
+        // user, etc.), not an expired-token situation - don't let it trigger a refresh+retry,
+        // which could otherwise turn a failed login into an "authenticated" state.
         if (request.RequestUri is { } uri &&
-            uri.ToString().Contains("api/v1/auth/refresh", StringComparison.OrdinalIgnoreCase))
+            uri.AbsolutePath.Contains("/api/v1/auth/", StringComparison.OrdinalIgnoreCase))
         {
             return response;
         }
@@ -103,7 +106,11 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
 
     private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage original)
     {
-        HttpRequestMessage clone = new(original.Method, original.RequestUri);
+        HttpRequestMessage clone = new(original.Method, original.RequestUri)
+        {
+            Version = original.Version,
+            VersionPolicy = original.VersionPolicy
+        };
 
         if (original.Content is not null)
         {
@@ -119,6 +126,13 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
         foreach (var header in original.Headers)
         {
             clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
+        // Blazor stores per-request settings like BrowserRequestCredentials here; without
+        // copying them, a retried request silently loses things such as "include cookies".
+        foreach (var option in original.Options)
+        {
+            clone.Options.TryAdd(option.Key, option.Value);
         }
 
         return clone;
