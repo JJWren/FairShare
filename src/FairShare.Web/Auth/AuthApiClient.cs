@@ -44,22 +44,21 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
     private async Task<AuthResult> HandleTokenResponseAsync(HttpResponseMessage response)
     {
-        if (!response.IsSuccessStatusCode)
+        using (response)
         {
-            return new AuthResult(false, "Invalid username or password.");
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) return new AuthResult(false, "Invalid username or password.");
+                return new AuthResult(false, $"Authentication request failed ({(int)response.StatusCode}).");
+            }
+
+            AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
+            if (tokens is null) return new AuthResult(false, "Unexpected response from server.");
+
+            await _tokenStore.SetTokensAsync(tokens.AccessToken, tokens.RefreshToken);
+            _authStateProvider.NotifyAuthenticationChanged();
+            return new AuthResult(true, null);
         }
-
-        AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
-
-        if (tokens is null)
-        {
-            return new AuthResult(false, "Unexpected response from server.");
-        }
-
-        await _tokenStore.SetTokensAsync(tokens.AccessToken, tokens.RefreshToken);
-        _authStateProvider.NotifyAuthenticationChanged();
-
-        return new AuthResult(true, null);
     }
 }
 
