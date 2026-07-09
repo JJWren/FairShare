@@ -79,7 +79,15 @@
 
     private async Task LoadAsync()
     {
-        profiles = await Http.GetFromJsonAsync<List<ParentProfileDto>>("api/v1/parents");
+        using HttpResponseMessage resp = await Http.GetAsync("api/v1/parents");
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            return;
+        }
+
+        resp.EnsureSuccessStatusCode();
+        profiles = (await resp.Content.ReadFromJsonAsync<List<ParentProfileDto>>()) ?? [];
     }
 
     private void StartRename(ParentProfileDto p)
