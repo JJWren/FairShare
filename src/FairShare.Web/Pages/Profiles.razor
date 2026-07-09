@@ -83,6 +83,8 @@
 
         if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
+            profiles = [];
+            error = "You are not signed in.";
             return;
         }
 
