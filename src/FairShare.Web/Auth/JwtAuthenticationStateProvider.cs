@@ -36,16 +36,7 @@ if (claims.All(c => c.Type != ClaimTypes.NameIdentifier) && claims.FirstOrDefaul
 {
     claims.Add(new Claim(ClaimTypes.NameIdentifier, sub.Value));
 }
-string? exp = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-
-if (exp is not null && long.TryParse(exp, out long expUnix))
-{
-    DateTimeOffset expiry = DateTimeOffset.FromUnixTimeSeconds(expUnix);
-    if (expiry <= DateTimeOffset.UtcNow)
-    {
-        return new AuthenticationState(Anonymous);
-    }
-}
+        // Access token expiry is handled by the HTTP pipeline (refresh-on-401); avoid forcing a UI logout here.
 
 ClaimsIdentity identity = new(claims, authenticationType: "jwt");
 return new AuthenticationState(new ClaimsPrincipal(identity));
