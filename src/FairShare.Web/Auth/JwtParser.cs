@@ -16,8 +16,16 @@ public static class JwtParser
             yield break;
         }
 
-        byte[] jsonBytes = ParseBase64WithoutPadding(parts[1]);
-        Dictionary<string, object>? payload = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+        Dictionary<string, object>? payload;
+        try
+        {
+            byte[] jsonBytes = ParseBase64WithoutPadding(parts[1]);
+            payload = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+        }
+        catch (Exception ex) when (ex is FormatException or ArgumentException or JsonException)
+        {
+            yield break;
+        }
 
         if (payload is null)
         {
