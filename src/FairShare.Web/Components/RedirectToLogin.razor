@@ -1,8 +1,8 @@
 @inject NavigationManager Navigation
 
 @code {
-    protected override void OnInitialized()
-    {
-        Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-    }
+protected override void OnInitialized()
+{
+    var returnUrl = "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+    Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
 }
