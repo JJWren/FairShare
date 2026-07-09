@@ -36,9 +36,10 @@ public class AuthController(
 
         if (!result.Succeeded)
         {
-            return ValidationProblem(new ValidationProblemDetails(
-                result.Errors.ToLookup(_ => "Password", e => e.Description)
-                    .ToDictionary(g => g.Key, g => g.ToArray())));
+return ValidationProblem(new ValidationProblemDetails(
+    result.Errors
+        .GroupBy(e => e.Code)
+        .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray())));
         }
 
         await _userManager.AddToRoleAsync(user, "User");
