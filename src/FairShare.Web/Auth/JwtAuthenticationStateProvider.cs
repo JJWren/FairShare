@@ -19,20 +19,36 @@ public class JwtAuthenticationStateProvider(ITokenStore tokenStore) : Authentica
             return new AuthenticationState(Anonymous);
         }
 
-        var claims = JwtParser.ParseClaimsFromJwt(token).ToList();
-        string? exp = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
+var claims = JwtParser.ParseClaimsFromJwt(token).ToList();
 
-        if (exp is not null && long.TryParse(exp, out long expUnix))
-        {
-            DateTimeOffset expiry = DateTimeOffset.FromUnixTimeSeconds(expUnix);
-            if (expiry <= DateTimeOffset.UtcNow)
-            {
-                return new AuthenticationState(Anonymous);
-            }
-        }
+// Map common JWT claim names to .NET claim types so role/name-based authorization works.
+foreach (var c in claims.Where(c => c.Type is "role" or "roles").ToList())
+{
+    claims.Add(new Claim(ClaimTypes.Role, c.Value));
+}
 
-        ClaimsIdentity identity = new(claims, authenticationType: "jwt");
-        return new AuthenticationState(new ClaimsPrincipal(identity));
+if (claims.All(c => c.Type != ClaimTypes.Name) && claims.FirstOrDefault(c => c.Type == "unique_name") is { } uniqueName)
+{
+    claims.Add(new Claim(ClaimTypes.Name, uniqueName.Value));
+}
+
+if (claims.All(c => c.Type != ClaimTypes.NameIdentifier) && claims.FirstOrDefault(c => c.Type == "sub") is { } sub)
+{
+    claims.Add(new Claim(ClaimTypes.NameIdentifier, sub.Value));
+}
+string? exp = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
+
+if (exp is not null && long.TryParse(exp, out long expUnix))
+{
+    DateTimeOffset expiry = DateTimeOffset.FromUnixTimeSeconds(expUnix);
+    if (expiry <= DateTimeOffset.UtcNow)
+    {
+        return new AuthenticationState(Anonymous);
+    }
+}
+
+ClaimsIdentity identity = new(claims, authenticationType: "jwt");
+return new AuthenticationState(new ClaimsPrincipal(identity));
     }
 
     public void NotifyAuthenticationChanged() =>
