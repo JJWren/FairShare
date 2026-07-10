@@ -79,17 +79,21 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
     public async Task<RefreshToken?> ConsumeRefreshTokenAsync(string rawToken, CancellationToken ct = default)
     {
         string hash = Hash(rawToken);
-        RefreshToken? existing = await _db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+        DateTime now = DateTime.UtcNow;
 
-        if (existing is null || !existing.IsActive)
+        // Claim the token in a single UPDATE so rotate-on-use holds under concurrency:
+        // only one of two simultaneous refreshes can flip RevokedUtc from null, and the
+        // loser gets zero rows instead of both succeeding (read-then-revoke raced).
+        int claimed = await _db.RefreshTokens
+            .Where(t => t.TokenHash == hash && t.RevokedUtc == null && t.ExpiresUtc > now)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedUtc, now), ct);
+
+        if (claimed == 0)
         {
             return null;
         }
 
-        existing.RevokedUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
-
-        return existing;
+        return await _db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
     }
 
     private static string GenerateRawToken()

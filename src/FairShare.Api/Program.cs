@@ -130,6 +130,18 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Behind a TLS-terminating reverse proxy (the eventual VPS setup), the app sees plain
+// HTTP; honoring X-Forwarded-Proto keeps Request.IsHttps - and everything derived from
+// it, like the refresh cookie's Secure/SameSite attributes - correct. The proxy address
+// isn't known ahead of time for a self-hosted app, so no KnownProxies restriction; a
+// client spoofing the header only affects its own cookie attributes.
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 // Domain services
 builder.Services.AddScoped<IChildSupportCalculator, CS42Calculator>();
 builder.Services.AddScoped<IChildSupportCalculator, CS42SCalculator>();
@@ -205,6 +217,8 @@ else
     app.UseExceptionHandler();
     app.UseHsts();
 }
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
