@@ -38,13 +38,6 @@ public class ParentProfileCreateRequest
     public int HealthcareCoverageCosts { get; set; }
 
     public bool HasPrimaryCustody { get; set; }
-
-    /// <summary>
-    /// When true (default) and a DisplayName is provided, saving a name that already exists
-    /// among your parents updates that record in place instead of creating a duplicate.
-    /// Set to false to always create a new record.
-    /// </summary>
-    public bool Deduplicate { get; set; } = true;
 }
 
 public class ParentProfileUpdateRequest

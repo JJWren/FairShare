@@ -102,35 +102,19 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             HasPrimaryCustody = request.HasPrimaryCustody
         };
 
-        // Re-saving a named parent updates that record in place (the name is the natural
-        // key within one user's saved parents) instead of accumulating same-named copies.
-        // Deduplicate=false or an omitted name always creates a fresh record.
-        if (request.Deduplicate && !string.IsNullOrWhiteSpace(request.DisplayName))
-        {
-            (ParentProfile upserted, bool created) = await _service.UpsertByNameAsync(data, request.DisplayName, uid, ct);
+        // Re-saving a named parent updates that record in place - the display name is the
+        // natural key within one user's saved parents (DB-enforced by a unique index), so
+        // same-named duplicates can't accumulate. An omitted name gets a generated one
+        // (random suffix keeps it unique under that same index).
+        string displayName = string.IsNullOrWhiteSpace(request.DisplayName)
+            ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..4]}"
+            : request.DisplayName;
 
-            return created
-                ? CreatedAtAction(nameof(Get), new { id = upserted.Id }, ToDto(upserted))
-                : Ok(ToDto(upserted));
-        }
+        (ParentProfile profile, bool created) = await _service.UpsertByNameAsync(data, displayName, uid, ct);
 
-        ParentProfile profile = await _service.CreateAsync(new ParentProfile
-        {
-            Id = Guid.NewGuid(),
-            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
-                ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}"
-                : request.DisplayName.Trim(),
-            MonthlyGrossIncome = data.MonthlyGrossIncome,
-            PreexistingChildSupport = data.PreexistingChildSupport,
-            PreexistingAlimony = data.PreexistingAlimony,
-            WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
-            HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-            HasPrimaryCustody = data.HasPrimaryCustody,
-            CreatedUtc = DateTime.UtcNow,
-            OwnerUserId = uid
-        }, ct);
-
-        return CreatedAtAction(nameof(Get), new { id = profile.Id }, ToDto(profile));
+        return created
+            ? CreatedAtAction(nameof(Get), new { id = profile.Id }, ToDto(profile))
+            : Ok(ToDto(profile));
     }
 
     [HttpPut("{id:guid}")]
@@ -181,7 +165,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
 
         if (!ok)
         {
-            return Conflict("The profile was modified by another request. Reload and try again.");
+            return Conflict("The profile was modified by another request, or the new name is already used by another of your saved parents. Reload and try again.");
         }
 
         return NoContent();

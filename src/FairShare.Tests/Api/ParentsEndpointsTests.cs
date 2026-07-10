@@ -96,6 +96,7 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
 
         HttpResponseMessage first = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
             new ParentProfileCreateRequest { DisplayName = "Case Test", MonthlyGrossIncome = 3000 });
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
         ParentProfileDto created = (await first.Content.ReadFromJsonAsync<ParentProfileDto>())!;
 
         HttpResponseMessage second = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
@@ -115,6 +116,7 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
 
         HttpResponseMessage adminCreate = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", adminToken,
             new ParentProfileCreateRequest { DisplayName = "Shared Name", MonthlyGrossIncome = 4000 });
+        Assert.Equal(HttpStatusCode.Created, adminCreate.StatusCode);
         ParentProfileDto adminProfile = (await adminCreate.Content.ReadFromJsonAsync<ParentProfileDto>())!;
 
         // The other user saving the same name must get their OWN record, not touch admin's.
@@ -131,14 +133,19 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
-    public async Task CreateParent_DeduplicateFalse_AlwaysCreatesNewRecord()
+    public async Task UpdateParent_RenamingOntoExistingName_ReturnsConflict()
     {
         string accessToken = await LoginAsAdminAsync();
 
-        ParentProfileDto first = await CreateParentAsync(accessToken, "Dup Allowed");
-        ParentProfileDto second = await CreateParentAsync(accessToken, "Dup Allowed");
+        ParentProfileDto keep = await CreateParentAsync(accessToken, "Rename Target");
+        ParentProfileDto toRename = await CreateParentAsync(accessToken, "Rename Source");
 
-        Assert.NotEqual(first.Id, second.Id);
+        // The unique (owner, name) index must reject renaming onto a name already in use.
+        HttpResponseMessage response = await SendAuthorizedAsync(
+            HttpMethod.Put, $"api/v1/parents/{toRename.Id}", accessToken, ToUpdateRequest(toRename, displayName: "Rename Target"));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotEqual(keep.Id, toRename.Id);
     }
 
     private async Task<string> RegisterUserAsync(string userName)
@@ -178,8 +185,7 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
             new ParentProfileCreateRequest
             {
                 DisplayName = displayName,
-                MonthlyGrossIncome = 4000,
-                Deduplicate = false
+                MonthlyGrossIncome = 4000
             });
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
