@@ -6,6 +6,7 @@ using System;
 using FairShare.Api.Persistence;
 using FairShare.Api.Models;
 using FairShare.Domain.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -74,9 +75,21 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         }
         catch (DbUpdateConcurrencyException)
         {
+            // Optimistic-concurrency mismatch: the caller reports 409.
+            return false;
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // Rename collided with the unique (owner, name) index: also a 409 for the
+            // caller. Anything else (operational failures etc.) keeps bubbling so real
+            // outages aren't disguised as conflicts.
             return false;
         }
     }
+
+    // SQLITE_CONSTRAINT_UNIQUE - the extended result code for unique-index violations.
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
+        ex.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 };
 
     public async Task<bool> ArchiveAsync(Guid id, CancellationToken ct = default)
     {
@@ -93,55 +106,21 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         return true;
     }
 
-    public Task<ParentProfile?> FindDuplicateAsync(ParentData data, string? displayName, CancellationToken ct = default)
+    public async Task<(ParentProfile Profile, bool Created)> UpsertByNameAsync(ParentData data, string displayName, Guid? ownerUserId, CancellationToken ct = default)
     {
-        IQueryable<ParentProfile> q = _db.ParentProfiles.Where(p =>
-            !p.IsArchived &&
-            p.MonthlyGrossIncome == data.MonthlyGrossIncome &&
-            p.PreexistingChildSupport == data.PreexistingChildSupport &&
-            p.PreexistingAlimony == data.PreexistingAlimony &&
-            p.WorkRelatedChildcareCosts == data.WorkRelatedChildcareCosts &&
-            p.HealthcareCoverageCosts == data.HealthcareCoverageCosts);
+        string name = displayName.Trim();
 
-        if (!string.IsNullOrWhiteSpace(displayName))
-        {
-            string dn = displayName.Trim();
-            q = q.Where(p => p.DisplayName == dn);
-        }
-
-        return q.OrderBy(p => p.CreatedUtc).FirstOrDefaultAsync(ct);
-    }
-
-    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default)
-    {
-        ParentProfile? existing = await FindDuplicateAsync(data, displayNameHint, ct);
+        ParentProfile? existing = await FindActiveByNameAsync(name, ownerUserId, ct);
 
         if (existing is not null)
         {
-            // If duplicate is unowned and caller passes an owner, bind it now.
-            if (existing.OwnerUserId is null && ownerUserId is not null)
-            {
-                existing.OwnerUserId = ownerUserId;
-                existing.UpdatedUtc = DateTime.UtcNow;
-                await _db.SaveChangesAsync(ct);
-                
-                _logger.LogInformation(
-                    "Bound existing unowned ParentProfile {ProfileId} to user {UserId}",
-                    existing.Id,
-                    ownerUserId);
-            }
-
-            return existing;
+            return (await UpdateInPlaceAsync(existing, data, ownerUserId, ct), false);
         }
-
-        string displayName = string.IsNullOrWhiteSpace(displayNameHint)
-            ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}"
-            : displayNameHint.Trim();
 
         ParentProfile profile = new()
         {
             Id = Guid.NewGuid(),
-            DisplayName = displayName,
+            DisplayName = name,
             MonthlyGrossIncome = data.MonthlyGrossIncome,
             PreexistingChildSupport = data.PreexistingChildSupport,
             PreexistingAlimony = data.PreexistingAlimony,
@@ -153,23 +132,79 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         };
 
         _db.ParentProfiles.Add(profile);
-        await _db.SaveChangesAsync(ct);
-        
-        if (ownerUserId is not null)
+
+        try
         {
-            _logger.LogInformation(
-                "Created new ParentProfile {ProfileId} owned by user {UserId}",
-                profile.Id,
-                ownerUserId);
+            await _db.SaveChangesAsync(ct);
         }
-        else
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
-            _logger.LogWarning(
-                "Created new ParentProfile {ProfileId} without an owner. This should be avoided in new code.",
-                profile.Id);
+            // Lost a create race: the unique (OwnerUserId, lower(DisplayName)) index means
+            // a concurrent request inserted this name between our check and our insert.
+            // Fall back to updating the row that won.
+            _db.Entry(profile).State = EntityState.Detached;
+
+            ParentProfile? winner = await FindActiveByNameAsync(name, ownerUserId, ct);
+
+            if (winner is null)
+            {
+                throw;
+            }
+
+            return (await UpdateInPlaceAsync(winner, data, ownerUserId, ct), false);
         }
-        
-        return profile;
+
+        _logger.LogInformation(
+            "Created new ParentProfile {ProfileId} ('{DisplayName}') for user {UserId}",
+            profile.Id,
+            profile.DisplayName,
+            ownerUserId);
+
+        return (profile, true);
+    }
+
+    // Within one user's saved parents, the display name acts as the natural key (enforced
+    // by a unique index over OwnerUserId + lower(DisplayName) on active rows). Invariant
+    // lowercasing on the C# side keeps matching culture-stable (e.g. Turkish-I); the EF
+    // side stays ToLower() so it translates to SQL LOWER(), which is ASCII-only in SQLite
+    // and agrees with invariant casing for ASCII names.
+    private Task<ParentProfile?> FindActiveByNameAsync(string trimmedName, Guid? ownerUserId, CancellationToken ct)
+    {
+        string nameLower = trimmedName.ToLowerInvariant();
+
+        return _db.ParentProfiles
+            .Where(p => !p.IsArchived && p.OwnerUserId == ownerUserId && p.DisplayName.ToLower() == nameLower)
+            .OrderBy(p => p.CreatedUtc)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    private async Task<ParentProfile> UpdateInPlaceAsync(ParentProfile existing, ParentData data, Guid? ownerUserId, CancellationToken ct)
+    {
+        existing.ApplyFrom(data);
+        existing.UpdatedUtc = DateTime.UtcNow;
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A concurrent save of the same profile bumped the RowVersion token between
+            // our read and this write. The upsert's semantics are last-write-wins, so
+            // reload the row and reapply once instead of surfacing a 500.
+            await _db.Entry(existing).ReloadAsync(ct);
+            existing.ApplyFrom(data);
+            existing.UpdatedUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        _logger.LogInformation(
+            "Updated ParentProfile {ProfileId} ('{DisplayName}') in place for user {UserId}",
+            existing.Id,
+            existing.DisplayName,
+            ownerUserId);
+
+        return existing;
     }
 }
 

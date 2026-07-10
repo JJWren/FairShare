@@ -105,7 +105,9 @@
     private List<ParentProfileDto>? savedProfiles;
     private readonly List<string> errors = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync() => LoadSavedProfilesAsync();
+
+    private async Task LoadSavedProfilesAsync()
     {
         try
         {
@@ -160,14 +162,26 @@
 
     private async Task SaveParentsAsync()
     {
+        bool saved = false;
+
+        // The API upserts by name: re-saving an existing parent's name (edited or not)
+        // updates that record in place rather than creating a same-named duplicate.
         if (!string.IsNullOrWhiteSpace(plaintiffName))
         {
-            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(plaintiffName, plaintiff));
+            using HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(plaintiffName, plaintiff));
+            saved |= response.IsSuccessStatusCode;
         }
 
         if (!string.IsNullOrWhiteSpace(defendantName))
         {
-            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(defendantName, defendant));
+            using HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(defendantName, defendant));
+            saved |= response.IsSuccessStatusCode;
+        }
+
+        if (saved)
+        {
+            // Keep the picker in sync with what was just written.
+            await LoadSavedProfilesAsync();
         }
     }
 

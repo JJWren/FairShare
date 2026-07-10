@@ -64,6 +64,113 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task CreateParent_SameNameChangedFields_UpdatesExistingRecordInPlace()
+    {
+        string accessToken = await LoginAsAdminAsync();
+
+        HttpResponseMessage first = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
+            new ParentProfileCreateRequest { DisplayName = "Upsert Test", MonthlyGrossIncome = 4244 });
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        ParentProfileDto created = (await first.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        // Same name, different figures - must modify the existing record, not add a twin.
+        HttpResponseMessage second = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
+            new ParentProfileCreateRequest { DisplayName = "Upsert Test", MonthlyGrossIncome = 5000, HealthcareCoverageCosts = 195 });
+        Assert.Equal(HttpStatusCode.OK, second.StatusCode);
+        ParentProfileDto updated = (await second.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        Assert.Equal(created.Id, updated.Id);
+        Assert.Equal(5000, updated.MonthlyGrossIncome);
+        Assert.Equal(195, updated.HealthcareCoverageCosts);
+
+        HttpResponseMessage list = await SendAuthorizedGetAsync("api/v1/parents?q=Upsert Test", accessToken);
+        List<ParentProfileDto> matches = (await list.Content.ReadFromJsonAsync<List<ParentProfileDto>>())!;
+        Assert.Single(matches, p => p.DisplayName == "Upsert Test");
+    }
+
+    [Fact]
+    public async Task CreateParent_SameNameDifferentCase_UpdatesExistingRecord()
+    {
+        string accessToken = await LoginAsAdminAsync();
+
+        HttpResponseMessage first = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
+            new ParentProfileCreateRequest { DisplayName = "Case Test", MonthlyGrossIncome = 3000 });
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        ParentProfileDto created = (await first.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        HttpResponseMessage second = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", accessToken,
+            new ParentProfileCreateRequest { DisplayName = "case test", MonthlyGrossIncome = 3500 });
+        Assert.Equal(HttpStatusCode.OK, second.StatusCode);
+        ParentProfileDto updated = (await second.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        Assert.Equal(created.Id, updated.Id);
+        Assert.Equal(3500, updated.MonthlyGrossIncome);
+    }
+
+    [Fact]
+    public async Task CreateParent_SameName_DifferentUsers_KeepSeparateRecords()
+    {
+        string adminToken = await LoginAsAdminAsync();
+        string otherToken = await RegisterUserAsync("upsert-other-user");
+
+        HttpResponseMessage adminCreate = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", adminToken,
+            new ParentProfileCreateRequest { DisplayName = "Shared Name", MonthlyGrossIncome = 4000 });
+        Assert.Equal(HttpStatusCode.Created, adminCreate.StatusCode);
+        ParentProfileDto adminProfile = (await adminCreate.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        // The other user saving the same name must get their OWN record, not touch admin's.
+        HttpResponseMessage otherCreate = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/parents", otherToken,
+            new ParentProfileCreateRequest { DisplayName = "Shared Name", MonthlyGrossIncome = 9999 });
+        Assert.Equal(HttpStatusCode.Created, otherCreate.StatusCode);
+        ParentProfileDto otherProfile = (await otherCreate.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+
+        Assert.NotEqual(adminProfile.Id, otherProfile.Id);
+
+        HttpResponseMessage adminGet = await SendAuthorizedGetAsync($"api/v1/parents/{adminProfile.Id}", adminToken);
+        ParentProfileDto adminAfter = (await adminGet.Content.ReadFromJsonAsync<ParentProfileDto>())!;
+        Assert.Equal(4000, adminAfter.MonthlyGrossIncome);
+    }
+
+    [Fact]
+    public async Task UpdateParent_RenamingOntoExistingName_ReturnsConflict()
+    {
+        string accessToken = await LoginAsAdminAsync();
+
+        ParentProfileDto keep = await CreateParentAsync(accessToken, "Rename Target");
+        ParentProfileDto toRename = await CreateParentAsync(accessToken, "Rename Source");
+
+        // The unique (owner, name) index must reject renaming onto a name already in use.
+        HttpResponseMessage response = await SendAuthorizedAsync(
+            HttpMethod.Put, $"api/v1/parents/{toRename.Id}", accessToken, ToUpdateRequest(toRename, displayName: "Rename Target"));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotEqual(keep.Id, toRename.Id);
+    }
+
+    private async Task<string> RegisterUserAsync(string userName)
+    {
+        HttpResponseMessage response = await _client.PostAsJsonAsync("api/v1/auth/register", new RegisterRequest
+        {
+            UserName = userName,
+            Password = "Upsert-Test-12345!"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
+        Assert.NotNull(tokens);
+        Assert.False(string.IsNullOrWhiteSpace(tokens!.AccessToken));
+        return tokens.AccessToken;
+    }
+
+    private async Task<HttpResponseMessage> SendAuthorizedGetAsync(string url, string accessToken)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Get, url);
+        request.Headers.Add("Authorization", $"Bearer {accessToken}");
+        return await _client.SendAsync(request);
+    }
+
     private async Task<string> LoginAsAdminAsync()
     {
         HttpResponseMessage response = await _client.PostAsJsonAsync("api/v1/auth/login", new LoginRequest
@@ -82,8 +189,7 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
             new ParentProfileCreateRequest
             {
                 DisplayName = displayName,
-                MonthlyGrossIncome = 4000,
-                Deduplicate = false
+                MonthlyGrossIncome = 4000
             });
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

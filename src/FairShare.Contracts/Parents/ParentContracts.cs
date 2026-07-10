@@ -38,8 +38,6 @@ public class ParentProfileCreateRequest
     public int HealthcareCoverageCosts { get; set; }
 
     public bool HasPrimaryCustody { get; set; }
-
-    public bool Deduplicate { get; set; } = true;
 }
 
 public class ParentProfileUpdateRequest
