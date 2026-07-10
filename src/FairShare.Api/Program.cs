@@ -123,10 +123,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Web", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        // With no configured origins, leave the policy empty rather than calling
+        // WithOrigins([]): browsers get no CORS headers (cross-origin blocked), while
+        // same-origin and non-browser clients (curl/Postman) are unaffected.
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
     });
 });
 
@@ -151,6 +157,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<AdminSeeder>();
 
 var app = builder.Build();
+
+if (allowedOrigins.Length == 0)
+{
+    app.Logger.LogWarning(
+        "Cors:AllowedOrigins is empty - browser clients on other origins (e.g. the FairShare.Web app) will be blocked until it is configured.");
+}
 
 // Self-host upgrade safety
 if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
