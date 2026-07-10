@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.0.1](https://github.com/JJWren/FairShare/compare/fairshare-v7.0.0...fairshare-v7.0.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* theme toggle never worked - vendored Bootstrap was 5.1 ([#55](https://github.com/JJWren/FairShare/issues/55)) ([7de7819](https://github.com/JJWren/FairShare/commit/7de78191927001346fa7142ef0845f106ce8acd0))
+
 ## [7.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v6.0.0...fairshare-v7.0.0) (2026-05-07)
 
 
