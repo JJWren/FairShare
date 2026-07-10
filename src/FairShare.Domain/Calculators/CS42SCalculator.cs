@@ -62,7 +62,14 @@ namespace FairShare.Domain.Calculators
                 int plaintiffRecommendedObligation = plaintiffBasicObligation - (int)Math.Round(plaintiffTotalCostsPaid * defendantIncomePercentage, 0);
                 int defendantRecommendedObligation = defendantBasicObligation - (int)Math.Round(defendantTotalCostsPaid * plaintiffIncomePercentage, 0);
 
-                if (plaintiffRecommendedObligation > defendantRecommendedObligation)
+                if (plaintiffRecommendedObligation == defendantRecommendedObligation)
+                {
+                    // An empty payer is the UI's signal for "No net transfer." - naming a
+                    // parent with a $0 amount would read as a real (if empty) obligation.
+                    result.Payer = string.Empty;
+                    result.FinalAmount = 0;
+                }
+                else if (plaintiffRecommendedObligation > defendantRecommendedObligation)
                 {
                     result.Payer = Enums.ParentType.Plaintiff.ToString();
                     result.FinalAmount = plaintiffRecommendedObligation - defendantRecommendedObligation;

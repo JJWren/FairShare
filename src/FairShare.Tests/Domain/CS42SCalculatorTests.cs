@@ -46,6 +46,9 @@ public class CS42SCalculatorTests
 
         Assert.True(result.Success);
         Assert.Equal(0, result.FinalAmount);
+        // The UI renders "No net transfer." only when the payer is blank - a named payer
+        // with a $0 amount would display as a misleading "X owes $0".
+        Assert.True(string.IsNullOrWhiteSpace(result.Payer));
     }
 
     [Fact]
