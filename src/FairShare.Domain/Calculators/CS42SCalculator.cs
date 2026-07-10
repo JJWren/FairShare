@@ -49,8 +49,12 @@ namespace FairShare.Domain.Calculators
                 int plaintiffSharedParentingObligation = (int)Math.Round(sharedParentingObligation * plaintiffIncomePercentage, 0);
                 int defendantSharedParentingObligation = (int)Math.Round(sharedParentingObligation * defendantIncomePercentage, 0);
 
-                int plaintiffBasicObligation = (int)Math.Round(defendantSharedParentingObligation * 0.5, 0);
-                int defendantBasicObligation = (int)Math.Round(plaintiffSharedParentingObligation * 0.5, 0);
+                // Per the CS-42-S worksheet, each parent owes their OWN income-share of the
+                // shared-parenting obligation, prorated by the time the children spend with
+                // the other parent (50/50 custody assumed). These were previously transposed,
+                // which made the lower-earning parent always come out as the payer.
+                int plaintiffBasicObligation = (int)Math.Round(plaintiffSharedParentingObligation * 0.5, 0);
+                int defendantBasicObligation = (int)Math.Round(defendantSharedParentingObligation * 0.5, 0);
 
                 int plaintiffTotalCostsPaid = plaintiff.GetTotalChildcareAndHealthcareCosts();
                 int defendantTotalCostsPaid = defendant.GetTotalChildcareAndHealthcareCosts();
@@ -58,7 +62,14 @@ namespace FairShare.Domain.Calculators
                 int plaintiffRecommendedObligation = plaintiffBasicObligation - (int)Math.Round(plaintiffTotalCostsPaid * defendantIncomePercentage, 0);
                 int defendantRecommendedObligation = defendantBasicObligation - (int)Math.Round(defendantTotalCostsPaid * plaintiffIncomePercentage, 0);
 
-                if (plaintiffRecommendedObligation > defendantRecommendedObligation)
+                if (plaintiffRecommendedObligation == defendantRecommendedObligation)
+                {
+                    // An empty payer is the UI's signal for "No net transfer." - naming a
+                    // parent with a $0 amount would read as a real (if empty) obligation.
+                    result.Payer = string.Empty;
+                    result.FinalAmount = 0;
+                }
+                else if (plaintiffRecommendedObligation > defendantRecommendedObligation)
                 {
                     result.Payer = Enums.ParentType.Plaintiff.ToString();
                     result.FinalAmount = plaintiffRecommendedObligation - defendantRecommendedObligation;
