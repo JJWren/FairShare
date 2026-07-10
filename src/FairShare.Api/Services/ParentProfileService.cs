@@ -6,6 +6,7 @@ using System;
 using FairShare.Api.Persistence;
 using FairShare.Api.Models;
 using FairShare.Domain.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -72,13 +73,23 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
             await _db.SaveChangesAsync(ct);
             return true;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateConcurrencyException)
         {
-            // Covers both an optimistic-concurrency mismatch (DbUpdateConcurrencyException)
-            // and a rename colliding with the unique (owner, name) index.
+            // Optimistic-concurrency mismatch: the caller reports 409.
+            return false;
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // Rename collided with the unique (owner, name) index: also a 409 for the
+            // caller. Anything else (operational failures etc.) keeps bubbling so real
+            // outages aren't disguised as conflicts.
             return false;
         }
     }
+
+    // SQLITE_CONSTRAINT_UNIQUE - the extended result code for unique-index violations.
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
+        ex.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 };
 
     public async Task<bool> ArchiveAsync(Guid id, CancellationToken ct = default)
     {
@@ -126,7 +137,7 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         {
             await _db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
             // Lost a create race: the unique (OwnerUserId, lower(DisplayName)) index means
             // a concurrent request inserted this name between our check and our insert.
@@ -171,7 +182,21 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
     {
         existing.ApplyFrom(data);
         existing.UpdatedUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A concurrent save of the same profile bumped the RowVersion token between
+            // our read and this write. The upsert's semantics are last-write-wins, so
+            // reload the row and reapply once instead of surfacing a 500.
+            await _db.Entry(existing).ReloadAsync(ct);
+            existing.ApplyFrom(data);
+            existing.UpdatedUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
 
         _logger.LogInformation(
             "Updated ParentProfile {ProfileId} ('{DisplayName}') in place for user {UserId}",

@@ -168,14 +168,14 @@
         // updates that record in place rather than creating a same-named duplicate.
         if (!string.IsNullOrWhiteSpace(plaintiffName))
         {
-            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(plaintiffName, plaintiff));
-            saved = true;
+            using HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(plaintiffName, plaintiff));
+            saved |= response.IsSuccessStatusCode;
         }
 
         if (!string.IsNullOrWhiteSpace(defendantName))
         {
-            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(defendantName, defendant));
-            saved = true;
+            using HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(defendantName, defendant));
+            saved |= response.IsSuccessStatusCode;
         }
 
         if (saved)

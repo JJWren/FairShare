@@ -156,7 +156,11 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
             Password = "Upsert-Test-12345!"
         });
 
-        AuthTokenResponse tokens = (await response.Content.ReadFromJsonAsync<AuthTokenResponse>())!;
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
+        Assert.NotNull(tokens);
+        Assert.False(string.IsNullOrWhiteSpace(tokens!.AccessToken));
         return tokens.AccessToken;
     }
 
