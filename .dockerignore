@@ -1,0 +1,29 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# IDE / tooling
+**/.vs/
+**/.idea/
+*.user
+
+# VCS / CI / docs - not needed inside images
+.git/
+.github/
+docs/
+aidlc-docs/
+*.md
+
+# Local databases and secrets must never end up in an image
+*.db
+*.db-shm
+*.db-wal
+.env
+
+# Tests aren't part of either runtime image
+src/FairShare.Tests/
+
+# Docker files themselves
+Dockerfile
+docker-compose*.yml
+.dockerignore
