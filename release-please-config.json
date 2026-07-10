@@ -4,10 +4,10 @@
     ".": {
       "package-name": "fairshare",
       "extra-files": [
-        { "type": "xml", "path": "src/AppBackend/AppBackend.csproj", "xpath": "//Project/PropertyGroup/Version" },
-        { "type": "xml", "path": "src/AppBackend/AppBackend.csproj", "xpath": "//Project/PropertyGroup/AssemblyVersion" },
-        { "type": "xml", "path": "src/AppBackend/AppBackend.csproj", "xpath": "//Project/PropertyGroup/FileVersion" },
-        { "type": "xml", "path": "src/AppBackend/AppBackend.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" }
+        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/Version" },
+        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/AssemblyVersion" },
+        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/FileVersion" },
+        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" }
       ]
     }
   }

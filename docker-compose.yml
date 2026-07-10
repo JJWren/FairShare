@@ -1,0 +1,51 @@
+name: fairshare
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/FairShare.Api/Dockerfile
+    ports:
+      - "${API_PORT:-5859}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__Default: "Data Source=/data/fairshare.db"
+      # Required - fail fast at compose time rather than at container startup.
+      Jwt__SigningKey: "${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env (see .env.example)}"
+      AdminSeed__Enabled: "true"
+      AdminSeed__User: "${ADMIN_USER:-admin}"
+      AdminSeed__Password: "${ADMIN_PASSWORD:-}"
+      AdminSeed__LogGeneratedPassword: "true"
+      Cors__AllowedOrigins__0: "${WEB_ORIGIN:-http://localhost:5858}"
+    volumes:
+      - fairshare-data:/data
+    healthcheck:
+      # aspnet images ship no curl/wget; bash + /dev/tcp does an HTTP GET against /healthz.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /healthz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: src/FairShare.Web/Dockerfile
+    ports:
+      - "${WEB_PORT:-5858}:80"
+    environment:
+      # Browser-visible API URL (the browser calls the API, not this container).
+      API_BASE_URL: "${API_BASE_URL:-http://localhost:5859}"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  fairshare-data:

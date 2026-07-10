@@ -25,6 +25,9 @@ using System.IO.Compression;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+// Required by the parameterless UseExceptionHandler() below (Production pipeline);
+// also gives unhandled errors an RFC 7807 problem-details body.
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -242,6 +245,9 @@ app.UseAuthorization();
 app.UseMiddleware<UserActivityMiddleware>();
 
 app.MapControllers();
+
+// Liveness probe for container orchestration (compose healthcheck, reverse proxies, monitors).
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 using (var scope = app.Services.CreateScope())
 {

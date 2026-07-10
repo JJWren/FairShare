@@ -17,7 +17,7 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 - **Server-side Calculations**: Calculation logic moved behind `POST /api/v1/states/{state}/forms/{form}/calculations`, so results are consistent regardless of client.
 - **Theme Toggle**: Light/Dark/Auto, persisted in `localStorage`, applied pre-render.
 - **Saved Parent Profiles Page**: Standalone `/profiles` page to rename/archive saved profiles, in addition to inline reuse from the calculator.
-- **Docker removed**: Both apps run locally via `dotnet run` for now.
+- **Two-container Docker Compose**: `docker compose up --build` runs the API (with a persistent SQLite volume) and the nginx-served Web app; bare `dotnet run` still works too.
 
 ---
 
@@ -64,10 +64,33 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 - **Shared Logic**: .NET class libraries (Domain calculators, Contracts DTOs)
 - **Database**: SQLite (EF Core)
 - **Styling**: Bootstrap 5
+- **Deployment**: Docker Compose (API container + nginx container for the SPA), or bare `dotnet run`
 
 ---
 
-## Quick Start (local)
+## Quick Start (Docker Compose)
+
+Requires Docker with Compose v2.
+
+```bash
+cp .env.example .env
+# Edit .env: set JWT_SIGNING_KEY (e.g. `openssl rand -base64 48`) and optionally ADMIN_PASSWORD
+
+docker compose up --build
+```
+
+- Web app: http://localhost:5858
+- API + Swagger: http://localhost:5859 (`/swagger`, `/healthz`)
+
+If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once in `docker compose logs api`. The SQLite database (and pre-migration backups) persist in the named `fairshare-data` volume across restarts.
+
+Both images build from source — no registry needed. Ports and browser-visible URLs are configurable in `.env` (`WEB_PORT`/`API_PORT`/`WEB_ORIGIN`/`API_BASE_URL`).
+
+**Hosting behind a reverse proxy (VPS):** terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes), set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL. `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name.
+
+---
+
+## Quick Start (bare `dotnet run`)
 
 Requires the .NET 10 SDK.
 
