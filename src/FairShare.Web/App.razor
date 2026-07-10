@@ -4,7 +4,19 @@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
-                <RedirectToLogin />
+                @if (context.User.Identity?.IsAuthenticated == true)
+                {
+                    @* Signed in but lacking the required role/policy (e.g. non-admin on
+                       /admin/users) - bouncing to /login would be misleading. *@
+                    <div class="container my-5 text-center">
+                        <h3>Access denied</h3>
+                        <p>You do not have permission to view this page.</p>
+                    </div>
+                }
+                else
+                {
+                    <RedirectToLogin />
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
