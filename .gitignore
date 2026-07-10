@@ -101,14 +101,9 @@ coverage/
 TestResults/
 
 ################################################################################
-# Docker / Compose
+# Local secrets
 ################################################################################
-# Local dotenv with secrets/ports; commit an example instead (e.g., .env.example)
 .env
-
-# Docker build cache and miscellaneous
-**/.dockerignore~
-docker-compose.override.yml
 
 ################################################################################
 # Misc tools / caches
@@ -158,13 +153,6 @@ db_backups/
 fairshare.db
 FairShare.db
 
-################################################################################
-# Docker volumes (if any)
-################################################################################
-data/
-volumes/
-/FairShare/fairshare.db-shm
-/FairShare/fairshare.db-wal
 
 ################################################################################
 # AI DLC Documentation (Private)
