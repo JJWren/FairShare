@@ -165,7 +165,7 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
 
         if (!ok)
         {
-            return Conflict("The profile was modified by another request, or the new name is already used by another of your saved parents. Reload and try again.");
+            return Conflict("The profile was modified by another request (reload and try again), or the new name is already used by another of your saved parents (choose a different name).");
         }
 
         return NoContent();

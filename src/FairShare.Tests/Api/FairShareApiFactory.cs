@@ -40,26 +40,33 @@ public class FairShareApiFactory : WebApplicationFactory<Program>
 
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
-
-        foreach ((string name, string? original) in _replacedEnvVars)
-        {
-            Environment.SetEnvironmentVariable(name, original);
-        }
-
-        // Sqlite connection pooling keeps the file handle open past host disposal.
-        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-
         try
         {
-            if (File.Exists(_dbPath))
-            {
-                File.Delete(_dbPath);
-            }
+            base.Dispose(disposing);
         }
-        catch (IOException)
+        finally
         {
-            // Best effort - it's a uniquely named temp file either way.
+            // Even if host disposal throws, the process-wide env vars must be restored
+            // and the temp database cleaned up, or state leaks into subsequent tests.
+            foreach ((string name, string? original) in _replacedEnvVars)
+            {
+                Environment.SetEnvironmentVariable(name, original);
+            }
+
+            // Sqlite connection pooling keeps the file handle open past host disposal.
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+            try
+            {
+                if (File.Exists(_dbPath))
+                {
+                    File.Delete(_dbPath);
+                }
+            }
+            catch (IOException)
+            {
+                // Best effort - it's a uniquely named temp file either way.
+            }
         }
     }
 }
