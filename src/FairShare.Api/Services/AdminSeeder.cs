@@ -38,9 +38,22 @@ public class AdminSeeder(
 
         foreach (string r in roles)
         {
-            if (!await roleManager.RoleExistsAsync(r))
+            try
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>(r));
+                if (!await roleManager.RoleExistsAsync(r))
+                {
+                    await roleManager.CreateAsync(new IdentityRole<Guid>(r));
+                }
+            }
+            catch (DbUpdateException)
+            {
+                // Lost a create race to another instance seeding the same database
+                // concurrently; the role existing is all we need, so only rethrow if
+                // it genuinely doesn't.
+                if (!await roleManager.RoleExistsAsync(r))
+                {
+                    throw;
+                }
             }
         }
 

@@ -163,8 +163,22 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
             }
             else if (db.Database.GetPendingMigrations().Any())
             {
-                string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
-                BackupSqliteDatabase(dbPath, backupDir);
+                // A brand-new database (no applied migrations) has nothing worth backing up,
+                // and a failed backup must not abort the migration - running against an
+                // unmigrated schema is strictly worse than migrating without a backup.
+                if (db.Database.GetAppliedMigrations().Any())
+                {
+                    try
+                    {
+                        string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
+                        BackupSqliteDatabase(dbPath, backupDir);
+                    }
+                    catch (Exception backupEx)
+                    {
+                        app.Logger.LogWarning(backupEx, "Pre-migration backup failed; continuing with migration.");
+                    }
+                }
+
                 db.Database.Migrate();
                 app.Logger.LogInformation("Applied pending migrations.");
             }
@@ -219,7 +233,9 @@ static void BackupSqliteDatabase(string dbPath, string backupDir)
     }
 
     Directory.CreateDirectory(backupDir);
-    string stamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+    // Timestamp alone collides when two instances start in the same second (e.g. parallel
+    // test hosts); the random suffix keeps every backup name unique.
+    string stamp = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}"[..24];
     string backupFile = Path.Combine(backupDir, $"fairshare_{stamp}.db");
     File.Copy(dbPath, backupFile, overwrite: false);
     string zipPath = backupFile + ".zip";

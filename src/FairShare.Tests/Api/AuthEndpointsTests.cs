@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FairShare.Tests.Api;
 
+[Collection("Api")]
 public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
 {
     private readonly FairShareApiFactory _factory;

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FairShare.Tests.Api;
 
+[Collection("Api")]
 public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
 {
     private readonly HttpClient _client;
