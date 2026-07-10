@@ -28,7 +28,7 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
   - CS-42-S (Shared Parenting/SPCA) calculations.
 - **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5).
 - **Theme Support**: Light/Dark/Auto theme toggle.
-- **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant).
+- **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
 - **Admin Tools**: Comprehensive user management and automated database seeding.
 - **Health & Safety**: Integrated database integrity checks and automated backup zipping on startup.
 - **Guest mode**: Try the calculator without creating an account (no saving).
