@@ -2,31 +2,27 @@
 
 # FairShare
 
-*Lightweight child-support “what-if” calculator (currently Alabama). Built with **Blazor WebAssembly (WASM)**, ASP.NET Core, and SQLite. Optimized for zero-latency browser-side calculations.*
+*Lightweight child-support “what-if” calculator (currently Alabama). A standalone **Blazor WebAssembly SPA** backed by a decoupled **REST API** (JWT auth, ASP.NET Core, SQLite).*
 
-FairShare gives a quick, transparent estimate of who pays child support and how much under Alabama’s guidelines (CS-42 / CS-42-S). By leveraging WebAssembly, calculations happen instantly in your browser without waiting for a server response.
+FairShare gives a quick, transparent estimate of who pays child support and how much under Alabama’s guidelines (CS-42 / CS-42-S).
 
-> ⚠️ Disclaimer: Informational/educational only. Not legal advice. Not a substitute for an attorney or court-approved worksheets. 
-
-**Live demo:** https://fairshare.theguywiththedogs.dev
-
-Demo credentials are displayed on the login page: `demo` / `Demo@123456!` (*limited access*). A Guest entry link is also present.
+> ⚠️ Disclaimer: Informational/educational only. Not legal advice. Not a substitute for an attorney or court-approved worksheets.
 
 ---
 
-## What’s new in v5
+## What’s new in v8
 
-- **Architecture Overhaul**: Migrated from MVC to a decoupled **Blazor WebAssembly SPA**.
-- **Instant Calculations**: The core calculator logic now runs directly in the browser's WASM runtime.
-- **Pure Blazor Identity**: Modernized authentication flow with pure Blazor components and .NET Identity APIs.
-- **Improved Performance**: Reduced server load and zero network latency during scenario modeling.
-- **.NET 10 (Preview)**: Updated to the latest .NET stack for performance and security.
+- **Architecture Overhaul**: Split into a standalone Blazor WebAssembly SPA (`FairShare.Web`) and an independent REST API (`FairShare.Api`), replacing the previous hybrid server-hosted-WASM app.
+- **JWT Auth**: Cookie-based ASP.NET Identity replaced with JWT bearer auth (access + rotating refresh tokens), so the API is directly usable from curl/Postman/any CLI — not just the browser.
+- **Server-side Calculations**: Calculation logic moved behind `POST /api/v1/states/{state}/forms/{form}/calculations`, so results are consistent regardless of client.
+- **Theme Toggle**: Light/Dark/Auto, persisted in `localStorage`, applied pre-render.
+- **Saved Parent Profiles Page**: Standalone `/profiles` page to rename/archive saved profiles, in addition to inline reuse from the calculator.
+- **Docker removed**: Both apps run locally via `dotnet run` for now.
 
 ---
 
 ## Features
 
-- **High Performance**: Interactive forms with real-time updates as you type.
 - **State Support (Alabama)**:
   - CS-42 (Standard) calculations.
   - CS-42-S (Shared Parenting/SPCA) calculations.
@@ -35,73 +31,111 @@ Demo credentials are displayed on the login page: `demo` / `Demo@123456!` (*limi
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant).
 - **Admin Tools**: Comprehensive user management and automated database seeding.
 - **Health & Safety**: Integrated database integrity checks and automated backup zipping on startup.
+- **Guest mode**: Try the calculator without creating an account (no saving).
 
 ---
 
 ## Roles & Permissions
-| Role      | Typical Access                  | Notes                                                                                                                                  |
-| --------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Guest** | Limited preview                 | Navigate basic UI; no saving or settings. (Entry link on login page.)                                                                  |
-| **User**  | Normal app usage                | Create and run scenarios, save parent profiles.                                                                                        |
-| **Admin** | Full administration             | Manage users, roles, and access the users dashboard.                                                                                   |
+
+| Role      | Typical Access       | Notes                                                                 |
+| --------- | --------------------- | ---------------------------------------------------------------------|
+| **Guest** | Limited preview       | Run calculations; no saving or admin. (`Continue as Guest` on login) |
+| **User**  | Normal app usage      | Create and run scenarios, save parent profiles.                      |
+| **Admin** | Full administration   | Manage users, roles, and access the users dashboard.                 |
+
+---
+
+## Solution Layout
+
+| Project | Type | Responsibility |
+|---|---|---|
+| `FairShare.Domain` | classlib | Pure calculation engine — calculators, state/form catalog. No EF/Identity/ASP.NET. |
+| `FairShare.Contracts` | classlib | Wire DTOs shared by the API and the Web app (auth, calculation, parents, admin). |
+| `FairShare.Api` | ASP.NET Core Web API | JWT auth, EF Core + SQLite persistence, all controllers. |
+| `FairShare.Web` | Blazor WebAssembly | Standalone SPA calling the API over HTTP/JSON with a JWT bearer token. |
+| `FairShare.Tests` | xUnit | Calculator unit tests + API integration tests (`WebApplicationFactory`). |
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: Blazor WebAssembly (.NET 10)
-- **Backend**: ASP.NET Core Web API
-- **Shared Logic**: .NET Class Library (Shared Models/Calculators)
+- **Frontend**: Blazor WebAssembly (.NET 10, standalone)
+- **Backend**: ASP.NET Core Web API, JWT bearer auth
+- **Shared Logic**: .NET class libraries (Domain calculators, Contracts DTOs)
 - **Database**: SQLite (EF Core)
-- **Styling**: Bootstrap 5 + Bootstrap Icons
-- **Deployment**: Docker & Docker Compose
+- **Styling**: Bootstrap 5
 
 ---
 
-## Quick Start (Docker)
+## Quick Start (local)
 
-FairShare uses a multi-project Docker build. Use the following `docker-compose.yml` snippet:
+Requires the .NET 10 SDK.
 
-```yaml
-services:
-  fairshare:
-    image: ghcr.io/jjwren/fairshare:latest
-    environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
-      ASPNETCORE_HTTP_PORTS: "9090"
-      UI__DefaultTheme: "dark"
-      ConnectionStrings__Default: "Data Source=/data/fairshare.db"
-      AdminSeed__Enabled: "true"
-      AdminSeed__User: "${AdminSeed__User}"
-      AdminSeed__Password: "${AdminSeed__Password}"
-    ports:
-      - "9090:9090"
-    volumes:
-      - "./data:/app/data"
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:9090/healthz"]
-      interval: 10s
-      timeout: 2s
-      retries: 6
-    restart: unless-stopped
+```bash
+# Terminal 1 — the API
+cd src/FairShare.Api
+dotnet run
+
+# Terminal 2 — the web app
+cd src/FairShare.Web
+dotnet run
 ```
+
+By default the API listens on `https://localhost:7080` / `http://localhost:5080` and the web app on `https://localhost:7090` / `http://localhost:5090` (see `Properties/launchSettings.json` in each project). The web app's `wwwroot/appsettings.Development.json` points `Api:BaseUrl` at the API; the API's `appsettings.Development.json` lists the web app's origins under `Cors:AllowedOrigins`. Update both if you change ports.
+
+On first run the API seeds an `admin` account — check the console output for the generated password (or set `AdminSeed:Password` yourself) and the SQLite database (`fairshare.db`) is created and migrated automatically.
+
+### Using the API directly
+
+The API is a normal JWT-secured REST API — no browser required:
+
+```bash
+# Get a token
+curl -X POST http://localhost:5080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userName":"admin","password":"<seeded-password>"}'
+
+# Use it
+curl http://localhost:5080/api/v1/states \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+Swagger UI is available at `/swagger` in Development.
 
 ---
 
 ## Configuration
 
-| Variable                           | Default      | Purpose                                                                                |
-| ---------------------------------- | ------------ | -------------------------------------------------------------------------------------- |
-| `ASPNETCORE_HTTP_PORTS`            | `9090`       | Internal port inside the container.                                                    |
-| `AdminSeed__Enabled`               | `true`       | Enables seeding the initial admin account.                                             |
-| `AdminSeed__User`                  | `admin`      | Username for the initial admin.                                                        |
-| `AdminSeed__Password`              | `random`     | Password for the initial admin (logged on first run if empty).                         |
+| Setting (API)                      | Default      | Purpose                                                                                |
+| ----------------------------------- | ------------ | -------------------------------------------------------------------------------------- |
+| `ConnectionStrings:Default`         | —            | SQLite connection string.                                                              |
+| `Jwt:SigningKey`                    | —            | HMAC-SHA256 signing key for access tokens. Required; set via user-secrets/env var in real deployments. |
+| `Jwt:AccessTokenMinutes`            | `30`         | Access token lifetime.                                                                 |
+| `Jwt:RefreshTokenDays`              | `30`         | Refresh token lifetime.                                                                |
+| `Cors:AllowedOrigins`               | `[]`         | Origins allowed to call the API (the Web app's URL).                                   |
+| `AdminSeed:Enabled`                 | `true`       | Enables seeding the initial admin account.                                             |
+| `AdminSeed:User`                    | `admin`      | Username for the initial admin.                                                        |
+| `AdminSeed:Password`                | *(random)*   | Password for the initial admin (logged on first run if empty).                         |
+
+| Setting (Web)     | Default | Purpose                                    |
+| ------------------ | ------- | ------------------------------------------ |
+| `Api:BaseUrl`       | —       | Base URL of `FairShare.Api` to call.       |
+
+---
+
+## Testing
+
+```bash
+dotnet test FairShare.sln
+```
+
+`FairShare.Tests` covers the CS-42 calculator (`FairShare.Domain`) and the auth/catalog endpoints end-to-end against an in-memory-configured instance of `FairShare.Api` (`WebApplicationFactory`).
 
 ---
 
 ## Contributing
 
-Please ensure business logic is kept in the `AppShared` project to maintain compatibility between the WASM client and the API server.
+Keep calculation logic in `FairShare.Domain` and wire types in `FairShare.Contracts` — both are referenced by the API and (Contracts only) by the Web app, so changes there are automatically shared.
 
 ---
 
@@ -117,5 +151,3 @@ Issues → [GitHub Issues](https://github.com/JJWren/FairShare/issues).
 
 ### Enjoy my work?
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%23FFDD00?logo=buy-me-a-coffee&logoColor=black&labelColor=%23FFDD00)](https://www.buymeacoffee.com/jmykitta)
-
-

@@ -1,0 +1,79 @@
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject FairShare.Web.Auth.AuthApiClient AuthApi
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">⚖️ FairShare</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <AuthorizeView>
+                    <Authorized>
+                        @if (!context.User.HasClaim("guest", "true"))
+                        {
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="profiles">Parents</NavLink>
+                            </li>
+                        }
+                        @if (context.User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="admin/users">Admin</NavLink>
+                            </li>
+                        }
+                    </Authorized>
+                </AuthorizeView>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <ThemeToggle />
+                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        @if (context.User.HasClaim("guest", "true"))
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-muted" title="Guest mode: limited functionality">
+                                    <small>Guest</small>
+                                </span>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <button class="btn btn-link nav-link" @onclick="LogoutAsync">
+                                Logout
+                            </button>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="login">Login</NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => StateHasChanged();
+
+    private async Task LogoutAsync()
+    {
+        await AuthApi.LogoutAsync();
+        NavigationManager.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

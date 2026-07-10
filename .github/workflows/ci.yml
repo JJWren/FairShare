@@ -23,12 +23,5 @@ jobs:
       - name: Build
         run: dotnet build FairShare.sln --configuration Release --no-restore
 
-      # Uncomment when tests are added
-      # - name: Test
-      #   run: dotnet test --configuration Release --no-build --verbosity normal
-
-      - name: Docker build (no push)
-        run: |
-          echo "Looking for Dockerfile at repo root:"
-          ls -la
-          docker build -t fairshare-ci:latest -f Dockerfile .
+      - name: Test
+        run: dotnet test FairShare.sln --configuration Release --no-build --verbosity normal

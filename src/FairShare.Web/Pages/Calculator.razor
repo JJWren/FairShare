@@ -1,0 +1,196 @@
+@page "/States/{State}/{Form}"
+@attribute [Authorize]
+@using FairShare.Contracts.Calculation
+@using FairShare.Contracts.Parents
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - @State - @Form Calculator</PageTitle>
+
+<div class="container my-4">
+    <h1 class="h4 mb-3 text-center">@State - @Form Calculator</h1>
+
+    <div class="row g-3 mb-4 justify-content-center">
+        <div class="col-12 col-sm-5 col-lg-3 text-center">
+            <label class="form-label" for="NumberOfChildren">Number of Children</label>
+            <input type="number" @bind="numberOfChildren" class="form-control" />
+        </div>
+    </div>
+
+    @if (Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))
+    {
+        <div class="alert alert-info py-2 small text-center">
+            Mark exactly one parent as having Primary Custody.
+        </div>
+    }
+
+    <div class="row g-4">
+        <ParentCard Title="Plaintiff"
+                    Prefix="Plaintiff"
+                    Data="plaintiff"
+                    @bind-ParentName="plaintiffName"
+                    ShowPrimary="@(Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))"
+                    SavedProfiles="savedProfiles" />
+
+        <ParentCard Title="Defendant"
+                    Prefix="Defendant"
+                    Data="defendant"
+                    @bind-ParentName="defendantName"
+                    ShowPrimary="@(Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))"
+                    SavedProfiles="savedProfiles" />
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary" @onclick="CalculateAsync">Calculate</button>
+        <button class="btn btn-outline-secondary" @onclick="Reset">Reset</button>
+    </div>
+
+    @if (errors.Any())
+    {
+        <div class="mt-3">
+            <ul class="text-danger">
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="mt-5">
+        <div class="card shadow-sm">
+            <div class="card-header text-center"><strong>Results</strong></div>
+            <div class="card-body">
+                @if (submitted && result is not null && result.Success)
+                {
+                    <p class="fw-bold text-center mb-0">
+                        @(string.IsNullOrWhiteSpace(result.Payer)
+                            ? "No net transfer."
+                            : $"{result.Payer} owes ${result.FinalAmount}.")
+                    </p>
+                }
+                else if (submitted && result is not null && !result.Success)
+                {
+                    <ul class="text-danger mb-0">
+                        @foreach (var e in result.Errors)
+                        {
+                            <li>@e.Code: @e.Message</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="@($"/States/{State}")" class="btn btn-link">&larr; Back to @State Forms</a>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string State { get; set; } = string.Empty;
+    [Parameter] public string Form { get; set; } = string.Empty;
+
+    private int numberOfChildren;
+    private readonly ParentDataDto plaintiff = new();
+    private readonly ParentDataDto defendant = new();
+    private string? plaintiffName;
+    private string? defendantName;
+    private CalculationResponse? result;
+    private bool submitted;
+    private List<ParentProfileDto>? savedProfiles;
+    private readonly List<string> errors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            savedProfiles = await Http.GetFromJsonAsync<List<ParentProfileDto>>("api/v1/parents");
+        }
+        catch
+        {
+            // Guests and users without saved profiles simply see an empty picker.
+        }
+    }
+
+    private async Task CalculateAsync()
+    {
+        errors.Clear();
+
+        if (Form.Equals("CS42", StringComparison.OrdinalIgnoreCase) && plaintiff.HasPrimaryCustody == defendant.HasPrimaryCustody)
+        {
+            errors.Add("For this form, you must mark exactly one parent as having Primary Custody.");
+            return;
+        }
+
+        var request = new CalculationRequest
+        {
+            NumberOfChildren = numberOfChildren,
+            Plaintiff = plaintiff,
+            Defendant = defendant
+        };
+
+        HttpResponseMessage response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            errors.Add(response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
+                System.Net.HttpStatusCode.BadRequest => "The submitted inputs were invalid. Check the values and try again.",
+                System.Net.HttpStatusCode.Unauthorized => "Your session has expired. Please log in again.",
+                System.Net.HttpStatusCode.Forbidden => "You are not authorized to perform this calculation.",
+                _ => $"Calculation request failed ({(int)response.StatusCode})."
+            });
+            return;
+        }
+
+        result = await response.Content.ReadFromJsonAsync<CalculationResponse>();
+        submitted = true;
+
+        if (result is { Success: true })
+        {
+            await SaveParentsAsync();
+        }
+    }
+
+    private async Task SaveParentsAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(plaintiffName))
+        {
+            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(plaintiffName, plaintiff));
+        }
+
+        if (!string.IsNullOrWhiteSpace(defendantName))
+        {
+            await Http.PostAsJsonAsync("api/v1/parents", ToCreateRequest(defendantName, defendant));
+        }
+    }
+
+    private static ParentProfileCreateRequest ToCreateRequest(string displayName, ParentDataDto data) => new()
+    {
+        DisplayName = displayName,
+        MonthlyGrossIncome = data.MonthlyGrossIncome,
+        PreexistingChildSupport = data.PreexistingChildSupport,
+        PreexistingAlimony = data.PreexistingAlimony,
+        WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
+        HealthcareCoverageCosts = data.HealthcareCoverageCosts,
+        HasPrimaryCustody = data.HasPrimaryCustody
+    };
+
+    private void Reset()
+    {
+        numberOfChildren = 0;
+        plaintiff.ApplyFrom(new ParentDataDto());
+        defendant.ApplyFrom(new ParentDataDto());
+        plaintiffName = null;
+        defendantName = null;
+        result = null;
+        submitted = false;
+        errors.Clear();
+    }
+}

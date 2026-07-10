@@ -1,0 +1,110 @@
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using FairShare.Api.Models;
+using FairShare.Api.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+
+namespace FairShare.Api.Auth;
+
+public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions) : ITokenService
+{
+    private readonly FairShareDbContext _db = db;
+    private readonly JwtOptions _options = jwtOptions.Value;
+
+    public AccessToken IssueAccessToken(ApplicationUser? user, IReadOnlyList<string> roles, bool isGuest)
+    {
+        DateTime expiresUtc = DateTime.UtcNow.AddMinutes(_options.AccessTokenMinutes);
+
+        List<Claim> claims = [];
+
+        if (isGuest)
+        {
+            claims.Add(new Claim(ClaimTypes.Name, "Guest"));
+            claims.Add(new Claim("guest", "true"));
+        }
+        else if (user is not null)
+        {
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            claims.Add(new Claim(ClaimTypes.Name, user.UserName ?? string.Empty));
+
+            foreach (string role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_options.SigningKey));
+        SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
+
+        JwtSecurityToken token = new(
+            issuer: _options.Issuer,
+            audience: _options.Audience,
+            claims: claims,
+            expires: expiresUtc,
+            signingCredentials: creds);
+
+        string value = new JwtSecurityTokenHandler().WriteToken(token);
+        return new AccessToken(value, expiresUtc);
+    }
+
+    public async Task<IssuedRefreshToken> IssueRefreshTokenAsync(Guid? userId, bool isGuest, CancellationToken ct = default)
+    {
+        string raw = GenerateRawToken();
+        DateTime expiresUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenDays);
+
+        RefreshToken entity = new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            IsGuest = isGuest,
+            TokenHash = Hash(raw),
+            CreatedUtc = DateTime.UtcNow,
+            ExpiresUtc = expiresUtc
+        };
+
+        _db.RefreshTokens.Add(entity);
+        await _db.SaveChangesAsync(ct);
+
+        return new IssuedRefreshToken(raw, expiresUtc);
+    }
+
+    public async Task<RefreshToken?> ConsumeRefreshTokenAsync(string rawToken, CancellationToken ct = default)
+    {
+        string hash = Hash(rawToken);
+        DateTime now = DateTime.UtcNow;
+
+        // Claim the token in a single UPDATE so rotate-on-use holds under concurrency:
+        // only one of two simultaneous refreshes can flip RevokedUtc from null, and the
+        // loser gets zero rows instead of both succeeding (read-then-revoke raced).
+        int claimed = await _db.RefreshTokens
+            .Where(t => t.TokenHash == hash && t.RevokedUtc == null && t.ExpiresUtc > now)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedUtc, now), ct);
+
+        if (claimed == 0)
+        {
+            return null;
+        }
+
+        return await _db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+    }
+
+    private static string GenerateRawToken()
+    {
+        byte[] bytes = RandomNumberGenerator.GetBytes(32);
+        return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+    }
+
+    private static string Hash(string raw)
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(raw));
+        return Convert.ToHexString(hash);
+    }
+}

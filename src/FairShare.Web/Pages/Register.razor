@@ -1,0 +1,77 @@
+@page "/register"
+@attribute [AllowAnonymous]
+@inject FairShare.Web.Auth.AuthApiClient AuthApi
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Register</PageTitle>
+
+<div class="container my-5" style="max-width: 420px;">
+    <h1 class="h4 mb-4 text-center">Create an account</h1>
+
+    <EditForm Model="_model" OnValidSubmit="RegisterAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label" for="userName">Username</label>
+            <InputText id="userName" class="form-control" @bind-Value="_model.UserName" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="password">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="_model.ConfirmPassword" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger py-2">@_error</div>
+        }
+
+        <button type="submit" class="btn btn-primary w-100" disabled="@_busy">Register</button>
+    </EditForm>
+
+    <div class="text-center mt-3">
+        <a href="/login">Already have an account? Sign in</a>
+    </div>
+</div>
+
+@code {
+    private readonly RegisterModel _model = new();
+    private string? _error;
+    private bool _busy;
+
+    private async Task RegisterAsync()
+    {
+        _busy = true;
+        _error = null;
+
+        var result = await AuthApi.RegisterAsync(_model.UserName, _model.Password);
+
+        _busy = false;
+
+        if (!result.Success)
+        {
+            _error = result.Error;
+            return;
+        }
+
+        Navigation.NavigateTo("/");
+    }
+
+    private class RegisterModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(3), System.ComponentModel.DataAnnotations.MaxLength(32)]
+        public string UserName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.Compare(nameof(Password))]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

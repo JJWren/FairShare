@@ -1,0 +1,146 @@
+@page "/profiles"
+@attribute [Authorize]
+@using FairShare.Contracts.Parents
+@inject HttpClient Http
+
+<PageTitle>FairShare - Saved Parents</PageTitle>
+
+<div class="container my-4">
+    <h1 class="h4 mb-4">Saved Parents</h1>
+
+    @if (profiles is null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!profiles.Any())
+    {
+        @if (string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-info">No saved parent profiles yet. Save one from the calculator.</div>
+        }
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Monthly Gross Income</th>
+                        <th>Primary Custody</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in profiles)
+                    {
+                        <tr>
+                            <td>
+                                @if (editingId == p.Id)
+                                {
+                                    <input class="form-control form-control-sm" @bind="editingName" maxlength="100" />
+                                }
+                                else
+                                {
+                                    @p.DisplayName
+                                }
+                            </td>
+                            <td>$@p.MonthlyGrossIncome</td>
+                            <td>@(p.HasPrimaryCustody ? "Yes" : "No")</td>
+                            <td class="text-end">
+                                @if (editingId == p.Id)
+                                {
+                                    <button class="btn btn-sm btn-primary" @onclick="() => SaveRenameAsync(p)">Save</button>
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename">Cancel</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartRename(p)">Rename</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ArchiveAsync(p)">Archive</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+</div>
+
+@code {
+    private List<ParentProfileDto>? profiles;
+    private Guid? editingId;
+    private string editingName = string.Empty;
+    private string? error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        using HttpResponseMessage resp = await Http.GetAsync("api/v1/parents");
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            profiles = [];
+            error = "You are not signed in.";
+            return;
+        }
+
+        resp.EnsureSuccessStatusCode();
+        profiles = (await resp.Content.ReadFromJsonAsync<List<ParentProfileDto>>()) ?? [];
+        error = null;
+    }
+
+    private void StartRename(ParentProfileDto p)
+    {
+        editingId = p.Id;
+        editingName = p.DisplayName;
+    }
+
+    private void CancelRename() => editingId = null;
+
+    private async Task SaveRenameAsync(ParentProfileDto p)
+    {
+        var request = new ParentProfileUpdateRequest
+        {
+            DisplayName = editingName,
+            MonthlyGrossIncome = p.MonthlyGrossIncome,
+            PreexistingChildSupport = p.PreexistingChildSupport,
+            PreexistingAlimony = p.PreexistingAlimony,
+            WorkRelatedChildcareCosts = p.WorkRelatedChildcareCosts,
+            HealthcareCoverageCosts = p.HealthcareCoverageCosts,
+            HasPrimaryCustody = p.HasPrimaryCustody,
+            RowVersion = p.RowVersion
+        };
+
+        using HttpResponseMessage response = await Http.PutAsJsonAsync($"api/v1/parents/{p.Id}", request);
+        if (!response.IsSuccessStatusCode)
+        {
+            error = "Could not rename the profile. Please reload and try again.";
+            return;
+        }
+
+        error = null;
+        editingId = null;
+        await LoadAsync();
+    }
+
+    private async Task ArchiveAsync(ParentProfileDto p)
+    {
+        using HttpResponseMessage response = await Http.PostAsync($"api/v1/parents/{p.Id}/archive", content: null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            error = "Could not archive the profile.";
+            return;
+        }
+
+        error = null;
+        await LoadAsync();
+    }
+}
