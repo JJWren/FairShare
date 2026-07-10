@@ -19,8 +19,11 @@ public interface IParentProfileService
     /// </param>
     Task<bool> UpdateAsync(ParentProfile profile, byte[]? expectedRowVersion = null, CancellationToken ct = default);
     Task<bool> ArchiveAsync(Guid id, CancellationToken ct = default);
-    Task<ParentProfile?> FindDuplicateAsync(ParentData data, string? displayName, CancellationToken ct = default);
-    Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default);
+    /// <summary>
+    /// Creates the profile, or updates the caller's existing active profile with the same
+    /// display name (case-insensitive) in place. Returns the profile and whether it was created.
+    /// </summary>
+    Task<(ParentProfile Profile, bool Created)> UpsertByNameAsync(ParentData data, string displayName, Guid? ownerUserId, CancellationToken ct = default);
 }
 
 

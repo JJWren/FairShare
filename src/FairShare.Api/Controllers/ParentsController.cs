@@ -102,30 +102,33 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
             HasPrimaryCustody = request.HasPrimaryCustody
         };
 
-        ParentProfile profile;
+        // Re-saving a named parent updates that record in place (the name is the natural
+        // key within one user's saved parents) instead of accumulating same-named copies.
+        // Deduplicate=false or an omitted name always creates a fresh record.
+        if (request.Deduplicate && !string.IsNullOrWhiteSpace(request.DisplayName))
+        {
+            (ParentProfile upserted, bool created) = await _service.UpsertByNameAsync(data, request.DisplayName, uid, ct);
 
-        if (request.Deduplicate)
-        {
-            profile = await _service.GetOrCreateAsync(data, request.DisplayName, uid, ct);
+            return created
+                ? CreatedAtAction(nameof(Get), new { id = upserted.Id }, ToDto(upserted))
+                : Ok(ToDto(upserted));
         }
-        else
+
+        ParentProfile profile = await _service.CreateAsync(new ParentProfile
         {
-            profile = await _service.CreateAsync(new ParentProfile
-            {
-                Id = Guid.NewGuid(),
-                DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
-                    ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}"
-                    : request.DisplayName.Trim(),
-                MonthlyGrossIncome = data.MonthlyGrossIncome,
-                PreexistingChildSupport = data.PreexistingChildSupport,
-                PreexistingAlimony = data.PreexistingAlimony,
-                WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
-                HealthcareCoverageCosts = data.HealthcareCoverageCosts,
-                HasPrimaryCustody = data.HasPrimaryCustody,
-                CreatedUtc = DateTime.UtcNow,
-                OwnerUserId = uid
-            }, ct);
-        }
+            Id = Guid.NewGuid(),
+            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
+                ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}"
+                : request.DisplayName.Trim(),
+            MonthlyGrossIncome = data.MonthlyGrossIncome,
+            PreexistingChildSupport = data.PreexistingChildSupport,
+            PreexistingAlimony = data.PreexistingAlimony,
+            WorkRelatedChildcareCosts = data.WorkRelatedChildcareCosts,
+            HealthcareCoverageCosts = data.HealthcareCoverageCosts,
+            HasPrimaryCustody = data.HasPrimaryCustody,
+            CreatedUtc = DateTime.UtcNow,
+            OwnerUserId = uid
+        }, ct);
 
         return CreatedAtAction(nameof(Get), new { id = profile.Id }, ToDto(profile));
     }

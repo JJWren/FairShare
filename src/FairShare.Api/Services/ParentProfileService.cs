@@ -93,55 +93,39 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         return true;
     }
 
-    public Task<ParentProfile?> FindDuplicateAsync(ParentData data, string? displayName, CancellationToken ct = default)
+    public async Task<(ParentProfile Profile, bool Created)> UpsertByNameAsync(ParentData data, string displayName, Guid? ownerUserId, CancellationToken ct = default)
     {
-        IQueryable<ParentProfile> q = _db.ParentProfiles.Where(p =>
-            !p.IsArchived &&
-            p.MonthlyGrossIncome == data.MonthlyGrossIncome &&
-            p.PreexistingChildSupport == data.PreexistingChildSupport &&
-            p.PreexistingAlimony == data.PreexistingAlimony &&
-            p.WorkRelatedChildcareCosts == data.WorkRelatedChildcareCosts &&
-            p.HealthcareCoverageCosts == data.HealthcareCoverageCosts);
+        string name = displayName.Trim();
+        string nameLower = name.ToLower();
 
-        if (!string.IsNullOrWhiteSpace(displayName))
-        {
-            string dn = displayName.Trim();
-            q = q.Where(p => p.DisplayName == dn);
-        }
-
-        return q.OrderBy(p => p.CreatedUtc).FirstOrDefaultAsync(ct);
-    }
-
-    public async Task<ParentProfile> GetOrCreateAsync(ParentData data, string? displayNameHint, Guid? ownerUserId = null, CancellationToken ct = default)
-    {
-        ParentProfile? existing = await FindDuplicateAsync(data, displayNameHint, ct);
+        // Within one user's saved parents, the display name acts as the natural key:
+        // re-saving "John D." with different figures updates John rather than piling up
+        // same-named records. The match is scoped to the owner so one user's names can
+        // never select (or modify) another user's profiles.
+        ParentProfile? existing = await _db.ParentProfiles
+            .Where(p => !p.IsArchived && p.OwnerUserId == ownerUserId && p.DisplayName.ToLower() == nameLower)
+            .OrderBy(p => p.CreatedUtc)
+            .FirstOrDefaultAsync(ct);
 
         if (existing is not null)
         {
-            // If duplicate is unowned and caller passes an owner, bind it now.
-            if (existing.OwnerUserId is null && ownerUserId is not null)
-            {
-                existing.OwnerUserId = ownerUserId;
-                existing.UpdatedUtc = DateTime.UtcNow;
-                await _db.SaveChangesAsync(ct);
-                
-                _logger.LogInformation(
-                    "Bound existing unowned ParentProfile {ProfileId} to user {UserId}",
-                    existing.Id,
-                    ownerUserId);
-            }
+            existing.ApplyFrom(data);
+            existing.UpdatedUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
 
-            return existing;
+            _logger.LogInformation(
+                "Updated ParentProfile {ProfileId} ('{DisplayName}') in place for user {UserId}",
+                existing.Id,
+                existing.DisplayName,
+                ownerUserId);
+
+            return (existing, false);
         }
-
-        string displayName = string.IsNullOrWhiteSpace(displayNameHint)
-            ? $"Parent {DateTime.UtcNow:yyyyMMdd-HHmmss}"
-            : displayNameHint.Trim();
 
         ParentProfile profile = new()
         {
             Id = Guid.NewGuid(),
-            DisplayName = displayName,
+            DisplayName = name,
             MonthlyGrossIncome = data.MonthlyGrossIncome,
             PreexistingChildSupport = data.PreexistingChildSupport,
             PreexistingAlimony = data.PreexistingAlimony,
@@ -154,22 +138,14 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
 
         _db.ParentProfiles.Add(profile);
         await _db.SaveChangesAsync(ct);
-        
-        if (ownerUserId is not null)
-        {
-            _logger.LogInformation(
-                "Created new ParentProfile {ProfileId} owned by user {UserId}",
-                profile.Id,
-                ownerUserId);
-        }
-        else
-        {
-            _logger.LogWarning(
-                "Created new ParentProfile {ProfileId} without an owner. This should be avoided in new code.",
-                profile.Id);
-        }
-        
-        return profile;
+
+        _logger.LogInformation(
+            "Created new ParentProfile {ProfileId} ('{DisplayName}') for user {UserId}",
+            profile.Id,
+            profile.DisplayName,
+            ownerUserId);
+
+        return (profile, true);
     }
 }
 
