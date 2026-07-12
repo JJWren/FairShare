@@ -8,8 +8,18 @@ HEADERS_FILE=/etc/nginx/conf.d/fairshare-security-headers.inc
 
 if [ -n "${API_BASE_URL:-}" ]; then
     # Reduce to an origin (scheme://host[:port]) - CSP source expressions are origins,
-    # not URLs, so any path/query on API_BASE_URL must be dropped.
-    origin=$(printf '%s' "$API_BASE_URL" | sed -E 's|^([A-Za-z][A-Za-z0-9+.-]*://[^/]+).*|\1|')
+    # not URLs, so any path/query/fragment must be dropped. POSIX parameter expansion
+    # only: no dependence on the sed flavor shipped in the base image.
+    case "$API_BASE_URL" in
+        *://*)
+            scheme=${API_BASE_URL%%://*}
+            rest=${API_BASE_URL#*://}
+            origin="${scheme}://${rest%%[/?#]*}"
+            ;;
+        *)
+            origin=${API_BASE_URL%%[/?#]*}
+            ;;
+    esac
     # Escape sed-replacement metacharacters so a hostile/odd value can't mangle the file.
     escaped=$(printf '%s' "$origin" | sed 's/[&\\|]/\\&/g')
     # Replace the whole connect-src clause (not just append after 'self') so re-running
