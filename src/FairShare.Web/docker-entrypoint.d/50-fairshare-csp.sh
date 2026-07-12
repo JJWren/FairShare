@@ -7,11 +7,15 @@ set -e
 HEADERS_FILE=/etc/nginx/conf.d/fairshare-security-headers.inc
 
 if [ -n "${API_BASE_URL:-}" ]; then
-    # Strip any trailing slash: CSP source expressions are origins, not URLs.
-    origin=$(printf '%s' "$API_BASE_URL" | sed 's:/*$::')
-    # Pipe delimiter because the origin contains '://'.
-    sed -i "s|connect-src 'self'|connect-src 'self' ${origin}|" "$HEADERS_FILE"
-    echo "FairShare.Web: CSP connect-src extended with $origin"
+    # Reduce to an origin (scheme://host[:port]) - CSP source expressions are origins,
+    # not URLs, so any path/query on API_BASE_URL must be dropped.
+    origin=$(printf '%s' "$API_BASE_URL" | sed -E 's|^([A-Za-z][A-Za-z0-9+.-]*://[^/]+).*|\1|')
+    # Escape sed-replacement metacharacters so a hostile/odd value can't mangle the file.
+    escaped=$(printf '%s' "$origin" | sed 's/[&\\|]/\\&/g')
+    # Replace the whole connect-src clause (not just append after 'self') so re-running
+    # on container restart is idempotent and an old origin never lingers.
+    sed -i "s|connect-src [^;]*|connect-src 'self' ${escaped}|" "$HEADERS_FILE"
+    echo "FairShare.Web: CSP connect-src set to 'self' $origin"
 else
     echo "FairShare.Web: API_BASE_URL not set; CSP connect-src stays same-origin"
 fi
