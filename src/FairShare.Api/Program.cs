@@ -178,7 +178,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.OnRejected = (ctx, _) =>
     {
-        ctx.HttpContext.Response.Headers.RetryAfter = "60";
+        ctx.HttpContext.Response.Headers["Retry-After"] = "60";
         return ValueTask.CompletedTask;
     };
 });
