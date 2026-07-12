@@ -128,7 +128,7 @@
         resetError = null;
         resetSuccess = null;
 
-        var response = await Http.PostAsJsonAsync($"api/v1/admin/users/{Id}/reset-password", resetModel);
+        using HttpResponseMessage response = await Http.PostAsJsonAsync($"api/v1/admin/users/{Id}/reset-password", resetModel);
 
         if (response.IsSuccessStatusCode)
         {

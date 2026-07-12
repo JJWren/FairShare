@@ -131,22 +131,34 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
 
         if (!result.Succeeded)
         {
-            return ValidationProblem(new ValidationProblemDetails(
-                result.Errors
-                    .GroupBy(e => e.Code)
-                    .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray())));
+            return IdentityValidationProblem(result);
         }
 
-        await _userManager.SetLockoutEndDateAsync(user, null);
+        IdentityResult lockoutResult = await _userManager.SetLockoutEndDateAsync(user, null);
+        if (!lockoutResult.Succeeded)
+        {
+            return IdentityValidationProblem(lockoutResult);
+        }
 
         user.UpdatedUtc = DateTime.UtcNow;
         user.UpdatedByUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _userManager.UpdateAsync(user);
+
+        IdentityResult updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return IdentityValidationProblem(updateResult);
+        }
 
         await _tokenService.RevokeAllForUserAsync(user.Id, ct);
 
         return NoContent();
     }
+
+    private ActionResult IdentityValidationProblem(IdentityResult result) =>
+        ValidationProblem(new ValidationProblemDetails(
+            result.Errors
+                .GroupBy(e => e.Code)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray())));
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)

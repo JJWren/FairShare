@@ -42,10 +42,14 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
             return response;
         }
 
-        // A 401 from login/register/guest is a real auth failure (bad credentials, disabled
-        // user, etc.), not an expired-token situation - don't let it trigger a refresh+retry,
-        // which could otherwise turn a failed login into an "authenticated" state.
-        if (uri.AbsolutePath.Contains("/api/v1/auth/", StringComparison.OrdinalIgnoreCase))
+        // A 401 from the anonymous auth endpoints (login/register/guest/refresh) is a real
+        // auth failure (bad credentials, disabled user, etc.), not an expired-token
+        // situation - don't let it trigger a refresh+retry, which could otherwise turn a
+        // failed login into an "authenticated" state. change-password is the exception:
+        // it's the one *authenticated* endpoint under the auth prefix, so an expired access
+        // token there should get the normal silent refresh+retry like any other API call.
+        if (uri.AbsolutePath.Contains("/api/v1/auth/", StringComparison.OrdinalIgnoreCase)
+            && !uri.AbsolutePath.EndsWith("/change-password", StringComparison.OrdinalIgnoreCase))
         {
             return response;
         }
