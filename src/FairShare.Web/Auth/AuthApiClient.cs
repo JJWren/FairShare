@@ -13,16 +13,23 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     private readonly HttpClient _http = http;
     private readonly ITokenStore _tokenStore = tokenStore;
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
+    private readonly object _configLock = new();
     private Task<AuthConfigResponse>? _configTask;
 
     /// <summary>
     /// Server auth capabilities (e.g. whether self-registration is open). Cached for the
-    /// app's lifetime; concurrent callers share one request. Fails closed to "registration
-    /// disabled" when the API is unreachable - the server enforces the flag regardless, so
-    /// a wrongly hidden link is the safe failure - and drops the cache so a later page
-    /// visit retries.
+    /// app's lifetime; concurrent callers share one request (the lock makes the
+    /// check-and-assign atomic). Fails closed to "registration disabled" when the API is
+    /// unreachable - the server enforces the flag regardless, so a wrongly hidden link is
+    /// the safe failure - and drops the cache so a later page visit retries.
     /// </summary>
-    public Task<AuthConfigResponse> GetAuthConfigAsync() => _configTask ??= FetchAuthConfigAsync();
+    public Task<AuthConfigResponse> GetAuthConfigAsync()
+    {
+        lock (_configLock)
+        {
+            return _configTask ??= FetchAuthConfigAsync();
+        }
+    }
 
     private async Task<AuthConfigResponse> FetchAuthConfigAsync()
     {
@@ -39,7 +46,11 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
         {
         }
 
-        _configTask = null;
+        lock (_configLock)
+        {
+            _configTask = null;
+        }
+
         return new AuthConfigResponse();
     }
 
@@ -131,8 +142,9 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
     // The API reports failures as RFC 7807 problem details; surface the first field error
     // (e.g. "Username 'x' is already taken.") so the user sees something actionable
-    // instead of a bare status code.
-    private static async Task<string?> TryReadFirstProblemErrorAsync(HttpResponseMessage response)
+    // instead of a bare status code. Internal so pages issuing raw HttpClient calls
+    // (e.g. the admin reset-password form) can surface the same details.
+    internal static async Task<string?> TryReadFirstProblemErrorAsync(HttpResponseMessage response)
     {
         try
         {

@@ -137,7 +137,8 @@
         }
         else
         {
-            resetError = "Failed to reset password. Check that it meets the requirements.";
+            resetError = await FairShare.Web.Auth.AuthApiClient.TryReadFirstProblemErrorAsync(response)
+                ?? $"Failed to reset password ({(int)response.StatusCode}).";
         }
     }
 
