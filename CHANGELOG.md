@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v7.1.0...fairshare-v8.0.0) (2026-07-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* self-registration is now disabled by default; set Auth__AllowSelfRegistration=true (ALLOW_SELF_REGISTRATION in .env) to restore the previous behavior.
+
+### Features
+
+* public hardening - rate limiting, registration gate, password management, CSP ([#63](https://github.com/JJWren/FairShare/issues/63)) ([12be688](https://github.com/JJWren/FairShare/commit/12be688796e5fd19ca75f4c3294ee7e2025f3885))
+
 ## [7.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v7.0.1...fairshare-v7.1.0) (2026-07-10)
 
 
