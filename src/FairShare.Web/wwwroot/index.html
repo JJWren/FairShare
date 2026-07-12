@@ -10,15 +10,7 @@
     <link rel="stylesheet" href="css/site.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <script>
-        (function () {
-            var stored = localStorage.getItem('fairshare-theme') || 'auto';
-            var resolved = stored === 'auto'
-                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-                : stored;
-            document.documentElement.setAttribute('data-bs-theme', resolved);
-        })();
-    </script>
+    <script src="js/theme-init.js"></script>
 </head>
 
 <body>

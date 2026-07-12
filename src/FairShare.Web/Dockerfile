@@ -18,10 +18,13 @@ FROM nginx:alpine AS runtime
 
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 COPY src/FairShare.Web/nginx.conf /etc/nginx/conf.d/default.conf
+# .inc extension keeps it out of nginx's conf.d/*.conf auto-include; nginx.conf includes it.
+COPY src/FairShare.Web/fairshare-security-headers.inc /etc/nginx/conf.d/fairshare-security-headers.inc
 # nginx's stock entrypoint runs every script in /docker-entrypoint.d before serving.
 COPY src/FairShare.Web/docker-entrypoint.d/40-fairshare-appsettings.sh /docker-entrypoint.d/40-fairshare-appsettings.sh
+COPY src/FairShare.Web/docker-entrypoint.d/50-fairshare-csp.sh /docker-entrypoint.d/50-fairshare-csp.sh
 
 RUN rm -f /usr/share/nginx/html/appsettings.Development.json \
- && chmod +x /docker-entrypoint.d/40-fairshare-appsettings.sh
+ && chmod +x /docker-entrypoint.d/40-fairshare-appsettings.sh /docker-entrypoint.d/50-fairshare-csp.sh
 
 EXPOSE 80

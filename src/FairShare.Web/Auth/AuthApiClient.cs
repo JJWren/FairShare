@@ -13,6 +13,45 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     private readonly HttpClient _http = http;
     private readonly ITokenStore _tokenStore = tokenStore;
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
+    private Task<AuthConfigResponse>? _configTask;
+
+    /// <summary>
+    /// Server auth capabilities (e.g. whether self-registration is open). Cached for the
+    /// app's lifetime; concurrent callers share one request. Fails closed to "registration
+    /// disabled" when the API is unreachable - the server enforces the flag regardless, so
+    /// a wrongly hidden link is the safe failure - and drops the cache so a later page
+    /// visit retries.
+    /// </summary>
+    public Task<AuthConfigResponse> GetAuthConfigAsync() => _configTask ??= FetchAuthConfigAsync();
+
+    private async Task<AuthConfigResponse> FetchAuthConfigAsync()
+    {
+        try
+        {
+            AuthConfigResponse? config = await _http.GetFromJsonAsync<AuthConfigResponse>("api/v1/auth/config");
+
+            if (config is not null)
+            {
+                return config;
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+        }
+
+        _configTask = null;
+        return new AuthConfigResponse();
+    }
+
+    public Task<AuthResult> ChangePasswordAsync(string currentPassword, string newPassword, string confirmNewPassword) =>
+        SendAuthRequestAsync(
+            "api/v1/auth/change-password",
+            new ChangePasswordRequest
+            {
+                CurrentPassword = currentPassword,
+                NewPassword = newPassword,
+                ConfirmNewPassword = confirmNewPassword
+            });
 
     public Task<AuthResult> LoginAsync(string userName, string password) =>
         SendAuthRequestAsync(

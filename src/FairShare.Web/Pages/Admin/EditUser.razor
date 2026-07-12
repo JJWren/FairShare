@@ -57,6 +57,38 @@
                         <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
                     </div>
                 </EditForm>
+
+                <hr class="my-4" />
+
+                <h5>Reset password</h5>
+                <p class="text-muted"><small>Resetting signs the user out of all sessions. To change your own password, use the Account page.</small></p>
+
+                @if (!string.IsNullOrEmpty(resetSuccess))
+                {
+                    <div class="alert alert-success py-2">@resetSuccess</div>
+                }
+                @if (!string.IsNullOrEmpty(resetError))
+                {
+                    <div class="alert alert-danger py-2">@resetError</div>
+                }
+
+                <EditForm Model="resetModel" OnValidSubmit="HandleResetPassword" FormName="resetPasswordForm">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <InputText id="newPassword" type="password" @bind-Value="resetModel.NewPassword" class="form-control" />
+                        <ValidationMessage For="() => resetModel.NewPassword" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                        <InputText id="confirmNewPassword" type="password" @bind-Value="resetModel.ConfirmNewPassword" class="form-control" />
+                        <ValidationMessage For="() => resetModel.ConfirmNewPassword" class="text-danger" />
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-danger">Reset Password</button>
+                </EditForm>
             </div>
         </div>
     }
@@ -66,6 +98,9 @@
     [Parameter] public Guid Id { get; set; }
     private EditUserRequest? model;
     private List<string> errors = new();
+    private AdminResetPasswordRequest resetModel = new();
+    private string? resetError;
+    private string? resetSuccess;
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +120,24 @@
         else
         {
             errors.Add("Failed to update user.");
+        }
+    }
+
+    private async Task HandleResetPassword()
+    {
+        resetError = null;
+        resetSuccess = null;
+
+        var response = await Http.PostAsJsonAsync($"api/v1/admin/users/{Id}/reset-password", resetModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+            resetModel = new AdminResetPasswordRequest();
+            resetSuccess = "Password reset. The user has been signed out of all sessions.";
+        }
+        else
+        {
+            resetError = "Failed to reset password. Check that it meets the requirements.";
         }
     }
 
