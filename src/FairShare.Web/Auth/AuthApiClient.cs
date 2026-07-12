@@ -42,7 +42,11 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
                 return config;
             }
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        // OperationCanceledException covers WASM fetch timeouts (TaskCanceledException),
+        // NotSupportedException covers non-JSON bodies (e.g. a proxy error page). Any of
+        // these escaping would fault the cached task and wedge the auth pages until a
+        // full reload, so all realistic failures collapse to the fail-closed default.
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException or NotSupportedException)
         {
         }
 
