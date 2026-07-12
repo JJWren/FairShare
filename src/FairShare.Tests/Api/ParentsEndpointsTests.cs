@@ -1,3 +1,4 @@
+using FairShare.Contracts.Admin;
 using FairShare.Contracts.Auth;
 using FairShare.Contracts.Parents;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -148,17 +149,32 @@ public class ParentsEndpointsTests : IClassFixture<FairShareApiFactory>
         Assert.NotEqual(keep.Id, toRename.Id);
     }
 
+    // Self-registration is disabled by default, so second users are provisioned the way
+    // an operator would: created by the admin, then logged in.
     private async Task<string> RegisterUserAsync(string userName)
     {
-        HttpResponseMessage response = await _client.PostAsJsonAsync("api/v1/auth/register", new RegisterRequest
+        string adminToken = await LoginAsAdminAsync();
+
+        HttpResponseMessage createResponse = await SendAuthorizedAsync(HttpMethod.Post, "api/v1/admin/users", adminToken,
+            new CreateUserRequest
+            {
+                UserName = userName,
+                Password = "Upsert-Test-12345!",
+                ConfirmPassword = "Upsert-Test-12345!",
+                Role = "User"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        HttpResponseMessage loginResponse = await _client.PostAsJsonAsync("api/v1/auth/login", new LoginRequest
         {
             UserName = userName,
             Password = "Upsert-Test-12345!"
         });
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
 
-        AuthTokenResponse? tokens = await response.Content.ReadFromJsonAsync<AuthTokenResponse>();
+        AuthTokenResponse? tokens = await loginResponse.Content.ReadFromJsonAsync<AuthTokenResponse>();
         Assert.NotNull(tokens);
         Assert.False(string.IsNullOrWhiteSpace(tokens!.AccessToken));
         return tokens.AccessToken;

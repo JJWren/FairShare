@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using FairShare.Api.Auth;
 using FairShare.Api.Models;
 using FairShare.Contracts.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -15,10 +16,11 @@ namespace FairShare.Api.Controllers;
 [Authorize(Policy = "AdminOnly")]
 [ApiController]
 [Route("api/v1/admin/users")]
-public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm) : ControllerBase
+public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm, ITokenService tokenService) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = um;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = rm;
+    private readonly ITokenService _tokenService = tokenService;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserListItem>>> GetUsers(string filter = "all")
@@ -112,6 +114,51 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
 
         return NoContent();
     }
+
+    // Self-reset is allowed on purpose: unlike self-delete it cannot lock the admin out
+    // (they chose the new password), and killing their other sessions is the intended
+    // semantics of a reset.
+    [HttpPost("{id}/reset-password")]
+    public async Task<IActionResult> ResetPassword(Guid id, AdminResetPasswordRequest model, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+        if (user is null) return NotFound();
+
+        // Token-based reset keeps a single validation path and cannot strand the user
+        // password-less the way RemovePassword+AddPassword can.
+        string resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, resetToken, model.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return IdentityValidationProblem(result);
+        }
+
+        IdentityResult lockoutResult = await _userManager.SetLockoutEndDateAsync(user, null);
+        if (!lockoutResult.Succeeded)
+        {
+            return IdentityValidationProblem(lockoutResult);
+        }
+
+        user.UpdatedUtc = DateTime.UtcNow;
+        user.UpdatedByUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        IdentityResult updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return IdentityValidationProblem(updateResult);
+        }
+
+        await _tokenService.RevokeAllForUserAsync(user.Id, ct);
+
+        return NoContent();
+    }
+
+    private ActionResult IdentityValidationProblem(IdentityResult result) =>
+        ValidationProblem(new ValidationProblemDetails(
+            result.Errors
+                .GroupBy(e => e.Code)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray())));
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)

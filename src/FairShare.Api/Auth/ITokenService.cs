@@ -17,4 +17,6 @@ public interface ITokenService
     Task<IssuedRefreshToken> IssueRefreshTokenAsync(Guid? userId, bool isGuest, CancellationToken ct = default);
 
     Task<RefreshToken?> ConsumeRefreshTokenAsync(string rawToken, CancellationToken ct = default);
+
+    Task<int> RevokeAllForUserAsync(Guid userId, CancellationToken ct = default);
 }

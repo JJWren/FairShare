@@ -9,6 +9,7 @@ using System;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FairShare.Api.Auth;
@@ -87,6 +88,8 @@ builder.Services.AddOptions<JwtOptions>()
 
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection("AdminSeed"));
 
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -139,6 +142,47 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Abuse throttling. Values are deliberately hardcoded (small self-hosted app); the only
+// knob is the RateLimiting:Enabled kill-switch checked at UseRateLimiter below. Keys are
+// the direct peer IP on purpose: only X-Forwarded-Proto is trusted from proxies (see the
+// ForwardedHeaders comment), so X-Forwarded-For must not drive partitioning - behind a
+// reverse proxy all clients share the proxy's bucket until KnownProxies is pinned.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+        ctx.Request.Path.StartsWithSegments("/healthz")
+            // The compose healthcheck polls this endpoint; it must never be throttled.
+            ? System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("healthz")
+            : System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
+    // Credential stuffing / junk-account / token-minting surface: login, register,
+    // guest, refresh.
+    options.AddPolicy("auth", ctx =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    options.OnRejected = (ctx, _) =>
+    {
+        ctx.HttpContext.Response.Headers["Retry-After"] = "60";
+        return ValueTask.CompletedTask;
+    };
+});
+
 // Behind a TLS-terminating reverse proxy (the eventual VPS setup), the app sees plain
 // HTTP; honoring X-Forwarded-Proto keeps Request.IsHttps - and everything derived from
 // it, like the refresh cookie's Secure/SameSite attributes - correct. The proxy address
@@ -158,6 +202,7 @@ builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
 builder.Services.AddScoped<IParentProfileService, ParentProfileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<AdminSeeder>();
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
 var app = builder.Build();
 
@@ -238,6 +283,13 @@ app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 
 app.UseCors("Web");
+
+// After UseCors so a 429 still carries CORS headers (otherwise the SPA sees an opaque
+// CORS failure instead of the status). Enabled is a kill-switch for tests/operators.
+if (builder.Configuration.GetValue("RateLimiting:Enabled", true))
+{
+    app.UseRateLimiter();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

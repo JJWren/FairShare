@@ -31,7 +31,14 @@
     </EditForm>
 
     <div class="d-flex justify-content-between mt-3">
-        <a href="/register">Create an account</a>
+        @if (_allowSelfRegistration)
+        {
+            <a href="/register">Create an account</a>
+        }
+        else
+        {
+            <span></span>
+        }
         <button class="btn btn-link p-0" @onclick="ContinueAsGuestAsync" disabled="@_busy">Continue as Guest</button>
     </div>
 </div>
@@ -40,9 +47,16 @@
     private readonly LoginModel _model = new();
     private string? _error;
     private bool _busy;
+    private bool _allowSelfRegistration;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var config = await AuthApi.GetAuthConfigAsync();
+        _allowSelfRegistration = config.AllowSelfRegistration;
+    }
 
     private async Task LoginAsync()
     {

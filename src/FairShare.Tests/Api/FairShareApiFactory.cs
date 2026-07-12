@@ -28,9 +28,14 @@ public class FairShareApiFactory : WebApplicationFactory<Program>
         SetEnvVar("AdminSeed__Password", "Adm!n-Test-12345");
         SetEnvVar("AdminSeed__LogGeneratedPassword", "false");
         SetEnvVar("Jwt__SigningKey", "test-signing-key-not-for-production-use-only-32b");
+        // Functional tests fire requests far faster than the per-IP budgets allow; the
+        // limiter has its own dedicated test class that switches this back on.
+        SetEnvVar("RateLimiting__Enabled", "false");
     }
 
-    private void SetEnvVar(string name, string value)
+    // Protected so factory subclasses can layer extra config (same precedence rules) on
+    // top of base.ConfigureWebHost - later writes win, and Dispose restores the original.
+    protected void SetEnvVar(string name, string value)
     {
         // Remember whatever was there before so Dispose can put it back - these are
         // process-wide and must not leak into tests outside this fixture's lifetime.

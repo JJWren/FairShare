@@ -12,10 +12,11 @@ services:
       ConnectionStrings__Default: "Data Source=/data/fairshare.db"
       # Required - fail fast at compose time rather than at container startup.
       Jwt__SigningKey: "${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env (see .env.example)}"
-      AdminSeed__Enabled: "true"
+      AdminSeed__Enabled: "${ADMIN_SEED_ENABLED:-true}"
       AdminSeed__User: "${ADMIN_USER:-admin}"
       AdminSeed__Password: "${ADMIN_PASSWORD:-}"
-      AdminSeed__LogGeneratedPassword: "true"
+      AdminSeed__LogGeneratedPassword: "${ADMIN_SEED_LOG_GENERATED_PASSWORD:-true}"
+      Auth__AllowSelfRegistration: "${ALLOW_SELF_REGISTRATION:-false}"
       Cors__AllowedOrigins__0: "${WEB_ORIGIN:-http://localhost:5858}"
     volumes:
       - fairshare-data:/data

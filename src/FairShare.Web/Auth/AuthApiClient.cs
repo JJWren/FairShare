@@ -13,6 +13,60 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     private readonly HttpClient _http = http;
     private readonly ITokenStore _tokenStore = tokenStore;
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
+    private readonly object _configLock = new();
+    private Task<AuthConfigResponse>? _configTask;
+
+    /// <summary>
+    /// Server auth capabilities (e.g. whether self-registration is open). Cached for the
+    /// app's lifetime; concurrent callers share one request (the lock makes the
+    /// check-and-assign atomic). Fails closed to "registration disabled" when the API is
+    /// unreachable - the server enforces the flag regardless, so a wrongly hidden link is
+    /// the safe failure - and drops the cache so a later page visit retries.
+    /// </summary>
+    public Task<AuthConfigResponse> GetAuthConfigAsync()
+    {
+        lock (_configLock)
+        {
+            return _configTask ??= FetchAuthConfigAsync();
+        }
+    }
+
+    private async Task<AuthConfigResponse> FetchAuthConfigAsync()
+    {
+        try
+        {
+            AuthConfigResponse? config = await _http.GetFromJsonAsync<AuthConfigResponse>("api/v1/auth/config");
+
+            if (config is not null)
+            {
+                return config;
+            }
+        }
+        // OperationCanceledException covers WASM fetch timeouts (TaskCanceledException),
+        // NotSupportedException covers non-JSON bodies (e.g. a proxy error page). Any of
+        // these escaping would fault the cached task and wedge the auth pages until a
+        // full reload, so all realistic failures collapse to the fail-closed default.
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException or NotSupportedException)
+        {
+        }
+
+        lock (_configLock)
+        {
+            _configTask = null;
+        }
+
+        return new AuthConfigResponse();
+    }
+
+    public Task<AuthResult> ChangePasswordAsync(string currentPassword, string newPassword, string confirmNewPassword) =>
+        SendAuthRequestAsync(
+            "api/v1/auth/change-password",
+            new ChangePasswordRequest
+            {
+                CurrentPassword = currentPassword,
+                NewPassword = newPassword,
+                ConfirmNewPassword = confirmNewPassword
+            });
 
     public Task<AuthResult> LoginAsync(string userName, string password) =>
         SendAuthRequestAsync(
@@ -92,8 +146,9 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
     // The API reports failures as RFC 7807 problem details; surface the first field error
     // (e.g. "Username 'x' is already taken.") so the user sees something actionable
-    // instead of a bare status code.
-    private static async Task<string?> TryReadFirstProblemErrorAsync(HttpResponseMessage response)
+    // instead of a bare status code. Internal so pages issuing raw HttpClient calls
+    // (e.g. the admin reset-password form) can surface the same details.
+    internal static async Task<string?> TryReadFirstProblemErrorAsync(HttpResponseMessage response)
     {
         try
         {

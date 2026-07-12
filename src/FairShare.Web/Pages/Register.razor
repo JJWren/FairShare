@@ -8,6 +8,22 @@
 <div class="container my-5" style="max-width: 420px;">
     <h1 class="h4 mb-4 text-center">Create an account</h1>
 
+    @if (!_loaded)
+    {
+        <p class="text-center text-muted">Loading...</p>
+    }
+    else if (!_allowSelfRegistration)
+    {
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="mb-2">Self-registration is disabled on this server.</p>
+                <p class="text-muted mb-3"><small>Contact the administrator for an account.</small></p>
+                <a href="/login" class="btn btn-primary">Back to sign in</a>
+            </div>
+        </div>
+    }
+    else
+    {
     <EditForm Model="_model" OnValidSubmit="RegisterAsync">
         <DataAnnotationsValidator />
         <ValidationSummary />
@@ -38,12 +54,22 @@
     <div class="text-center mt-3">
         <a href="/login">Already have an account? Sign in</a>
     </div>
+    }
 </div>
 
 @code {
     private readonly RegisterModel _model = new();
     private string? _error;
     private bool _busy;
+    private bool _loaded;
+    private bool _allowSelfRegistration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var config = await AuthApi.GetAuthConfigAsync();
+        _allowSelfRegistration = config.AllowSelfRegistration;
+        _loaded = true;
+    }
 
     private async Task RegisterAsync()
     {

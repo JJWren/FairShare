@@ -96,6 +96,15 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
         return await _db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
     }
 
+    public async Task<int> RevokeAllForUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        DateTime now = DateTime.UtcNow;
+
+        return await _db.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedUtc == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedUtc, now), ct);
+    }
+
     private static string GenerateRawToken()
     {
         byte[] bytes = RandomNumberGenerator.GetBytes(32);

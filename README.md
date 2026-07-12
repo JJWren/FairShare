@@ -86,7 +86,15 @@ If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once
 
 Both images build from source — no registry needed. Ports and browser-visible URLs are configurable in `.env` (`WEB_PORT`/`API_PORT`/`WEB_ORIGIN`/`API_BASE_URL`).
 
-**Hosting behind a reverse proxy (VPS):** terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes), set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL. `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name.
+**Hosting behind a reverse proxy (VPS):** terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes), set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL. `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name. Note that rate limiting keys on the direct peer IP: behind a reverse proxy every client collapses into the proxy's bucket. That is deliberate — trusting `X-Forwarded-For` without pinning the proxy in `KnownProxies` would let clients spoof their way out of throttling — so pin your proxy before switching the limiter to forwarded addresses.
+
+### Hardening a public instance
+
+- **Self-registration is disabled by default** (`ALLOW_SELF_REGISTRATION=false`): create accounts from **Admin → Users**. Only enable it if you want strangers to be able to sign up.
+- **Admin bootstrap:** set a strong `ADMIN_PASSWORD` in `.env` before first boot. If you let the seeder generate one, treat it as burned — Docker persists container logs — so log in, change it from the **Account** page, and consider renaming the account (`ADMIN_USER`); every credential-stuffing bot tries `admin` first.
+- **After first boot**, set `ADMIN_SEED_ENABLED=false` and remove `ADMIN_PASSWORD` from `.env` — the seeder only matters once.
+- **Signing key:** generate a fresh `JWT_SIGNING_KEY` for production (`openssl rand -base64 48`); never reuse a key that has been committed anywhere. Rotating it only invalidates outstanding access tokens (≤30 min); sessions recover silently via the refresh cookie.
+- **Passwords:** users change their own via **Account → Change password**; admins reset others' via **Admin → Users → Edit**. Both revoke all of that user's refresh tokens.
 
 ---
 
@@ -136,9 +144,12 @@ Swagger UI is available at `/swagger` in Development.
 | `Jwt:AccessTokenMinutes`            | `30`         | Access token lifetime.                                                                 |
 | `Jwt:RefreshTokenDays`              | `30`         | Refresh token lifetime.                                                                |
 | `Cors:AllowedOrigins`               | `[]`         | Origins allowed to call the API (the Web app's URL).                                   |
-| `AdminSeed:Enabled`                 | `true`       | Enables seeding the initial admin account.                                             |
+| `AdminSeed:Enabled`                 | `true`       | Enables seeding the initial admin account. Disable after first boot.                   |
 | `AdminSeed:User`                    | `admin`      | Username for the initial admin.                                                        |
 | `AdminSeed:Password`                | *(random)*   | Password for the initial admin (logged on first run if empty).                         |
+| `AdminSeed:LogGeneratedPassword`    | `true`       | Whether a generated admin password is printed to the log.                              |
+| `Auth:AllowSelfRegistration`        | `false`      | Whether `POST /api/v1/auth/register` is open. Off = admin creates accounts.            |
+| `RateLimiting:Enabled`              | `true`       | Kill-switch for rate limiting (values are fixed: 100 req/min per IP globally, 10 req/min per IP on the auth endpoints). |
 
 | Setting (Web)     | Default | Purpose                                    |
 | ------------------ | ------- | ------------------------------------------ |
