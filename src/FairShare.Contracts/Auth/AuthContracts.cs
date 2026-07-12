@@ -29,3 +29,20 @@ public class AuthTokenResponse
     public string Role { get; set; } = string.Empty;
     public bool IsGuest { get; set; }
 }
+
+public class AuthConfigResponse
+{
+    public bool AllowSelfRegistration { get; set; }
+}
+
+public class ChangePasswordRequest
+{
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required, MinLength(8)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required, Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}
