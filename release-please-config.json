@@ -7,7 +7,11 @@
         { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/Version" },
         { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/AssemblyVersion" },
         { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/FileVersion" },
-        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" }
+        { "type": "xml", "path": "src/FairShare.Api/FairShare.Api.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" },
+        { "type": "xml", "path": "src/FairShare.Web/FairShare.Web.csproj", "xpath": "//Project/PropertyGroup/Version" },
+        { "type": "xml", "path": "src/FairShare.Web/FairShare.Web.csproj", "xpath": "//Project/PropertyGroup/AssemblyVersion" },
+        { "type": "xml", "path": "src/FairShare.Web/FairShare.Web.csproj", "xpath": "//Project/PropertyGroup/FileVersion" },
+        { "type": "xml", "path": "src/FairShare.Web/FairShare.Web.csproj", "xpath": "//Project/PropertyGroup/InformationalVersion" }
       ]
     }
   }

@@ -1,3 +1,4 @@
+@using System.Reflection
 @inherits LayoutComponentBase
 
 <NavMenu />
@@ -7,5 +8,15 @@
 </main>
 
 <footer class="container small text-muted py-4">
-    &copy; @DateTime.UtcNow.Year - FairShare
+    &copy; @DateTime.UtcNow.Year - FairShare v@(AppVersion)
 </footer>
+
+@code {
+    // InformationalVersion is stamped by release-please via the csproj; the SDK's
+    // implicit SourceLink can append "+<commit-sha>", which the split strips.
+    private static readonly string AppVersion =
+        (typeof(MainLayout).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+         ?? typeof(MainLayout).Assembly.GetName().Version?.ToString(3)
+         ?? "0.0.0")
+        .Split('+')[0];
+}
