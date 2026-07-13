@@ -12,6 +12,7 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 
 ## What’s new in v8
 
+- **Public hardening (8.0.0)**: Per-IP rate limiting (strict budget on the auth endpoints), self-registration disabled by default (**breaking** — set `ALLOW_SELF_REGISTRATION=true` to restore sign-ups), self-service change-password and admin password reset (both revoke all of the user's sessions), automatic refresh-token cleanup, and CSP/security headers on the web container.
 - **Architecture Overhaul**: Split into a standalone Blazor WebAssembly SPA (`FairShare.Web`) and an independent REST API (`FairShare.Api`), replacing the previous hybrid server-hosted-WASM app.
 - **JWT Auth**: Cookie-based ASP.NET Identity replaced with JWT bearer auth (access + rotating refresh tokens), so the API is directly usable from curl/Postman/any CLI — not just the browser.
 - **Server-side Calculations**: Calculation logic moved behind `POST /api/v1/states/{state}/forms/{form}/calculations`, so results are consistent regardless of client.
@@ -49,11 +50,13 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 
 | Project | Type | Responsibility |
 |---|---|---|
-| `FairShare.Domain` | classlib | Pure calculation engine — calculators, state/form catalog. No EF/Identity/ASP.NET. |
-| `FairShare.Contracts` | classlib | Wire DTOs shared by the API and the Web app (auth, calculation, parents, admin). |
-| `FairShare.Api` | ASP.NET Core Web API | JWT auth, EF Core + SQLite persistence, all controllers. |
-| `FairShare.Web` | Blazor WebAssembly | Standalone SPA calling the API over HTTP/JSON with a JWT bearer token. |
-| `FairShare.Tests` | xUnit | Calculator unit tests + API integration tests (`WebApplicationFactory`). |
+| [`FairShare.Domain`](src/FairShare.Domain/README.md) | classlib | Pure calculation engine — calculators, state/form catalog. No EF/Identity/ASP.NET. |
+| [`FairShare.Contracts`](src/FairShare.Contracts/README.md) | classlib | Wire DTOs shared by the API and the Web app (auth, calculation, parents, admin). |
+| [`FairShare.Api`](src/FairShare.Api/README.md) | ASP.NET Core Web API | JWT auth, EF Core + SQLite persistence, all controllers. |
+| [`FairShare.Web`](src/FairShare.Web/README.md) | Blazor WebAssembly | Standalone SPA calling the API over HTTP/JSON with a JWT bearer token. |
+| [`FairShare.Tests`](src/FairShare.Tests/README.md) | xUnit | Calculator unit tests + API integration tests (`WebApplicationFactory`). |
+
+Each project has its own README with conventions and extension points; the full endpoint reference lives in [`docs/API.md`](docs/API.md).
 
 ---
 
@@ -80,7 +83,7 @@ docker compose up --build
 ```
 
 - Web app: http://localhost:5858
-- API + Swagger: http://localhost:5859 (`/swagger`, `/healthz`)
+- API: http://localhost:5859 (`/healthz`; Swagger is **Development-only** and not served by the Production compose build — use the bare `dotnet run` setup below to browse it)
 
 If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once in `docker compose logs api`. The SQLite database (and pre-migration backups) persist in the named `fairshare-data` volume across restarts.
 
@@ -131,7 +134,7 @@ curl http://localhost:5080/api/v1/states \
   -H "Authorization: Bearer <accessToken>"
 ```
 
-Swagger UI is available at `/swagger` in Development.
+Swagger UI is available at `/swagger` in Development. The full endpoint reference — auth flow, request/response bodies, error shapes, and rate-limit behavior — is in [`docs/API.md`](docs/API.md), and a ready-to-import Postman collection (chained auth, sample bodies, assertions) is at [`docs/FairShare.postman_collection.json`](docs/FairShare.postman_collection.json).
 
 ---
 

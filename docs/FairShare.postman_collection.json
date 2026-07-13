@@ -1,0 +1,505 @@
+﻿{
+  "info": {
+    "name": "FairShare API",
+    "description": "FairShare child-support calculator API (v8.0.0).\n\nQuick start:\n1. Set `adminUser` / `adminPassword` in the collection variables (or an environment).\n2. Run **Auth / Login** â€” it stores `accessToken` automatically; every other request uses it via collection-level Bearer auth.\n3. Tokens expire after 30 minutes â€” re-run Login or Refresh.\n\nNotes:\n- login/register/guest/refresh share a 10 req/min per-IP rate limit â†’ expect 429 + Retry-After on bursts (by design).\n- The refresh token is an HttpOnly cookie (`fairshare_refresh`) handled by Postman's cookie jar; it rotates on every use, so replaying an old value returns 401.\n- Validation errors come back as RFC 7807 problem details with an `errors` object keyed by error code.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5080" },
+    { "key": "adminUser", "value": "CHANGE_ME" },
+    { "key": "adminPassword", "value": "CHANGE_ME" },
+    { "key": "accessToken", "value": "" },
+    { "key": "parentId", "value": "" },
+    { "key": "parentRowVersion", "value": "" },
+    { "key": "createdUserId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get Auth Config",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/config", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "config"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('registration disabled', () => pm.expect(pm.response.json().allowSelfRegistration).to.be.false);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"{{adminUser}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('has access token', () => pm.expect(json.accessToken).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "console.log('accessToken stored; role=' + json.role + ', expires ' + json.accessTokenExpiresUtc);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Continue as Guest",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/guest", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "guest"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('is guest', () => pm.expect(json.isGuest).to.be.true);",
+                  "// Overwrites the stored token with the GUEST token - re-run Login to get admin back.",
+                  "pm.collectionVariables.set('accessToken', json.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK (401 means no/stale refresh cookie - run Login first)', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('accessToken', pm.response.json().accessToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "logout"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.set('accessToken', '');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register (expect 403 - disabled)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"someone-new\",\n  \"password\": \"Password-1\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 while self-registration is disabled', () => pm.response.to.have.status(403));",
+                  "pm.test('problem details body', () => pm.expect(pm.response.json().title).to.include('Self-registration'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"{{adminPassword}}\",\n  \"newPassword\": \"NewPassword-1\",\n  \"confirmNewPassword\": \"NewPassword-1\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "change-password"] },
+            "description": "Requires Bearer (non-guest). CAREFUL: actually changes the signed-in user's password and signs out all other sessions. Wrong current password -> 400 with PasswordMismatch; guest token -> 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('accessToken', pm.response.json().accessToken);",
+                  "    console.log('Password changed - update the adminPassword collection variable!');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Catalog & Calculations",
+      "item": [
+        {
+          "name": "List States",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/states", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('contains AL', () => pm.expect(pm.response.json().map(s => s.state)).to.include('AL'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Forms for AL",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/states/AL/forms", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states", "AL", "forms"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Calculate CS-42",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfChildren\": 2,\n  \"plaintiff\": {\n    \"hasPrimaryCustody\": true,\n    \"monthlyGrossIncome\": 4200,\n    \"preexistingChildSupport\": 0,\n    \"preexistingAlimony\": 0,\n    \"workRelatedChildcareCosts\": 400,\n    \"healthcareCoverageCosts\": 250\n  },\n  \"defendant\": {\n    \"hasPrimaryCustody\": false,\n    \"monthlyGrossIncome\": 5100,\n    \"preexistingChildSupport\": 0,\n    \"preexistingAlimony\": 0,\n    \"workRelatedChildcareCosts\": 0,\n    \"healthcareCoverageCosts\": 0\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/states/AL/forms/CS42/calculations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states", "AL", "forms", "CS42", "calculations"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('calculation succeeded', () => pm.expect(json.success).to.be.true);",
+                  "console.log('Payer: ' + json.payer + ', amount: ' + json.finalAmount);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Parents",
+      "item": [
+        {
+          "name": "List Parents",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/parents", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Create Parent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Postman Test Parent\",\n  \"monthlyGrossIncome\": 4000,\n  \"preexistingChildSupport\": 0,\n  \"preexistingAlimony\": 0,\n  \"workRelatedChildcareCosts\": 300,\n  \"healthcareCoverageCosts\": 150,\n  \"hasPrimaryCustody\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/parents", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents"] },
+            "description": "Guests get 403 (NotGuest policy). Saves parentId + parentRowVersion for the follow-up requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('parentId', json.id);",
+                  "pm.collectionVariables.set('parentRowVersion', json.rowVersion || '');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Parent by Id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('parentRowVersion', pm.response.json().rowVersion || '');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Parent",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Postman Test Parent (renamed)\",\n  \"monthlyGrossIncome\": 4500,\n  \"preexistingChildSupport\": 0,\n  \"preexistingAlimony\": 0,\n  \"workRelatedChildcareCosts\": 300,\n  \"healthcareCoverageCosts\": 150,\n  \"hasPrimaryCustody\": true,\n  \"rowVersion\": \"{{parentRowVersion}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}"] },
+            "description": "A stale rowVersion returns 409 Conflict - re-run Get Parent by Id to refresh it."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('parentRowVersion', pm.response.json().rowVersion || ''); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Archive Parent",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}/archive", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}", "archive"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('success', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users?filter=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users"],
+              "query": [{ "key": "filter", "value": "all", "description": "all | enabled | disabled" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK (403 = not an Admin token)', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"postman-test-user\",\n  \"password\": \"Password-1\",\n  \"confirmPassword\": \"Password-1\",\n  \"role\": \"User\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set('createdUserId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by Id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{createdUserId}}\",\n  \"userName\": \"postman-test-user\",\n  \"role\": \"User\",\n  \"isDisabled\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"] }
+            }
+          ]
+        },
+        {
+          "name": "Reset User Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"newPassword\": \"Password-2\",\n  \"confirmNewPassword\": \"Password-2\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "reset-password"] },
+            "description": "204 on success; revokes all of that user's refresh tokens and clears any lockout."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"] }
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] },
+            "description": "Self-delete is blocked (400)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Misc",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/healthz", "host": ["{{baseUrl}}"], "path": ["healthz"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('status ok', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rate Limit Demo (run 11+ times fast)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"no-such-user\",\n  \"password\": \"wrong-on-purpose\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] },
+            "description": "Uses a nonexistent user so no real account gets locked out. Requests 1-10 in a minute return 401; the 11th returns 429 with Retry-After: 60. NOTE: this burns the shared per-IP auth budget, so Login will also 429 until the window resets."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 (under limit) or 429 (throttled)', () => pm.expect(pm.response.code).to.be.oneOf([401, 429]));",
+                  "if (pm.response.code === 429) {",
+                  "    pm.test('has Retry-After', () => pm.expect(pm.response.headers.get('Retry-After')).to.eql('60'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
