@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.0.0...fairshare-v2.1.0) (2026-07-13)
+
+
+### Features
+
+* **web:** show app version next to the footer copyright ([#67](https://github.com/JJWren/FairShare/issues/67)) ([c668af4](https://github.com/JJWren/FairShare/commit/c668af46930cf4d93dd227f23456ea1ad9eddbd2))
+
 ## [2.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v1.1.0...fairshare-v2.0.0) (2026-07-12)
 
 
