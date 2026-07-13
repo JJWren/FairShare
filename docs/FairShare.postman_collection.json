@@ -1,7 +1,7 @@
-﻿{
+{
   "info": {
     "name": "FairShare API",
-    "description": "FairShare child-support calculator API (v8.0.0).\n\nQuick start:\n1. Set `adminUser` / `adminPassword` in the collection variables (or an environment).\n2. Run **Auth / Login** â€” it stores `accessToken` automatically; every other request uses it via collection-level Bearer auth.\n3. Tokens expire after 30 minutes â€” re-run Login or Refresh.\n\nNotes:\n- login/register/guest/refresh share a 10 req/min per-IP rate limit â†’ expect 429 + Retry-After on bursts (by design).\n- The refresh token is an HttpOnly cookie (`fairshare_refresh`) handled by Postman's cookie jar; it rotates on every use, so replaying an old value returns 401.\n- Validation errors come back as RFC 7807 problem details with an `errors` object keyed by error code.",
+    "description": "FairShare child-support calculator API (v8.0.0).\n\nQuick start:\n1. Set `adminUser` / `adminPassword` in the collection variables (or an environment).\n2. Run **Auth / Login** — it stores `accessToken` automatically; every other request uses it via collection-level Bearer auth.\n3. Tokens expire after 30 minutes — re-run Login or Refresh.\n\nNotes:\n- login/register/guest/refresh share a 10 req/min per-IP rate limit → expect 429 + Retry-After on bursts (by design).\n- The refresh token is an HttpOnly cookie (`fairshare_refresh`) handled by Postman's cookie jar; it rotates on every use, so replaying an old value returns 401.\n- Validation errors come back as RFC 7807 problem details with an `errors` object keyed by error code.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -102,7 +102,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('200 OK (401 means no/stale refresh cookie - run Login first)', () => pm.response.to.have.status(200));",
+                  "pm.test('200 (refreshed) or 401 (no/stale refresh cookie - run Login first)', () => pm.expect(pm.response.code).to.be.oneOf([200, 401]));",
                   "if (pm.response.code === 200) { pm.collectionVariables.set('accessToken', pm.response.json().accessToken); }"
                 ]
               }
