@@ -47,7 +47,7 @@ POST /api/v1/auth/logout (cookie) ──► 204, cookie consumed + cleared
 | GET | `/auth/config` | none | Server capabilities: `{ "allowSelfRegistration": bool }`. |
 | POST | `/auth/register` | none | Create an account. Returns **403** when self-registration is disabled (the default). |
 | POST | `/auth/login` | none | Exchange credentials for tokens. |
-| POST | `/auth/guest` | none | Issue a guest session (no body). |
+| POST | `/auth/guest` | none | Issue a guest session. Takes no request body; returns the standard token response below. |
 | POST | `/auth/refresh` | refresh cookie | Rotate the refresh token, get a new access token. |
 | POST | `/auth/logout` | refresh cookie | Revoke the presented refresh token, clear the cookie. 204. |
 | POST | `/auth/change-password` | Bearer, NotGuest | Change your own password. Revokes **all** of your refresh tokens, then returns fresh ones so the current session survives. |
