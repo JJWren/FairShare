@@ -26,7 +26,7 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/config", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "config"] }
+            "url": "{{baseUrl}}/api/v1/auth/config"
           },
           "event": [
             {
@@ -48,7 +48,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"userName\": \"{{adminUser}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+            "url": "{{baseUrl}}/api/v1/auth/login"
           },
           "event": [
             {
@@ -71,7 +71,7 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/guest", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "guest"] }
+            "url": "{{baseUrl}}/api/v1/auth/guest"
           },
           "event": [
             {
@@ -94,7 +94,7 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh"] }
+            "url": "{{baseUrl}}/api/v1/auth/refresh"
           },
           "event": [
             {
@@ -114,7 +114,7 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "logout"] }
+            "url": "{{baseUrl}}/api/v1/auth/logout"
           },
           "event": [
             {
@@ -136,7 +136,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"userName\": \"someone-new\",\n  \"password\": \"Password-1\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
+            "url": "{{baseUrl}}/api/v1/auth/register"
           },
           "event": [
             {
@@ -157,7 +157,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"{{adminPassword}}\",\n  \"newPassword\": \"NewPassword-1\",\n  \"confirmNewPassword\": \"NewPassword-1\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "change-password"] },
+            "url": "{{baseUrl}}/api/v1/auth/change-password",
             "description": "Requires Bearer (non-guest). CAREFUL: actually changes the signed-in user's password and signs out all other sessions. Wrong current password -> 400 with PasswordMismatch; guest token -> 403."
           },
           "event": [
@@ -185,7 +185,7 @@
           "name": "List States",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/states", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states"] }
+            "url": "{{baseUrl}}/api/v1/states"
           },
           "event": [
             {
@@ -204,7 +204,7 @@
           "name": "List Forms for AL",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/states/AL/forms", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states", "AL", "forms"] }
+            "url": "{{baseUrl}}/api/v1/states/AL/forms"
           },
           "event": [
             {
@@ -222,7 +222,7 @@
               "mode": "raw",
               "raw": "{\n  \"numberOfChildren\": 2,\n  \"plaintiff\": {\n    \"hasPrimaryCustody\": true,\n    \"monthlyGrossIncome\": 4200,\n    \"preexistingChildSupport\": 0,\n    \"preexistingAlimony\": 0,\n    \"workRelatedChildcareCosts\": 400,\n    \"healthcareCoverageCosts\": 250\n  },\n  \"defendant\": {\n    \"hasPrimaryCustody\": false,\n    \"monthlyGrossIncome\": 5100,\n    \"preexistingChildSupport\": 0,\n    \"preexistingAlimony\": 0,\n    \"workRelatedChildcareCosts\": 0,\n    \"healthcareCoverageCosts\": 0\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/states/AL/forms/CS42/calculations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "states", "AL", "forms", "CS42", "calculations"] }
+            "url": "{{baseUrl}}/api/v1/states/AL/forms/CS42/calculations"
           },
           "event": [
             {
@@ -248,7 +248,7 @@
           "name": "List Parents",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/parents", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents"] }
+            "url": "{{baseUrl}}/api/v1/parents"
           },
           "event": [
             {
@@ -266,7 +266,7 @@
               "mode": "raw",
               "raw": "{\n  \"displayName\": \"Postman Test Parent\",\n  \"monthlyGrossIncome\": 4000,\n  \"preexistingChildSupport\": 0,\n  \"preexistingAlimony\": 0,\n  \"workRelatedChildcareCosts\": 300,\n  \"healthcareCoverageCosts\": 150,\n  \"hasPrimaryCustody\": true\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/parents", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents"] },
+            "url": "{{baseUrl}}/api/v1/parents",
             "description": "Guests get 403 (NotGuest policy). Saves parentId + parentRowVersion for the follow-up requests."
           },
           "event": [
@@ -288,7 +288,7 @@
           "name": "Get Parent by Id",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}"] }
+            "url": "{{baseUrl}}/api/v1/parents/{{parentId}}"
           },
           "event": [
             {
@@ -312,7 +312,7 @@
               "mode": "raw",
               "raw": "{\n  \"displayName\": \"Postman Test Parent (renamed)\",\n  \"monthlyGrossIncome\": 4500,\n  \"preexistingChildSupport\": 0,\n  \"preexistingAlimony\": 0,\n  \"workRelatedChildcareCosts\": 300,\n  \"healthcareCoverageCosts\": 150,\n  \"hasPrimaryCustody\": true,\n  \"rowVersion\": \"{{parentRowVersion}}\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}"] },
+            "url": "{{baseUrl}}/api/v1/parents/{{parentId}}",
             "description": "A stale rowVersion returns 409 Conflict - re-run Get Parent by Id to refresh it."
           },
           "event": [
@@ -332,7 +332,7 @@
           "name": "Archive Parent",
           "request": {
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/api/v1/parents/{{parentId}}/archive", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "{{parentId}}", "archive"] }
+            "url": "{{baseUrl}}/api/v1/parents/{{parentId}}/archive"
           },
           "event": [
             {
@@ -350,17 +350,13 @@
           "name": "List Users",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/users?filter=all",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users"],
-              "query": [{ "key": "filter", "value": "all", "description": "all | enabled | disabled" }]
-            }
+            "url": "{{baseUrl}}/api/v1/admin/users?filter=all",
+            "description": "filter accepts all | enabled | disabled. A 403 means the current token lacks the Admin role - re-run Login with admin credentials."
           },
           "event": [
             {
               "listen": "test",
-              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK (403 = not an Admin token)', () => pm.response.to.have.status(200));"] }
+              "script": { "type": "text/javascript", "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"] }
             }
           ]
         },
@@ -373,7 +369,7 @@
               "mode": "raw",
               "raw": "{\n  \"userName\": \"postman-test-user\",\n  \"password\": \"Password-1\",\n  \"confirmPassword\": \"Password-1\",\n  \"role\": \"User\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users"] }
+            "url": "{{baseUrl}}/api/v1/admin/users"
           },
           "event": [
             {
@@ -392,7 +388,7 @@
           "name": "Get User by Id",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] }
+            "url": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}"
           },
           "event": [
             {
@@ -410,7 +406,7 @@
               "mode": "raw",
               "raw": "{\n  \"id\": \"{{createdUserId}}\",\n  \"userName\": \"postman-test-user\",\n  \"role\": \"User\",\n  \"isDisabled\": false\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] }
+            "url": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}"
           },
           "event": [
             {
@@ -425,7 +421,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"newPassword\": \"Password-2\",\n  \"confirmNewPassword\": \"Password-2\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "reset-password"] },
+            "url": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/reset-password",
             "description": "204 on success; revokes all of that user's refresh tokens and clears any lockout."
           },
           "event": [
@@ -439,7 +435,7 @@
           "name": "Delete User",
           "request": {
             "method": "DELETE",
-            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users", "{{createdUserId}}"] },
+            "url": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}",
             "description": "Self-delete is blocked (400)."
           },
           "event": [
@@ -459,7 +455,7 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/healthz", "host": ["{{baseUrl}}"], "path": ["healthz"] }
+            "url": "{{baseUrl}}/healthz"
           },
           "event": [
             {
@@ -481,7 +477,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"userName\": \"no-such-user\",\n  \"password\": \"wrong-on-purpose\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] },
+            "url": "{{baseUrl}}/api/v1/auth/login",
             "description": "Uses a nonexistent user so no real account gets locked out. Requests 1-10 in a minute return 401; the 11th returns 429 with Retry-After: 60. NOTE: this burns the shared per-IP auth budget, so Login will also 429 until the window resets."
           },
           "event": [

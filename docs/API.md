@@ -18,13 +18,13 @@ A typical non-browser client only needs the access token: log in, use the bearer
 ### Auth session flow
 
 ```
-POST /auth/login ─────► 200 { accessToken, ... } + Set-Cookie: fairshare_refresh
+POST /api/v1/auth/login ─────► 200 { accessToken, ... } + Set-Cookie: fairshare_refresh
         │
         ▼ (access token expires after 30 min)
-POST /auth/refresh (cookie) ─► 200 { new accessToken } + rotated cookie
+POST /api/v1/auth/refresh (cookie) ─► 200 { new accessToken } + rotated cookie
         │
         ▼
-POST /auth/logout (cookie) ──► 204, cookie consumed + cleared
+POST /api/v1/auth/logout (cookie) ──► 204, cookie consumed + cleared
 ```
 
 ## Conventions
