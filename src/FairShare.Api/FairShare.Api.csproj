@@ -6,11 +6,11 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>FairShare.Api</AssemblyName>
     <RootNamespace>FairShare.Api</RootNamespace>
-    <UserSecretsId>aspnet-FairShare.Api-v8</UserSecretsId>
-    <Version>8.0.0</Version>
-    <AssemblyVersion>8.0.0</AssemblyVersion>
-    <FileVersion>8.0.0</FileVersion>
-    <InformationalVersion>8.0.0</InformationalVersion>
+    <UserSecretsId>aspnet-FairShare.Api-v2</UserSecretsId>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <InformationalVersion>2.0.0</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
