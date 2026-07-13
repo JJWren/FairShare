@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 * update saved parents in place when re-saved under an existing name ([#61](https://github.com/JJWren/FairShare/issues/61)) ([de98c1d](https://github.com/JJWren/FairShare/commit/de98c1d4b2f5e81d57e7d192750cf56d57f22e9c))
 
-## 1.0.0 (2026-07-10)
+## [1.0.0](https://github.com/JJWren/FairShare/releases/tag/fairshare-v1.0.0) (2026-07-10)
 
 First supported release: standalone Blazor WebAssembly SPA + decoupled REST API (JWT auth, ASP.NET Core, SQLite).
 
