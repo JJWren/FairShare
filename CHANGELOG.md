@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.1.1](https://github.com/JJWren/FairShare/compare/fairshare-v2.1.0...fairshare-v2.1.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **web:** stop immutable-caching the unfingerprinted Blazor entry scripts ([#69](https://github.com/JJWren/FairShare/issues/69)) ([caa2e3d](https://github.com/JJWren/FairShare/commit/caa2e3dbe93bf324cb1c051fc14a7eb9c1a91d30))
+
 ## [2.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.0.0...fairshare-v2.1.0) (2026-07-13)
 
 
