@@ -10,9 +10,9 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 
 ---
 
-## What’s new in v8
+## What’s new in v2
 
-- **Public hardening (8.0.0)**: Per-IP rate limiting (strict budget on the auth endpoints), self-registration disabled by default (**breaking** — set `ALLOW_SELF_REGISTRATION=true` to restore sign-ups), self-service change-password and admin password reset (both revoke all of the user's sessions), automatic refresh-token cleanup, and CSP/security headers on the web container.
+- **Public hardening (2.0.0)**: Per-IP rate limiting (strict budget on the auth endpoints), self-registration disabled by default (**breaking** — set `ALLOW_SELF_REGISTRATION=true` to restore sign-ups), self-service change-password and admin password reset (both revoke all of the user's sessions), automatic refresh-token cleanup, and CSP/security headers on the web container.
 - **Architecture Overhaul**: Split into a standalone Blazor WebAssembly SPA (`FairShare.Web`) and an independent REST API (`FairShare.Api`), replacing the previous hybrid server-hosted-WASM app.
 - **JWT Auth**: Cookie-based ASP.NET Identity replaced with JWT bearer auth (access + rotating refresh tokens), so the API is directly usable from curl/Postman/any CLI — not just the browser.
 - **Server-side Calculations**: Calculation logic moved behind `POST /api/v1/states/{state}/forms/{form}/calculations`, so results are consistent regardless of client.
