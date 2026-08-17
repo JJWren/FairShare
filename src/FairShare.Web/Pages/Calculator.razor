@@ -21,18 +21,21 @@
     }
     else
     {
-        @* Manual active class on purpose: NavLink's prefix match would light up CS42 while on CS42S. *@
-        <ul class="nav nav-pills nav-fill justify-content-center mb-2" role="tablist" aria-label="Select form">
-            @foreach (var f in forms)
-            {
-                bool active = f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase);
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link @(active ? "active" : "")"
-                       aria-current="@(active ? "page" : null)"
-                       href="@($"/States/{State}/{f.Form}")">@f.DisplayName</a>
-                </li>
-            }
-        </ul>
+        @* Plain navigation pills (each is a real link to the form's route), not a tab widget - so no tab roles.
+           Manual active class on purpose: NavLink's prefix match would light up CS42 while on CS42S. *@
+        <nav aria-label="Select form">
+            <ul class="nav nav-pills nav-fill justify-content-center mb-2">
+                @foreach (var f in forms)
+                {
+                    bool active = f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase);
+                    <li class="nav-item">
+                        <a class="nav-link @(active ? "active" : "")"
+                           aria-current="@(active ? "page" : null)"
+                           href="@($"/States/{State}/{f.Form}")">@f.DisplayName</a>
+                    </li>
+                }
+            </ul>
+        </nav>
         @if (!string.IsNullOrWhiteSpace(CurrentForm?.Description))
         {
             <p class="text-muted small text-center mb-4">@CurrentForm.Description</p>
@@ -212,8 +215,7 @@
             {
                 // Never leave one form's answer under another form's heading: recalculate for the new form
                 // (or surface its validation message) using the figures already on screen.
-                result = null;
-                submitted = false;
+                ClearResult();
                 await CalculateAsync(persistParents: false);
             }
         }
@@ -253,8 +255,18 @@
 
         errors.Clear();
 
+        // Anything that stops a calculation also clears whatever result was on screen, so a stale
+        // answer never sits under a validation message.
+        if (string.IsNullOrEmpty(Form))
+        {
+            ClearResult();
+            errors.Add("Select a form before calculating.");
+            return;
+        }
+
         if (RequiresPrimaryCustody && plaintiff.HasPrimaryCustody == defendant.HasPrimaryCustody)
         {
+            ClearResult();
             errors.Add("For this form, you must mark exactly one parent as having Primary Custody.");
             return;
         }
@@ -342,9 +354,14 @@
         defendant.ApplyFrom(new ParentDataDto());
         plaintiffName = null;
         defendantName = null;
+        ClearResult();
+        errors.Clear();
+    }
+
+    private void ClearResult()
+    {
         result = null;
         submitted = false;
-        errors.Clear();
     }
 
     // The last line of the worksheet is the recommended order - the row a user reads first.
