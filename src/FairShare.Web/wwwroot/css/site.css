@@ -16,3 +16,14 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Worksheet table under the calculator result: keep the line number narrow and the item text readable. */
+.worksheet-table td:first-child,
+.worksheet-table th:first-child {
+  width: 3.5rem;
+  white-space: nowrap;
+}
+
+.worksheet-table td:nth-child(2) {
+  min-width: 14rem;
+}

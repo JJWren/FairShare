@@ -1,23 +1,52 @@
-@page "/States/{State}/{Form}"
+@page "/States/{State}/{Form?}"
 @attribute [Authorize]
 @using FairShare.Contracts.Calculation
+@using FairShare.Contracts.Catalog
 @using FairShare.Contracts.Parents
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-<PageTitle>FairShare - @State - @Form Calculator</PageTitle>
+<PageTitle>FairShare - @State - @(CurrentForm?.DisplayName ?? Form) Calculator</PageTitle>
 
 <div class="container my-4">
-    <h1 class="h4 mb-3 text-center">@State - @Form Calculator</h1>
+    <h1 class="h4 mb-3 text-center">@State - @(CurrentForm?.DisplayName ?? Form) Calculator</h1>
+
+    @if (forms is null)
+    {
+        <p class="text-center text-muted">Loading forms...</p>
+    }
+    else if (!forms.Any())
+    {
+        <div class="alert alert-warning">No forms registered for this state.</div>
+    }
+    else
+    {
+        @* Manual active class on purpose: NavLink's prefix match would light up CS42 while on CS42S. *@
+        <ul class="nav nav-pills nav-fill justify-content-center mb-2" role="tablist" aria-label="Select form">
+            @foreach (var f in forms)
+            {
+                bool active = f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase);
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link @(active ? "active" : "")"
+                       aria-current="@(active ? "page" : null)"
+                       href="@($"/States/{State}/{f.Form}")">@f.DisplayName</a>
+                </li>
+            }
+        </ul>
+        @if (!string.IsNullOrWhiteSpace(CurrentForm?.Description))
+        {
+            <p class="text-muted small text-center mb-4">@CurrentForm.Description</p>
+        }
+    }
 
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-12 col-sm-5 col-lg-3 text-center">
             <label class="form-label" for="NumberOfChildren">Number of Children</label>
-            <input type="number" @bind="numberOfChildren" class="form-control" />
+            <input type="number" id="NumberOfChildren" @bind="numberOfChildren" class="form-control" />
         </div>
     </div>
 
-    @if (Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))
+    @if (RequiresPrimaryCustody)
     {
         <div class="alert alert-info py-2 small text-center">
             Mark exactly one parent as having Primary Custody.
@@ -29,19 +58,19 @@
                     Prefix="Plaintiff"
                     Data="plaintiff"
                     @bind-ParentName="plaintiffName"
-                    ShowPrimary="@(Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))"
+                    ShowPrimary="RequiresPrimaryCustody"
                     SavedProfiles="savedProfiles" />
 
         <ParentCard Title="Defendant"
                     Prefix="Defendant"
                     Data="defendant"
                     @bind-ParentName="defendantName"
-                    ShowPrimary="@(Form.Equals("CS42", StringComparison.OrdinalIgnoreCase))"
+                    ShowPrimary="RequiresPrimaryCustody"
                     SavedProfiles="savedProfiles" />
     </div>
 
     <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-primary" @onclick="CalculateAsync">Calculate</button>
+        <button class="btn btn-primary" @onclick="() => CalculateAsync()" disabled="@calculating">Calculate</button>
         <button class="btn btn-outline-secondary" @onclick="Reset">Reset</button>
     </div>
 
@@ -68,6 +97,36 @@
                             ? "No net transfer."
                             : $"{result.Payer} owes ${result.FinalAmount}.")
                     </p>
+
+                    @if (result.Lines.Any())
+                    {
+                        <div class="table-responsive mt-3">
+                            <table class="table table-sm table-striped mb-0 worksheet-table">
+                                <caption class="visually-hidden">@(CurrentForm?.DisplayName ?? Form) worksheet lines</caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Line</th>
+                                        <th scope="col">Item</th>
+                                        <th scope="col" class="text-end">Plaintiff</th>
+                                        <th scope="col" class="text-end">Defendant</th>
+                                        <th scope="col" class="text-end">Combined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var line in result.Lines)
+                                    {
+                                        <tr class="@(IsFinalLine(line) ? "table-primary fw-bold" : "")">
+                                            <td>@line.Number</td>
+                                            <td>@line.Label</td>
+                                            <td class="text-end">@FormatCell(line, line.Plaintiff)</td>
+                                            <td class="text-end">@FormatCell(line, line.Defendant)</td>
+                                            <td class="text-end">@FormatCell(line, line.Combined)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
                 }
                 else if (submitted && result is not null && !result.Success)
                 {
@@ -87,13 +146,13 @@
     </div>
 
     <div class="mt-4">
-        <a href="@($"/States/{State}")" class="btn btn-link">&larr; Back to @State Forms</a>
+        <a href="/" class="btn btn-link">&larr; Back to States</a>
     </div>
 </div>
 
 @code {
     [Parameter] public string State { get; set; } = string.Empty;
-    [Parameter] public string Form { get; set; } = string.Empty;
+    [Parameter] public string? Form { get; set; }
 
     private int numberOfChildren;
     private readonly ParentDataDto plaintiff = new();
@@ -102,10 +161,76 @@
     private string? defendantName;
     private CalculationResponse? result;
     private bool submitted;
+    private bool calculating;
     private List<ParentProfileDto>? savedProfiles;
     private readonly List<string> errors = new();
 
+    private List<FormSummaryDto>? forms;
+    private string? formsLoadedForState;
+    private string? activeForm;
+
+    private FormSummaryDto? CurrentForm =>
+        forms?.FirstOrDefault(f => f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase));
+
+    // Until the catalog answers, fall back to the one form we know needs a custodial parent.
+    private bool RequiresPrimaryCustody =>
+        CurrentForm is { } current
+            ? !current.IsSharedCustody
+            : string.Equals(Form, "CS42", StringComparison.OrdinalIgnoreCase);
+
     protected override Task OnInitializedAsync() => LoadSavedProfilesAsync();
+
+    // Switching forms navigates between URLs that resolve to this same component, so Blazor reuses the
+    // instance and only this hook runs: the entered figures survive, and we decide what to do with the result.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.Equals(formsLoadedForState, State, StringComparison.OrdinalIgnoreCase))
+        {
+            formsLoadedForState = State;
+            await LoadFormsAsync();
+        }
+
+        if (string.IsNullOrEmpty(Form))
+        {
+            // /States/{State} lands on the state's first form; replace so Back returns to the state picker.
+            if (forms is { Count: > 0 })
+            {
+                Navigation.NavigateTo($"/States/{State}/{forms[0].Form}", replace: true);
+            }
+
+            return;
+        }
+
+        bool switched = activeForm is not null && !string.Equals(activeForm, Form, StringComparison.OrdinalIgnoreCase);
+        activeForm = Form;
+
+        if (switched)
+        {
+            errors.Clear();
+
+            if (submitted && result is not null)
+            {
+                // Never leave one form's answer under another form's heading: recalculate for the new form
+                // (or surface its validation message) using the figures already on screen.
+                result = null;
+                submitted = false;
+                await CalculateAsync(persistParents: false);
+            }
+        }
+    }
+
+    private async Task LoadFormsAsync()
+    {
+        try
+        {
+            forms = await Http.GetFromJsonAsync<List<FormSummaryDto>>($"api/v1/states/{State}/forms");
+        }
+        catch
+        {
+            forms = new List<FormSummaryDto>();
+            errors.Add("Could not load the forms for this state.");
+        }
+    }
 
     private async Task LoadSavedProfilesAsync()
     {
@@ -119,44 +244,58 @@
         }
     }
 
-    private async Task CalculateAsync()
+    private async Task CalculateAsync(bool persistParents = true)
     {
+        if (calculating)
+        {
+            return;
+        }
+
         errors.Clear();
 
-        if (Form.Equals("CS42", StringComparison.OrdinalIgnoreCase) && plaintiff.HasPrimaryCustody == defendant.HasPrimaryCustody)
+        if (RequiresPrimaryCustody && plaintiff.HasPrimaryCustody == defendant.HasPrimaryCustody)
         {
             errors.Add("For this form, you must mark exactly one parent as having Primary Custody.");
             return;
         }
 
-        var request = new CalculationRequest
-        {
-            NumberOfChildren = numberOfChildren,
-            Plaintiff = plaintiff,
-            Defendant = defendant
-        };
+        calculating = true;
 
-        HttpResponseMessage response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            errors.Add(response.StatusCode switch
+            var request = new CalculationRequest
             {
-                System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
-                System.Net.HttpStatusCode.BadRequest => "The submitted inputs were invalid. Check the values and try again.",
-                System.Net.HttpStatusCode.Unauthorized => "Your session has expired. Please log in again.",
-                System.Net.HttpStatusCode.Forbidden => "You are not authorized to perform this calculation.",
-                _ => $"Calculation request failed ({(int)response.StatusCode})."
-            });
-            return;
+                NumberOfChildren = numberOfChildren,
+                Plaintiff = plaintiff,
+                Defendant = defendant
+            };
+
+            HttpResponseMessage response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errors.Add(response.StatusCode switch
+                {
+                    System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
+                    System.Net.HttpStatusCode.BadRequest => "The submitted inputs were invalid. Check the values and try again.",
+                    System.Net.HttpStatusCode.Unauthorized => "Your session has expired. Please log in again.",
+                    System.Net.HttpStatusCode.Forbidden => "You are not authorized to perform this calculation.",
+                    _ => $"Calculation request failed ({(int)response.StatusCode})."
+                });
+                return;
+            }
+
+            result = await response.Content.ReadFromJsonAsync<CalculationResponse>();
+            submitted = true;
+
+            if (persistParents && result is { Success: true })
+            {
+                await SaveParentsAsync();
+            }
         }
-
-        result = await response.Content.ReadFromJsonAsync<CalculationResponse>();
-        submitted = true;
-
-        if (result is { Success: true })
+        finally
         {
-            await SaveParentsAsync();
+            calculating = false;
         }
     }
 
@@ -206,5 +345,25 @@
         result = null;
         submitted = false;
         errors.Clear();
+    }
+
+    // The last line of the worksheet is the recommended order - the row a user reads first.
+    private bool IsFinalLine(WorksheetLineDto line) => result is not null && ReferenceEquals(line, result.Lines[^1]);
+
+    private static string FormatCell(WorksheetLineDto line, decimal? value)
+    {
+        if (value is null)
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(line.Format, "Percent", StringComparison.OrdinalIgnoreCase))
+        {
+            return value.Value.ToString("P0");
+        }
+
+        return value.Value < 0
+            ? $"-${Math.Abs(value.Value):N0}"
+            : $"${value.Value:N0}";
     }
 }
