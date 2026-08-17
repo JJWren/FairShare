@@ -306,6 +306,9 @@
             }
             catch (HttpRequestException)
             {
+                // Same rule as validation stops: nothing stale stays on screen (and Export, which
+                // recalculates first, must not fall through on a result that failed to refresh).
+                ClearResult();
                 errors.Add(ApiUnreachableMessage);
                 return;
             }

@@ -106,7 +106,13 @@
 
     private async Task OnPrimaryChanged(ChangeEventArgs e)
     {
-        Data.HasPrimaryCustody = e.Value is bool value && value;
+        // Blazor supplies a bool for checkboxes; accept a "true"/"false" string too so this can't silently stick off.
+        Data.HasPrimaryCustody = e.Value switch
+        {
+            bool flag => flag,
+            string text => bool.TryParse(text, out bool parsed) && parsed,
+            _ => false
+        };
         await OnPrimaryCustodyChanged.InvokeAsync(Data.HasPrimaryCustody);
     }
 
