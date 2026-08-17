@@ -7,6 +7,8 @@ namespace FairShare.Tests.Domain;
 
 public class CS42GoldenTests
 {
+    private static readonly string[] LineNumbers = ["1", "1a", "1b", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"];
+
     private readonly CS42Calculator _calculator = new(NullLogger<CS42Calculator>.Instance);
 
     // Every expected value comes from the official Form CS-42 (Rev. 5/2022) workbook - see Golden/Generate-GoldenCases.ps1.
@@ -19,6 +21,6 @@ public class CS42GoldenTests
         CalculationResult result = _calculator.Calculate(
             golden.Plaintiff.ToParentData(), golden.Defendant.ToParentData(), golden.NumberOfChildren);
 
-        GoldenAssert.Matches(golden, result);
+        GoldenAssert.Matches(golden, result, LineNumbers);
     }
 }

@@ -92,17 +92,20 @@ public sealed class GoldenLine
 /// </summary>
 public static class GoldenAssert
 {
-    public static void Matches(GoldenCase expected, CalculationResult actual)
+    /// <param name="lineNumbers">The form's line numbers in printed order - the fixture's dictionary keys carry no order guarantee.</param>
+    public static void Matches(GoldenCase expected, CalculationResult actual, IReadOnlyList<string> lineNumbers)
     {
         Assert.True(actual.Success, $"{expected.Name}: expected success but got {string.Join("; ", actual.Errors.Select(e => e.Code))}");
         Assert.Equal(expected.ExpectedPayer, actual.Payer);
         Assert.Equal(expected.ExpectedAmount, actual.FinalAmount);
 
-        // Same lines, same order, as the paper form.
-        Assert.Equal(expected.ExpectedLines.Keys, actual.Lines.Select(l => l.Number));
+        // Same lines, same order, as the paper form - and the fixture must cover every one of them.
+        Assert.Equal(lineNumbers, actual.Lines.Select(l => l.Number));
+        Assert.Equal(lineNumbers.Order(), expected.ExpectedLines.Keys.Order());
 
-        foreach ((string number, GoldenLine line) in expected.ExpectedLines)
+        foreach (string number in lineNumbers)
         {
+            Assert.True(expected.ExpectedLines.TryGetValue(number, out GoldenLine? line), $"{expected.Name}: fixture has no line {number}");
             WorksheetLine actualLine = actual.Lines.Single(l => l.Number == number);
             Assert.True(line.Plaintiff == actualLine.Plaintiff, $"{expected.Name} line {number} plaintiff: expected {line.Plaintiff?.ToString() ?? "null"}, got {actualLine.Plaintiff?.ToString() ?? "null"}");
             Assert.True(line.Defendant == actualLine.Defendant, $"{expected.Name} line {number} defendant: expected {line.Defendant?.ToString() ?? "null"}, got {actualLine.Defendant?.ToString() ?? "null"}");
