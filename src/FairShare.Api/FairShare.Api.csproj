@@ -20,6 +20,12 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5"/>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
+    <PackageReference Include="ClosedXML" Version="0.105.1"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Official AOC worksheet workbooks filled by the Excel export (see Services/Export). -->
+    <EmbeddedResource Include="Templates\**\*.xlsx"/>
   </ItemGroup>
 
   <ItemGroup>

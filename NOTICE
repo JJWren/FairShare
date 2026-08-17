@@ -3,3 +3,12 @@ FairShare
 Copyright (c) {2025} {Joshua Mykitta}
 
 This product includes software developed by {Joshua Mykitta} (https://github.com/JJWren).
+
+Third-party components:
+- ClosedXML (MIT License) - https://github.com/ClosedXML/ClosedXML - used by the API to fill worksheet workbooks.
+  ClosedXML depends on SixLabors.Fonts (Six Labors Split License; Apache-2.0 terms apply to open-source use).
+
+Embedded public forms:
+- src/FairShare.Api/Templates/AL/*.xlsx are the State of Alabama Administrative Office of Courts' child-support
+  worksheet workbooks (Form CS-42 Rev. 5/2022, Form CS-42-S Eff. 6/2023), published at eforms.alacourt.gov.
+  They are included unmodified; FairShare only fills in their input cells.

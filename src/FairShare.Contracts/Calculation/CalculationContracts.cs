@@ -45,6 +45,18 @@ public class CalculationRequest
     public ParentDataDto Defendant { get; set; } = new();
 }
 
+/// <summary>
+/// The Excel export takes the same figures as a calculation plus the optional names printed on the form's caption line.
+/// </summary>
+public class WorksheetExportRequest : CalculationRequest
+{
+    [MaxLength(100)]
+    public string? PlaintiffName { get; set; }
+
+    [MaxLength(100)]
+    public string? DefendantName { get; set; }
+}
+
 public class CalcErrorDto
 {
     public string Code { get; set; } = "CALC_ERROR";

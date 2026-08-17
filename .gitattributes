@@ -6,6 +6,9 @@
 # Shell scripts run inside Linux containers - CRLF from a Windows checkout breaks them.
 *.sh text eol=lf
 
+# Official worksheet workbooks embedded in the API - never normalize.
+*.xlsx binary
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
