@@ -90,6 +90,7 @@ Password rules: minimum 8 characters, at least one digit and one lowercase lette
 | Method | Path | Description |
 |---|---|---|
 | POST | `/states/AL/forms/CS42/calculations` | Run a calculation. Unknown state/form pairs return 404. |
+| POST | `/states/AL/forms/CS42/calculations/export/xlsx` | Download the **official AOC workbook** for the form with these figures typed into its input cells. Body = the calculation request plus optional `plaintiffName` / `defendantName` (max 100 chars) for the caption line. Returns `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` with `Content-Disposition: attachment; filename=FairShare_AL_CS-42_{yyyyMMdd}.xlsx`. Only input cells are written - the workbook's formulas stay live and it recalculates on open. The calculation is run first: if it does not succeed (e.g. `INCOME_ABOVE_SCHEDULE`, `INVALID_CHILD_COUNT`) the endpoint returns **400** with the usual `CalculationResponse` body instead of a workbook full of `#N/A`. 404 when no template is registered for the state/form. |
 
 **Request**
 

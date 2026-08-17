@@ -17,6 +17,12 @@ ASP.NET Core Web API — auth, persistence, and the HTTP surface for everything 
 - Swagger UI is registered only in Development. Don't move it out of that block for a public deployment.
 - New schema changes = a new EF migration in `Migrations/`; the startup block applies them (backup first) when `AutoMigrate` is true.
 
+## Worksheet export (`Services/Export`)
+
+`POST .../calculations/export/xlsx` fills the **official AOC workbook** for the form and returns it. `WorksheetTemplates` describes each embedded workbook (`Templates/{state}/{FORM}.xlsx`, embedded resource; sheet name; the cells for number of children, each parent's five inputs, the two caption-line names; and every worksheet line's cells, which the oracle test uses). `ClosedXmlWorksheetExporter` writes only those input cells, then `RecalculateAllFormulas()` + `FullCalculationOnLoad` so values are present for viewers that trust cached values and Excel recalculates on open. The workbook's formulas and sheet protection are left exactly as published - the sheet proves its own numbers.
+
+Adding a form's template: embed its workbook (file name without dashes so the manifest name is `FairShare.Api.Templates.{state}.{FORM}.xlsx`), add a `WorksheetTemplate` to `WorksheetTemplates.All`, and the endpoint, the API tests and `WorkbookOracleTests` pick it up.
+
 ## Run
 
 ```bash

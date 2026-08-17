@@ -16,6 +16,7 @@ using FairShare.Api.Auth;
 using FairShare.Api.Persistence;
 using FairShare.Api.Models;
 using FairShare.Api.Services;
+using FairShare.Api.Services.Export;
 using FairShare.Api.Options;
 using FairShare.Api.Middleware;
 using FairShare.Domain.Interfaces;
@@ -137,7 +138,9 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  // The SPA names downloaded files after the server's Content-Disposition.
+                  .WithExposedHeaders("Content-Disposition");
         }
     });
 });
@@ -199,6 +202,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>
 builder.Services.AddScoped<IChildSupportCalculator, CS42Calculator>();
 builder.Services.AddScoped<IChildSupportCalculator, CS42SCalculator>();
 builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IWorksheetExporter, ClosedXmlWorksheetExporter>();
 builder.Services.AddScoped<IParentProfileService, ParentProfileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<AdminSeeder>();
