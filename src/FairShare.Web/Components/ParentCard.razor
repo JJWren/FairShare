@@ -9,7 +9,11 @@
                 @if (ShowPrimary)
                 {
                     <div class="form-check form-switch m-0">
-                        <input type="checkbox" @bind="Data.HasPrimaryCustody" class="form-check-input" id="@($"{Prefix}_Primary")" />
+                        <input type="checkbox"
+                               checked="@Data.HasPrimaryCustody"
+                               @onchange="OnPrimaryChanged"
+                               class="form-check-input"
+                               id="@($"{Prefix}_Primary")" />
                         <label class="form-check-label small" for="@($"{Prefix}_Primary")">Primary Custody</label>
                     </div>
                 }
@@ -91,8 +95,20 @@
     [Parameter] public string? ParentName { get; set; }
     [Parameter] public EventCallback<string?> ParentNameChanged { get; set; }
     [Parameter] public bool ShowPrimary { get; set; }
+
+    /// <summary>
+    /// Raised only when the user flips the Primary Custody switch (not when a saved profile or Clear
+    /// writes the flag), so the page can mirror the choice onto the other parent.
+    /// </summary>
+    [Parameter] public EventCallback<bool> OnPrimaryCustodyChanged { get; set; }
     [Parameter] public IEnumerable<ParentProfileDto>? SavedProfiles { get; set; }
     [Parameter] public EventCallback<ParentProfileDto?> OnProfileSelected { get; set; }
+
+    private async Task OnPrimaryChanged(ChangeEventArgs e)
+    {
+        Data.HasPrimaryCustody = e.Value is bool value && value;
+        await OnPrimaryCustodyChanged.InvokeAsync(Data.HasPrimaryCustody);
+    }
 
     private async Task OnNameChanged(ChangeEventArgs e)
     {
