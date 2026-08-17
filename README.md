@@ -91,6 +91,8 @@ If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once
 
 Both images build from source — no registry needed. Ports and browser-visible URLs are configurable in `.env` (`WEB_PORT`/`API_PORT`/`WEB_ORIGIN`/`API_BASE_URL`).
 
+**Prebuilt images:** every release publishes `ghcr.io/jjwren/fairshare-api:<version>` and `ghcr.io/jjwren/fairshare-web:<version>` (plus `:latest` = newest release), and every merge to `main` publishes `:main` (and `:sha-<short>`). To run a pinned version instead of building, replace each service's `build:` with `image: ghcr.io/jjwren/fairshare-api:<version>` and `image: ghcr.io/jjwren/fairshare-web:<version>`; the environment and volume settings are unchanged.
+
 **Hosting behind a reverse proxy (VPS):** terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes), set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL. `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name. Note that rate limiting keys on the direct peer IP: behind a reverse proxy every client collapses into the proxy's bucket. That is deliberate — trusting `X-Forwarded-For` without pinning the proxy in `KnownProxies` would let clients spoof their way out of throttling — so pin your proxy before switching the limiter to forwarded addresses.
 
 ### Hardening a public instance

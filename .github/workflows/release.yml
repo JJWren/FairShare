@@ -1,4 +1,4 @@
-name: Release (create PR, tag, changelog)
+name: Release (create PR, tag, changelog, publish images)
 
 on:
   push:
@@ -12,6 +12,60 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # Manifest mode exposes per-path outputs ('.--version' for the root package); the unprefixed
+    # names are read as a fallback so either shape works.
+    outputs:
+      release_created: ${{ steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs['.--version'] || steps.release.outputs.version }}
+      tag_name: ${{ steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
     steps:
       - name: Run release-please (manifest)
+        id: release
         uses: googleapis/release-please-action@v4
+
+  # Runs only when a release PR was just merged (tag + GitHub release created). Kept in this
+  # workflow because tags pushed with GITHUB_TOKEN don't trigger other workflows. Publishes the
+  # two deployable images so stacks can pin an immutable version instead of building from a
+  # working tree: ghcr.io/jjwren/fairshare-api:<version> and ghcr.io/jjwren/fairshare-web:<version>
+  # (plus :latest = newest release). Every push to main also publishes :main from ci.yml.
+  publish-images:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    # Only this job may push packages.
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+      TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - name: Require release outputs
+        run: |
+          if [ -z "$VERSION" ] || [ -z "$TAG_NAME" ]; then
+            echo "release-please reported a release but version/tag outputs are empty - refusing to publish untagged images." >&2
+            exit 1
+          fi
+          echo "Publishing $TAG_NAME as $VERSION"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push images
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          for app in api web; do
+            IMAGE="ghcr.io/${OWNER}/fairshare-${app}"
+            DOCKERFILE="src/FairShare.$( [ "$app" = api ] && echo Api || echo Web )/Dockerfile"
+            docker build -f "$DOCKERFILE" -t "${IMAGE}:${VERSION}" -t "${IMAGE}:latest" .
+            docker push "${IMAGE}:${VERSION}"
+            docker push "${IMAGE}:latest"
+          done

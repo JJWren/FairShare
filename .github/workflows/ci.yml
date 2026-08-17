@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,3 +28,34 @@ jobs:
 
       - name: Test
         run: dotnet test FairShare.sln --configuration Release --no-build --verbosity normal
+
+  # Every merge to main publishes ghcr.io/jjwren/fairshare-{api,web}:main - the image the TEST
+  # stack tracks. Releases publish the versioned (pinnable) tags from release.yml.
+  publish-main:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Only this job may push packages; build/test runs (incl. PRs) get the read-only default.
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push :main images
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          for app in api web; do
+            IMAGE="ghcr.io/${OWNER}/fairshare-${app}"
+            DOCKERFILE="src/FairShare.$( [ "$app" = api ] && echo Api || echo Web )/Dockerfile"
+            docker build -f "$DOCKERFILE" -t "${IMAGE}:main" -t "${IMAGE}:sha-${GITHUB_SHA::7}" .
+            docker push "${IMAGE}:main"
+            docker push "${IMAGE}:sha-${GITHUB_SHA::7}"
+          done
