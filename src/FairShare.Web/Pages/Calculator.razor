@@ -104,11 +104,7 @@
             <div class="card-body">
                 @if (submitted && result is not null && result.Success)
                 {
-                    <p class="fw-bold text-center mb-0">
-                        @(string.IsNullOrWhiteSpace(result.Payer)
-                            ? "No net transfer."
-                            : $"{result.Payer} owes ${result.FinalAmount}.")
-                    </p>
+                    <p class="fw-bold text-center mb-0">@ResultSentence(result)</p>
 
                     @if (result.Lines.Any())
                     {
@@ -466,6 +462,19 @@
     {
         result = null;
         submitted = false;
+    }
+
+    // "Defendant: John D. owes $50." when the paying parent has a name, "Defendant owes $50." when not.
+    private string ResultSentence(CalculationResponse calculation)
+    {
+        if (string.IsNullOrWhiteSpace(calculation.Payer))
+        {
+            return "No net transfer.";
+        }
+
+        string? name = calculation.Payer.Equals("Plaintiff", StringComparison.OrdinalIgnoreCase) ? plaintiffName : defendantName;
+        string who = string.IsNullOrWhiteSpace(name) ? calculation.Payer : $"{calculation.Payer}: {name.Trim()}";
+        return $"{who} owes ${calculation.FinalAmount}.";
     }
 
     // The last line of the worksheet is the recommended order - the row a user reads first.
