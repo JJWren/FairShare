@@ -8,8 +8,9 @@ namespace FairShare.Api.Services.Export;
 /// <summary>
 /// Fills the embedded official AOC workbook with ClosedXML. The template's formulas are never touched: the
 /// exporter writes the number of children, each parent's five input cells and the two optional names, then
-/// recalculates so cached values are present for viewers that don't recalculate on open, and asks Excel to
-/// recalculate on load anyway.
+/// saves with the formulas evaluated (ClosedXML persists cached values only through
+/// <c>SaveOptions.EvaluateFormulasBeforeSaving</c> - a plain <c>RecalculateAllFormulas()</c> does not write them),
+/// and asks Excel to recalculate on load anyway.
 /// </summary>
 public sealed class ClosedXmlWorksheetExporter(TimeProvider timeProvider) : IWorksheetExporter
 {

@@ -183,7 +183,7 @@
     private FormSummaryDto? CurrentForm =>
         forms?.FirstOrDefault(f => f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase));
 
-    // The workbook must match what is on screen, so export only follows a successful calculation.
+    // Export follows a successful calculation (and recalculates again right before exporting, see ExportAsync).
     private bool CanExport => submitted && result is { Success: true };
 
     // Until the catalog answers, fall back to the one form we know needs a custodial parent.
@@ -330,10 +330,18 @@
         }
 
         exporting = true;
-        errors.Clear();
 
         try
         {
+            // The inputs stay editable after a calculation, so recalculate first: the workbook must match
+            // what is on screen, and a figure the calculator rejects must not reach the export.
+            await CalculateAsync(persistParents: false);
+
+            if (result is not { Success: true })
+            {
+                return;
+            }
+
             var request = new WorksheetExportRequest
             {
                 NumberOfChildren = numberOfChildren,
