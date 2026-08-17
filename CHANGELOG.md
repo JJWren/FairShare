@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.3.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.2.0...fairshare-v2.3.0) (2026-08-17)
+
+
+### Features
+
+* **web:** show the paying parent's name in the result sentence ([#82](https://github.com/JJWren/FairShare/issues/82)) ([07638c0](https://github.com/JJWren/FairShare/commit/07638c0e82f4eec2d1116224b6d15f726bba9ac9)), closes [#81](https://github.com/JJWren/FairShare/issues/81)
+
+
+### Bug Fixes
+
+* **web:** revalidate app assets, legible error banner, mirrored Primary Custody ([#79](https://github.com/JJWren/FairShare/issues/79)) ([612a368](https://github.com/JJWren/FairShare/commit/612a368e716338ae97de13b761cf8d3dfa223bf1)), closes [#78](https://github.com/JJWren/FairShare/issues/78)
+
 ## [2.2.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.1.1...fairshare-v2.2.0) (2026-08-17)
 
 
