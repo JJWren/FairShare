@@ -44,6 +44,15 @@ public class CalculationsController(IStateGuidelineCatalog catalog) : Controller
                 Message = e.Message,
                 Field = e.Field,
                 Severity = e.Severity.ToString()
+            }).ToList(),
+            Lines = result.Lines.Select(l => new WorksheetLineDto
+            {
+                Number = l.Number,
+                Label = l.Label,
+                Plaintiff = l.Plaintiff,
+                Defendant = l.Defendant,
+                Combined = l.Combined,
+                Format = l.Format.ToString()
             }).ToList()
         });
     }

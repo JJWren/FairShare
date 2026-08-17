@@ -45,11 +45,17 @@ namespace FairShare.Domain.Helpers
             CS42,
             CS42S
         }
+
+        /// <summary>
+        /// How a worksheet line's values should be displayed.
+        /// </summary>
+        public enum LineFormat
+        {
+            /// <summary>Whole-dollar amounts.</summary>
+            Currency,
+
+            /// <summary>Fractions in the range 0..1 (e.g. 0.57 = 57%).</summary>
+            Percent
+        }
     }
 }
-
-
-
-
-
-

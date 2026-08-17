@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Golden fixtures ride inside the assembly so tests find them regardless of working directory. -->
+    <EmbeddedResource Include="Domain\Golden\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FairShare.Domain\FairShare.Domain.csproj" />
     <ProjectReference Include="..\FairShare.Contracts\FairShare.Contracts.csproj" />
     <ProjectReference Include="..\FairShare.Api\FairShare.Api.csproj" />

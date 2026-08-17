@@ -25,7 +25,13 @@ public class CatalogController(IStateGuidelineCatalog catalog) : ControllerBase
     public ActionResult<IEnumerable<FormSummaryDto>> GetForms(string state)
     {
         IEnumerable<FormSummaryDto> forms = _catalog.GetFormsForState(state)
-            .Select(f => new FormSummaryDto { Form = f.Form, DisplayName = f.DisplayName });
+            .Select(f => new FormSummaryDto
+            {
+                Form = f.Form,
+                DisplayName = f.DisplayName,
+                Description = f.Description,
+                IsSharedCustody = f.IsSharedCustody
+            });
 
         return Ok(forms);
     }
