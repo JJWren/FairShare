@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.2.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.1.1...fairshare-v2.2.0) (2026-08-17)
+
+
+### Features
+
+* export the completed official Excel worksheet with FairShare's inputs ([#77](https://github.com/JJWren/FairShare/issues/77)) ([3f79585](https://github.com/JJWren/FairShare/commit/3f7958546ec967d616201a8c236ddce53c51ad3d)), closes [#73](https://github.com/JJWren/FairShare/issues/73)
+* **web:** switch forms in place with preserved inputs and a worksheet table ([#76](https://github.com/JJWren/FairShare/issues/76)) ([4d04dfc](https://github.com/JJWren/FairShare/commit/4d04dfc39d0900584908ff7c93d1fa8e565ed53c)), closes [#72](https://github.com/JJWren/FairShare/issues/72)
+
+
+### Bug Fixes
+
+* **domain:** mirror the official CS-42 / CS-42-S worksheets line by line ([#74](https://github.com/JJWren/FairShare/issues/74)) ([08a127b](https://github.com/JJWren/FairShare/commit/08a127beed2ac3d3fd3a24fbd099b5cdeef3cdad)), closes [#71](https://github.com/JJWren/FairShare/issues/71)
+
 ## [2.1.1](https://github.com/JJWren/FairShare/compare/fairshare-v2.1.0...fairshare-v2.1.1) (2026-07-13)
 
 
