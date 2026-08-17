@@ -12,10 +12,12 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # Manifest mode exposes per-path outputs ('.--version' for the root package); the unprefixed
+    # names are read as a fallback so either shape works.
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      version: ${{ steps.release.outputs.version }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      release_created: ${{ steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs['.--version'] || steps.release.outputs.version }}
+      tag_name: ${{ steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
     steps:
       - name: Run release-please (manifest)
         id: release
@@ -36,7 +38,16 @@ jobs:
       packages: write
     env:
       VERSION: ${{ needs.release-please.outputs.version }}
+      TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
     steps:
+      - name: Require release outputs
+        run: |
+          if [ -z "$VERSION" ] || [ -z "$TAG_NAME" ]; then
+            echo "release-please reported a release but version/tag outputs are empty - refusing to publish untagged images." >&2
+            exit 1
+          fi
+          echo "Publishing $TAG_NAME as $VERSION"
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
