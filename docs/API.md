@@ -83,7 +83,7 @@ Password rules: minimum 8 characters, at least one digit and one lowercase lette
 | Method | Path | Description |
 |---|---|---|
 | GET | `/states` | Supported states. |
-| GET | `/states/{state}/forms` | Calculation forms for a state (e.g. `AL` → CS-42, CS-42-S). |
+| GET | `/states/{state}/forms` | Calculation forms for a state (e.g. `AL` → CS-42, CS-42-S). Each entry carries `form` (route key), `displayName` (with revision, e.g. `CS-42 (Rev. 5/2022)`), `description`, and `isSharedCustody`. |
 
 ## Calculations — `/api/v1/states/{state}/forms/{form}/calculations` (Bearer; guests allowed)
 
@@ -115,7 +115,7 @@ Password rules: minimum 8 characters, at least one digit and one lowercase lette
 }
 ```
 
-**Response**
+**Response** (trimmed — `lines[]` carries every numbered line of the worksheet)
 
 ```json
 {
@@ -125,11 +125,19 @@ Password rules: minimum 8 characters, at least one digit and one lowercase lette
   "form": "CS42",
   "numberOfChildren": 2,
   "payer": "Defendant",
-  "finalAmount": 812
+  "finalAmount": 1253,
+  "lines": [
+    { "number": "1",  "label": "MONTHLY GROSS INCOME",            "plaintiff": 4200, "defendant": 5100, "combined": 9300, "format": "Currency" },
+    { "number": "3",  "label": "PERCENTAGE SHARE OF INCOME",      "plaintiff": 0.45, "defendant": 0.55, "combined": 1.00, "format": "Percent" },
+    { "number": "4",  "label": "BASIC CHILD SUPPORT OBLIGATION",  "plaintiff": null, "defendant": null, "combined": 1629, "format": "Currency" },
+    { "number": "13", "label": "RECOMMENDED CHILD-SUPPORT ORDER", "plaintiff": 376,  "defendant": 1253, "combined": null, "format": "Currency" }
+  ]
 }
 ```
 
-`errors[]` entries carry `code`, `message`, optional `field`, and `severity` when validation of the inputs fails (`success: false`).
+The calculators mirror the official AOC workbooks line by line (see `docs/adr/0001-mirror-official-worksheet-lines.md`): `lines[]` is the worksheet in form order, a `null` column means the paper form has no cell there, and `format` is `Currency` (whole dollars) or `Percent` (a fraction, `0.45` = 45%). On CS-42 the order applies to the parent without `hasPrimaryCustody`; on CS-42-S (which ignores the flag) it is the higher line-13 amount, and a tie comes back as `payer: ""` / `finalAmount: 0` ("no net transfer").
+
+`errors[]` entries carry `code`, `message`, optional `field`, and `severity` when validation of the inputs fails (`success: false`, `lines: []`). Codes: `INVALID_CHILD_COUNT` (children outside 1–6), `INCOME_ABOVE_SCHEDULE` (combined adjusted gross income rounds above the $30,000 top of the schedule — the guidelines leave that to the court), `UNEXPECTED_ERROR`.
 
 ---
 

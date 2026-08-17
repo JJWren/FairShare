@@ -4,57 +4,70 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Globalization;
+using FairShare.Domain.Helpers;
 
 namespace FairShare.Domain.Seeds
 {
     /// <summary>
-    /// Hardcoded Alabama BCSO lookup: key = (CAGI, Children[1-6]) -> obligation amount in USD/month.
+    /// Alabama's Schedule of Basic Child-Support Obligations ("AL Realigned Sept 2021" in the official AOC workbooks):
+    /// key = (combined adjusted gross income bracket, number of children 1-6) -> monthly obligation in whole dollars.
     /// <list type="bullet">
-    /// <item>CAGI values are in 50-dollar increments from 0 through 30000.</item>
-    /// <item>Children must be 1..6 inclusive.</item>
-    /// <item>Get() optionally rounds CAGI to nearest 50 if exact key is missing.</item>
+    /// <item>Brackets run from $0 through $30,000 in $50 steps; the rows below $250 repeat the $250 row (the workbook floors the lookup at 250).</item>
+    /// <item><see cref="Get"/> reproduces the workbook's lookup: <c>VLOOKUP(MAX(250, ROUND(CAGI/50,0)*50), schedule, children+1, FALSE)</c>.</item>
     /// </list>
     /// </summary>
     public static class BcsoLookup
     {
+        /// <summary>Lowest bracket the workbook will look up; smaller (or negative) incomes use this row.</summary>
+        public const int ScheduleFloor = 250;
+
+        /// <summary>Highest bracket on the schedule; incomes that round above it are off the schedule.</summary>
+        public const int ScheduleCeiling = 30000;
+
+        /// <summary>Distance between brackets.</summary>
+        public const int Increment = 50;
+
+        /// <summary>Fewest children the schedule has a column for.</summary>
+        public const int MinChildren = 1;
+
+        /// <summary>Most children the schedule has a column for.</summary>
+        public const int MaxChildren = 6;
+
         public static readonly Dictionary<(int Cagi, int Children), int> Table = Seed();
 
         /// <summary>
-        /// Lookup an obligation by CAGI and number of children.
-        /// If autoRound is true (default) and the exact CAGI key is missing,
-        /// the method will round to the nearest multiple of 50 and retry.
+        /// Looks up the basic obligation the way the official workbook does: the income is rounded to the nearest
+        /// $50 bracket (half away from zero, exactly like Excel's ROUND), floored at <see cref="ScheduleFloor"/>.
         /// </summary>
-        /// <param name="cagi">Combined Adjusted Gross Income (CAGI) in whole dollars.</param>
+        /// <param name="combinedAdjustedGrossIncome">Worksheet line 2, combined, in whole dollars. May be negative.</param>
         /// <param name="children">Number of children (1 to 6 inclusive).</param>
-        /// <param name="autoRound">If true, rounds CAGI to nearest 50 if exact key is missing.</param>
-        public static int Get(int cagi, int children, bool autoRound = true)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="children"/> is outside 1-6.</exception>
+        /// <exception cref="IncomeAboveScheduleException">The rounded bracket is above <see cref="ScheduleCeiling"/>.</exception>
+        public static int Get(int combinedAdjustedGrossIncome, int children)
         {
-            if (children < 1 || children > 6)
+            if (children < MinChildren || children > MaxChildren)
             {
-                throw new ArgumentOutOfRangeException(nameof(children), "Children must be between 1 and 6.");
+                throw new ArgumentOutOfRangeException(nameof(children), $"Number of children must be between {MinChildren} and {MaxChildren}.");
             }
 
-            if (Table.TryGetValue((cagi, children), out int value))
+            int key = ScheduleKey(combinedAdjustedGrossIncome);
+
+            if (key > ScheduleCeiling)
             {
-                return value;
+                throw new IncomeAboveScheduleException(combinedAdjustedGrossIncome);
             }
 
-            if (autoRound)
-            {
-                if (Table.TryGetValue((RoundToNearest50(cagi), children), out int roundedValue))
-                {
-                    return roundedValue;
-                }
-            }
-
-            throw new KeyNotFoundException($"No BCSO entry for CAGI={cagi} and Children={children}.");
+            return Table[(key, children)];
         }
 
-        private static int RoundToNearest50(int n)
+        /// <summary>
+        /// The schedule bracket the workbook looks up for an income: <c>MAX(250, ROUND(income/50, 0) * 50)</c>.
+        /// A result above <see cref="ScheduleCeiling"/> means the income is off the schedule.
+        /// </summary>
+        public static int ScheduleKey(int combinedAdjustedGrossIncome)
         {
-            // Midpoint (25) rounds UP
-            int mod = n % 50;
-            return mod >= 25 ? n + (50 - mod) : n - mod;
+            int rounded = (int)Math.Round(combinedAdjustedGrossIncome / (decimal)Increment, 0, MidpointRounding.AwayFromZero) * Increment;
+            return Math.Max(ScheduleFloor, rounded);
         }
 
         private static Dictionary<(int Cagi, int Children), int> Seed()
@@ -687,9 +700,3 @@ namespace FairShare.Domain.Seeds
 """;
     }
 }
-
-
-
-
-
-

@@ -1,0 +1,1567 @@
+{
+    "source":  "Alabama AOC Form CS-42-S (Eff. 6/2023) Excel worksheet, form-cs-42-s-child-support-worksheet-in-excel-3-9-23.xlsx",
+    "generated":  "Generate-GoldenCases.ps1 (Excel COM); values are read back from the workbook, not computed here",
+    "form":  "CS42S",
+    "cases":  [
+                  {
+                      "name":  "workbook-defaults",
+                      "numberOfChildren":  1,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  1200,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  100
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  1000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  20,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  2,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  1200,
+                                                      "defendant":  1000,
+                                                      "combined":  2200
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  1200,
+                                                      "defendant":  1000,
+                                                      "combined":  2200
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.55,
+                                                      "defendant":  0.45,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  414
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  621
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  20,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  100,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  100,
+                                                      "defendant":  20,
+                                                      "combined":  120
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  741
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  408,
+                                                       "defendant":  333,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  100,
+                                                       "defendant":  20,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  311,
+                                                       "defendant":  311,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -3,
+                                                       "defendant":  2,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  2,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "repo-regression-4244-9173",
+                      "numberOfChildren":  4,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  4244,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  9173,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  195
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  661,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  4244,
+                                                      "defendant":  9173,
+                                                      "combined":  13417
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  4244,
+                                                      "defendant":  9173,
+                                                      "combined":  13417
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.32,
+                                                      "defendant":  0.68,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2680
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  4020
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  195,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  195,
+                                                      "combined":  195
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  4215
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  1349,
+                                                       "defendant":  2866,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  195,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  2010,
+                                                       "defendant":  2010,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -661,
+                                                       "defendant":  661,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  661,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "identical-parents-tie",
+                      "numberOfChildren":  2,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  5000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  100
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  5000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  100
+                                    },
+                      "expectedPayer":  "",
+                      "expectedAmount":  0,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  5000,
+                                                      "defendant":  5000,
+                                                      "combined":  10000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  5000,
+                                                      "defendant":  5000,
+                                                      "combined":  10000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.5,
+                                                      "defendant":  0.5,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1700
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2550
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  100,
+                                                      "defendant":  100,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  100,
+                                                      "defendant":  100,
+                                                      "combined":  200
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2750
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  1375,
+                                                       "defendant":  1375,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  100,
+                                                       "defendant":  100,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  1275,
+                                                       "defendant":  1275,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "plaintiff-pays",
+                      "numberOfChildren":  2,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  7000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  300,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  3000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  100
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  490,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  7000,
+                                                      "defendant":  3000,
+                                                      "combined":  10000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  7000,
+                                                      "defendant":  3000,
+                                                      "combined":  10000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.7,
+                                                      "defendant":  0.3,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1700
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2550
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  300,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  100,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  300,
+                                                      "defendant":  100,
+                                                      "combined":  400
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2950
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  2065,
+                                                       "defendant":  885,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  300,
+                                                       "defendant":  100,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  1275,
+                                                       "defendant":  1275,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  490,
+                                                       "defendant":  -490,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  490,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "near-tie",
+                      "numberOfChildren":  1,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  3001,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  3000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "",
+                      "expectedAmount":  0,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  3001,
+                                                      "defendant":  3000,
+                                                      "combined":  6001
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  3001,
+                                                      "defendant":  3000,
+                                                      "combined":  6001
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.5,
+                                                      "defendant":  0.5,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  851
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1277
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1277
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  639,
+                                                       "defendant":  639,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  639,
+                                                       "defendant":  639,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "both-low-income",
+                      "numberOfChildren":  1,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  800,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  700,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  13,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  800,
+                                                      "defendant":  700,
+                                                      "combined":  1500
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  800,
+                                                      "defendant":  700,
+                                                      "combined":  1500
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.53,
+                                                      "defendant":  0.47,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  292
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  438
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  438
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  232,
+                                                       "defendant":  206,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  219,
+                                                       "defendant":  219,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  13,
+                                                       "defendant":  -13,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  13,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "preexisting-support-and-alimony",
+                      "numberOfChildren":  3,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  5200,
+                                        "preexistingChildSupport":  400,
+                                        "preexistingAlimony":  300,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  150
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  2600,
+                                        "preexistingChildSupport":  200,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  350,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  532,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  5200,
+                                                      "defendant":  2600,
+                                                      "combined":  7800
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  400,
+                                                       "defendant":  200,
+                                                       "combined":  600
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  300,
+                                                       "defendant":  0,
+                                                       "combined":  300
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  4500,
+                                                      "defendant":  2400,
+                                                      "combined":  6900
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.65,
+                                                      "defendant":  0.35,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1590
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2385
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  350,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  150,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  150,
+                                                      "defendant":  350,
+                                                      "combined":  500
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2885
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  1875,
+                                                       "defendant":  1010,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  150,
+                                                       "defendant":  350,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  1193,
+                                                       "defendant":  1193,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  532,
+                                                       "defendant":  -533,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  532,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "zero-income-plaintiff",
+                      "numberOfChildren":  2,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  0,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  4000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  200,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  775,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  4000,
+                                                      "combined":  4000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  4000,
+                                                      "combined":  4000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  1,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1033
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1550
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  200,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  200,
+                                                      "combined":  200
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1750
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  1750,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  200,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  775,
+                                                       "defendant":  775,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -775,
+                                                       "defendant":  775,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  775,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "bracket-boundary-2225",
+                      "numberOfChildren":  1,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  1225,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  1000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  31,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  1225,
+                                                      "defendant":  1000,
+                                                      "combined":  2225
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  1225,
+                                                      "defendant":  1000,
+                                                      "combined":  2225
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.55,
+                                                      "defendant":  0.45,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  422
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  633
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  633
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  348,
+                                                       "defendant":  285,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  317,
+                                                       "defendant":  317,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  31,
+                                                       "defendant":  -32,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  31,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "negative-combined-adjusted-income",
+                      "numberOfChildren":  1,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  500,
+                                        "preexistingChildSupport":  800,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  200,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  195,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  500,
+                                                      "defendant":  200,
+                                                      "combined":  700
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  800,
+                                                       "defendant":  0,
+                                                       "combined":  800
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  -300,
+                                                      "defendant":  200,
+                                                      "combined":  -100
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  3,
+                                                      "defendant":  -2,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  52
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  78
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  78
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  234,
+                                                       "defendant":  -156,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  39,
+                                                       "defendant":  39,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  195,
+                                                       "defendant":  -195,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  195,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "share-midpoint-175-825",
+                      "numberOfChildren":  6,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  2520,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  12221,
+                                        "preexistingChildSupport":  341,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  1689,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  2520,
+                                                      "defendant":  12221,
+                                                      "combined":  14741
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  341,
+                                                       "combined":  341
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  2520,
+                                                      "defendant":  11880,
+                                                      "combined":  14400
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.17,
+                                                      "defendant":  0.83,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  3414
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  5121
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  5121
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  871,
+                                                       "defendant":  4250,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  2561,
+                                                       "defendant":  2561,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -1690,
+                                                       "defendant":  1689,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  1689,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "plaintiff-costs-heavy",
+                      "numberOfChildren":  3,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  4000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  900,
+                                        "healthcareCoverageCosts":  300
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  6000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  1018,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  4000,
+                                                      "defendant":  6000,
+                                                      "combined":  10000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  4000,
+                                                      "defendant":  6000,
+                                                      "combined":  10000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.4,
+                                                      "defendant":  0.6,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  1984
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2976
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  900,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  300,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  1200,
+                                                      "defendant":  0,
+                                                      "combined":  1200
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  4176
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  1670,
+                                                       "defendant":  2506,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  1200,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  1488,
+                                                       "defendant":  1488,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -1018,
+                                                       "defendant":  1018,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  1018,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "six-children",
+                      "numberOfChildren":  6,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  2500,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  300
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  4200,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  500,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Defendant",
+                      "expectedAmount":  412,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  2500,
+                                                      "defendant":  4200,
+                                                      "combined":  6700
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  2500,
+                                                      "defendant":  4200,
+                                                      "combined":  6700
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.37,
+                                                      "defendant":  0.63,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  2093
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  3140
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  500,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  300,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  300,
+                                                      "defendant":  500,
+                                                      "combined":  800
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  3940
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  1458,
+                                                       "defendant":  2482,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  300,
+                                                       "defendant":  500,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  1570,
+                                                       "defendant":  1570,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  -412,
+                                                       "defendant":  412,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  null,
+                                                       "defendant":  412,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "high-income-29000",
+                      "numberOfChildren":  4,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  15000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  14000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  400
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  344,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  15000,
+                                                      "defendant":  14000,
+                                                      "combined":  29000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  15000,
+                                                      "defendant":  14000,
+                                                      "combined":  29000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.52,
+                                                      "defendant":  0.48,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  4562
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  6843
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  400,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  400,
+                                                      "combined":  400
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  7243
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  3766,
+                                                       "defendant":  3477,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  400,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  3422,
+                                                       "defendant":  3422,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  344,
+                                                       "defendant":  -345,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  344,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  },
+                  {
+                      "name":  "schedule-ceiling-30000",
+                      "numberOfChildren":  6,
+                      "plaintiff":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  20000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "defendant":  {
+                                        "hasPrimaryCustody":  false,
+                                        "monthlyGrossIncome":  10000,
+                                        "preexistingChildSupport":  0,
+                                        "preexistingAlimony":  0,
+                                        "workRelatedChildcareCosts":  0,
+                                        "healthcareCoverageCosts":  0
+                                    },
+                      "expectedPayer":  "Plaintiff",
+                      "expectedAmount":  1424,
+                      "expectedLines":  {
+                                            "1":  {
+                                                      "plaintiff":  20000,
+                                                      "defendant":  10000,
+                                                      "combined":  30000
+                                                  },
+                                            "1a":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "1b":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  0
+                                                   },
+                                            "2":  {
+                                                      "plaintiff":  20000,
+                                                      "defendant":  10000,
+                                                      "combined":  30000
+                                                  },
+                                            "3":  {
+                                                      "plaintiff":  0.67,
+                                                      "defendant":  0.33,
+                                                      "combined":  1
+                                                  },
+                                            "4":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  5586
+                                                  },
+                                            "5":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  8379
+                                                  },
+                                            "6":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "7":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  null
+                                                  },
+                                            "8":  {
+                                                      "plaintiff":  0,
+                                                      "defendant":  0,
+                                                      "combined":  0
+                                                  },
+                                            "9":  {
+                                                      "plaintiff":  null,
+                                                      "defendant":  null,
+                                                      "combined":  8379
+                                                  },
+                                            "10":  {
+                                                       "plaintiff":  5614,
+                                                       "defendant":  2765,
+                                                       "combined":  null
+                                                   },
+                                            "11":  {
+                                                       "plaintiff":  0,
+                                                       "defendant":  0,
+                                                       "combined":  null
+                                                   },
+                                            "12":  {
+                                                       "plaintiff":  4190,
+                                                       "defendant":  4190,
+                                                       "combined":  null
+                                                   },
+                                            "13":  {
+                                                       "plaintiff":  1424,
+                                                       "defendant":  -1425,
+                                                       "combined":  null
+                                                   },
+                                            "14":  {
+                                                       "plaintiff":  1424,
+                                                       "defendant":  null,
+                                                       "combined":  null
+                                                   }
+                                        }
+                  }
+              ]
+}

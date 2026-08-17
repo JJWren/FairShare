@@ -2,7 +2,8 @@
 
 xUnit test project covering both layers:
 
-- `Domain/` — pure unit tests for the calculators (`CS42CalculatorTests`, `CS42SCalculatorTests`). No host, no mocks — calculators are deterministic functions.
+- `Domain/` — pure unit tests for the calculators and the schedule lookup (`CS42CalculatorTests`, `CS42SCalculatorTests`, `BcsoLookupTests`). No host, no mocks — calculators are deterministic functions.
+- `Domain/Golden/` — golden cases pinning both calculators to the official AOC workbooks line by line (`CS42GoldenTests`, `CS42SGoldenTests`). `al-cs42-golden.json` / `al-cs42s-golden.json` are embedded resources whose expected values were **read back from the workbooks**, not computed: `Generate-GoldenCases.ps1` drives the state's Excel files through Excel COM (desktop Excel required) and records every line. To add a case, add it to the script and regenerate; never hand-edit expected numbers.
 - `Api/` — end-to-end integration tests that boot the real API in-memory via `WebApplicationFactory<Program>` against a throwaway SQLite database.
 
 ## The API test harness

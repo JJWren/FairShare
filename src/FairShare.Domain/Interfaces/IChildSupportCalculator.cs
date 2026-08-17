@@ -21,6 +21,16 @@ namespace FairShare.Domain.Interfaces
         string Form { get; }
 
         /// <summary>
+        /// Human-readable form name including its revision, e.g. "CS-42 (Rev. 5/2022)".
+        /// </summary>
+        string DisplayName { get; }
+
+        /// <summary>
+        /// One-line description of when the form applies, e.g. "Standard custody".
+        /// </summary>
+        string Description { get; }
+
+        /// <summary>
         /// Indicates whether this calculator implements a shared custody guideline variant.
         /// </summary>
         bool IsSharedCustody { get; }
@@ -32,13 +42,10 @@ namespace FairShare.Domain.Interfaces
         /// <param name="plaintiff">The plaintiff parent on the original court order.</param>
         /// <param name="defendant">The defendant parent on the original court order.</param>
         /// <param name="numberOfChildren">The number of children shared between both parents in the child support order.</param>
-        /// <returns>The paying parent as a <see cref="string"/> and the amount the parent owes as an <seealso cref="int"/>.</returns>
+        /// <returns>
+        /// The paying parent, the amount the parent owes, and every worksheet line that produced them.
+        /// Input problems are reported through <see cref="CalculationResult.Errors"/>, never thrown.
+        /// </returns>
         CalculationResult Calculate(ParentData plaintiff, ParentData defendant, int numberOfChildren);
     }
 }
-
-
-
-
-
-

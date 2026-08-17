@@ -46,11 +46,11 @@ namespace FairShare.Domain.Helpers
         /// Gets or sets the amount the paying parent owes as an <see cref="int"/>.
         /// </summary>
         public int FinalAmount { get; set; } = finalAmount;
+
+        /// <summary>
+        /// Every numbered line of the worksheet, in form order, with the value shown in each column.
+        /// Empty when the calculation did not succeed.
+        /// </summary>
+        public IReadOnlyList<WorksheetLine> Lines { get; set; } = [];
     }
 }
-
-
-
-
-
-

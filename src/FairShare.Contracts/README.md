@@ -9,8 +9,8 @@ Wire DTOs shared by the API and the Blazor SPA — the single source of truth fo
 | `Auth/AuthContracts.cs` | `LoginRequest`, `RegisterRequest`, `ChangePasswordRequest`, `AuthTokenResponse`, `AuthConfigResponse` |
 | `Admin/AdminContracts.cs` | `UserListItem`, `CreateUserRequest`, `EditUserRequest`, `AdminResetPasswordRequest` |
 | `Parents/ParentContracts.cs` | `ParentProfileDto`, `ParentProfileCreateRequest`, `ParentProfileUpdateRequest` (incl. `RowVersion` for optimistic concurrency) |
-| `Calculation/CalculationContracts.cs` | `CalculationRequest`, `ParentDataDto`, `CalculationResponse`, `CalcErrorDto` |
-| `Catalog/CatalogContracts.cs` | State/form summaries for the catalog endpoints |
+| `Calculation/CalculationContracts.cs` | `CalculationRequest`, `ParentDataDto`, `CalculationResponse` (payer, amount, `Lines`), `WorksheetLineDto`, `CalcErrorDto` |
+| `Catalog/CatalogContracts.cs` | `StateSummaryDto`, `FormSummaryDto` (form key, display name with revision, description, shared-custody flag) |
 
 ## Rules
 

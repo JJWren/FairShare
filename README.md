@@ -25,8 +25,8 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 ## Features
 
 - **State Support (Alabama)**:
-  - CS-42 (Standard) calculations.
-  - CS-42-S (Shared Parenting/SPCA) calculations.
+  - CS-42 (Rev. 5/2022, standard custody) and CS-42-S (Eff. 6/2023, shared 50/50 physical custody).
+  - Line-by-line parity with the official AOC Excel worksheets — every numbered line comes back with the result (see `CONTEXT.md` and `docs/adr/`).
 - **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5).
 - **Theme Support**: Light/Dark/Auto theme toggle.
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
@@ -166,7 +166,7 @@ Swagger UI is available at `/swagger` in Development. The full endpoint referenc
 dotnet test FairShare.sln
 ```
 
-`FairShare.Tests` covers the CS-42 calculator (`FairShare.Domain`) and the auth/catalog endpoints end-to-end against an in-memory-configured instance of `FairShare.Api` (`WebApplicationFactory`).
+`FairShare.Tests` covers the calculators (`FairShare.Domain`) — including golden cases read back from the official AOC workbooks — and the auth/catalog/calculation endpoints end-to-end against an in-memory-configured instance of `FairShare.Api` (`WebApplicationFactory`).
 
 ---
 

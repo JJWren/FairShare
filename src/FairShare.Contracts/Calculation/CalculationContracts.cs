@@ -53,6 +53,20 @@ public class CalcErrorDto
     public string Severity { get; set; } = "Error";
 }
 
+/// <summary>
+/// One numbered line of the worksheet, with the value shown in each column. A null column means the form has no
+/// cell there. <see cref="Format"/> is "Currency" (whole dollars) or "Percent" (fraction, 0.57 = 57%).
+/// </summary>
+public class WorksheetLineDto
+{
+    public string Number { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public decimal? Plaintiff { get; set; }
+    public decimal? Defendant { get; set; }
+    public decimal? Combined { get; set; }
+    public string Format { get; set; } = "Currency";
+}
+
 public class CalculationResponse
 {
     public bool Success { get; set; } = true;
@@ -62,4 +76,9 @@ public class CalculationResponse
     public int NumberOfChildren { get; set; }
     public string Payer { get; set; } = string.Empty;
     public int FinalAmount { get; set; }
+
+    /// <summary>
+    /// Every worksheet line in form order; empty when <see cref="Success"/> is false.
+    /// </summary>
+    public List<WorksheetLineDto> Lines { get; set; } = [];
 }

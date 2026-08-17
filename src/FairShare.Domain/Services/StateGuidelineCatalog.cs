@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using FairShare.Domain.Helpers;
 using FairShare.Domain.Interfaces;
 
 namespace FairShare.Domain.Services
@@ -31,13 +32,14 @@ namespace FairShare.Domain.Services
                 .OrderBy(s => s)
                 .ToArray();
 
-        public IReadOnlyCollection<(string Form, string DisplayName)> GetFormsForState(string state)
+        // Ordered by form key so the first entry is stable (the SPA lands on it when no form is given).
+        public IReadOnlyCollection<FormInfo> GetFormsForState(string state)
             => _byState.TryGetValue(state, out List<IChildSupportCalculator>? list)
                 ? list
-                    .OrderBy(c => c.Form)
-                    .Select(c => (c.Form, c.Form))
+                    .OrderBy(c => c.Form, StringComparer.Ordinal)
+                    .Select(c => new FormInfo(c.Form, c.DisplayName, c.Description, c.IsSharedCustody))
                     .ToArray()
-                : Array.Empty<(string, string)>();
+                : Array.Empty<FormInfo>();
 
         public IChildSupportCalculator? GetCalculator(string state, string form)
             => _byState.TryGetValue(state, out List<IChildSupportCalculator>? list)
@@ -45,9 +47,3 @@ namespace FairShare.Domain.Services
                 : null;
     }
 }
-
-
-
-
-
-
