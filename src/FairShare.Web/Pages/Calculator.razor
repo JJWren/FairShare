@@ -63,6 +63,7 @@
                     Data="plaintiff"
                     @bind-ParentName="plaintiffName"
                     ShowPrimary="RequiresPrimaryCustody"
+                    OnPrimaryCustodyChanged="value => MirrorPrimaryCustody(defendant, value)"
                     SavedProfiles="savedProfiles" />
 
         <ParentCard Title="Defendant"
@@ -70,6 +71,7 @@
                     Data="defendant"
                     @bind-ParentName="defendantName"
                     ShowPrimary="RequiresPrimaryCustody"
+                    OnPrimaryCustodyChanged="value => MirrorPrimaryCustody(plaintiff, value)"
                     SavedProfiles="savedProfiles" />
     </div>
 
@@ -179,6 +181,9 @@
     private List<FormSummaryDto>? forms;
     private string? formsLoadedForState;
     private string? activeForm;
+
+    private const string ApiUnreachableMessage = "The FairShare API could not be reached. Check your connection and try again.";
+    private const string StaleClientMessage = "Your browser is running an older version of FairShare - reload the page (Ctrl+F5) and try again.";
 
     private FormSummaryDto? CurrentForm =>
         forms?.FirstOrDefault(f => f.Form.Equals(Form, StringComparison.OrdinalIgnoreCase));
@@ -293,7 +298,20 @@
                 Defendant = defendant
             };
 
-            HttpResponseMessage response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
+            }
+            catch (HttpRequestException)
+            {
+                // Same rule as validation stops: nothing stale stays on screen (and Export, which
+                // recalculates first, must not fall through on a result that failed to refresh).
+                ClearResult();
+                errors.Add(ApiUnreachableMessage);
+                return;
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -374,10 +392,27 @@
 
             await JS.InvokeVoidAsync("fairshareDownload.saveFile", fileName, contentType, bytes);
         }
+        catch (HttpRequestException)
+        {
+            errors.Add(ApiUnreachableMessage);
+        }
+        catch (JSException)
+        {
+            // The download helper lives in js/site.js; a browser still holding last release's copy has no
+            // fairshareDownload. Say so inline rather than tripping Blazor's fatal "reload" banner.
+            errors.Add(StaleClientMessage);
+        }
         finally
         {
             exporting = false;
         }
+    }
+
+    // A flipped Primary Custody switch mirrors onto the other parent (on -> other off, off -> other on).
+    // Only switch clicks arrive here; loading a saved profile or clearing a card leaves the other alone.
+    private void MirrorPrimaryCustody(ParentDataDto other, bool value)
+    {
+        other.HasPrimaryCustody = !value;
     }
 
     private async Task SaveParentsAsync()
