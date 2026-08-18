@@ -304,11 +304,13 @@ app.UseForwardedHeaders();
 // (Development) or an HTTPS port is configured explicitly (HttpsRedirection:HttpsPort /
 // ASPNETCORE_HTTPS_PORT); the proxy already forces HTTPS for real clients.
 // ASPNETCORE_HTTPS_PORT reaches configuration both as HTTPS_PORT (host config strips the
-// prefix) and under its full name; check both so the knob works however it was set.
+// prefix) and under its full name; accept any of the three keys, but only a real port
+// number - a blank or garbage value must not enable a redirect the middleware can't build.
+static bool IsValidPort(string? value) => int.TryParse(value?.Trim(), out int port) && port > 0 && port <= 65535;
 bool httpsPortConfigured =
-    builder.Configuration.GetValue<int?>("HttpsRedirection:HttpsPort") is not null ||
-    !string.IsNullOrEmpty(builder.Configuration["HTTPS_PORT"]) ||
-    !string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_HTTPS_PORT"]);
+    IsValidPort(builder.Configuration["HttpsRedirection:HttpsPort"]) ||
+    IsValidPort(builder.Configuration["HTTPS_PORT"]) ||
+    IsValidPort(builder.Configuration["ASPNETCORE_HTTPS_PORT"]);
 if (app.Environment.IsDevelopment() || httpsPortConfigured)
 {
     app.UseHttpsRedirection();
