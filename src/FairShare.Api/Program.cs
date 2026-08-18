@@ -303,9 +303,12 @@ app.UseForwardedHeaders();
 // the container healthcheck's own request. Wire it only when Kestrel serves TLS
 // (Development) or an HTTPS port is configured explicitly (HttpsRedirection:HttpsPort /
 // ASPNETCORE_HTTPS_PORT); the proxy already forces HTTPS for real clients.
+// ASPNETCORE_HTTPS_PORT reaches configuration both as HTTPS_PORT (host config strips the
+// prefix) and under its full name; check both so the knob works however it was set.
 bool httpsPortConfigured =
     builder.Configuration.GetValue<int?>("HttpsRedirection:HttpsPort") is not null ||
-    !string.IsNullOrEmpty(builder.Configuration["HTTPS_PORT"]);
+    !string.IsNullOrEmpty(builder.Configuration["HTTPS_PORT"]) ||
+    !string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_HTTPS_PORT"]);
 if (app.Environment.IsDevelopment() || httpsPortConfigured)
 {
     app.UseHttpsRedirection();
