@@ -18,6 +18,8 @@ services:
       AdminSeed__LogGeneratedPassword: "${ADMIN_SEED_LOG_GENERATED_PASSWORD:-true}"
       Auth__AllowSelfRegistration: "${ALLOW_SELF_REGISTRATION:-false}"
       Cors__AllowedOrigins__0: "${WEB_ORIGIN:-http://localhost:5858}"
+      # DataProtection keys on the data volume so Identity tokens survive container recreates.
+      DataProtection__KeysPath: "/data/keys"
     volumes:
       - fairshare-data:/data
     healthcheck:

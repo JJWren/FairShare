@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -186,6 +187,17 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// DataProtection keys (Identity's password-reset/confirmation tokens) default to the
+// container's own filesystem, which is lost on every recreate. Point them at a volume
+// (DataProtection:KeysPath, e.g. /data/keys in the compose stacks) so they survive.
+string? dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+        .SetApplicationName("FairShare");
+}
+
 // Behind a TLS-terminating reverse proxy (the eventual VPS setup), the app sees plain
 // HTTP; honoring X-Forwarded-Proto keeps Request.IsHttps - and everything derived from
 // it, like the refresh cookie's Secure/SameSite attributes - correct. The proxy address
@@ -285,7 +297,24 @@ else
 
 app.UseForwardedHeaders();
 
-app.UseHttpsRedirection();
+// The app itself only serves TLS in Development (dotnet run's https profile). Behind the
+// reverse proxy it listens on plain HTTP and UseHttpsRedirection has no HTTPS port to
+// redirect to - it would just log "Failed to determine the https port for redirect" on
+// the container healthcheck's own request. Wire it only when Kestrel serves TLS
+// (Development) or an HTTPS port is configured explicitly (HttpsRedirection:HttpsPort /
+// ASPNETCORE_HTTPS_PORT); the proxy already forces HTTPS for real clients.
+// ASPNETCORE_HTTPS_PORT reaches configuration both as HTTPS_PORT (host config strips the
+// prefix) and under its full name; accept any of the three keys, but only a real port
+// number - a blank or garbage value must not enable a redirect the middleware can't build.
+static bool IsValidPort(string? value) => int.TryParse(value?.Trim(), out int port) && port > 0 && port <= 65535;
+bool httpsPortConfigured =
+    IsValidPort(builder.Configuration["HttpsRedirection:HttpsPort"]) ||
+    IsValidPort(builder.Configuration["HTTPS_PORT"]) ||
+    IsValidPort(builder.Configuration["ASPNETCORE_HTTPS_PORT"]);
+if (app.Environment.IsDevelopment() || httpsPortConfigured)
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("Web");
 

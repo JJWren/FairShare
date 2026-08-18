@@ -157,6 +157,8 @@ Swagger UI is available at `/swagger` in Development. The full endpoint referenc
 | `AdminSeed:LogGeneratedPassword`    | `true`       | Whether a generated admin password is printed to the log.                              |
 | `Auth:AllowSelfRegistration`        | `false`      | Whether `POST /api/v1/auth/register` is open. Off = admin creates accounts.            |
 | `RateLimiting:Enabled`              | `true`       | Kill-switch for rate limiting (values are fixed: 100 req/min per IP globally, 10 req/min per IP on the auth endpoints). |
+| `DataProtection:KeysPath`           | *(unset)*    | Directory for ASP.NET DataProtection keys (Identity tokens). Set it to a volume path (the compose stacks use `/data/keys`) so keys survive container recreates; unset = framework default inside the container. |
+| `HttpsRedirection:HttpsPort` / `HTTPS_PORT` / `ASPNETCORE_HTTPS_PORT` | *(unset)* | Only needed when Kestrel itself serves TLS (any of the three keys, a valid port number). Behind a TLS-terminating proxy leave it unset: the API then skips `UseHttpsRedirection` (the proxy forces HTTPS) instead of logging "Failed to determine the https port for redirect" on every start. |
 
 | Setting (Web)     | Default | Purpose                                    |
 | ------------------ | ------- | ------------------------------------------ |
