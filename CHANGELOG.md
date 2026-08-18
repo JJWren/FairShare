@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.3.1](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.0...fairshare-v2.3.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **api:** skip HTTPS redirection behind the proxy; persist DataProtection keys ([#87](https://github.com/JJWren/FairShare/issues/87)) ([dcde9bc](https://github.com/JJWren/FairShare/commit/dcde9bcf1293093213ced04cd5f782ffec0eb89d)), closes [#85](https://github.com/JJWren/FairShare/issues/85)
+
 ## [2.3.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.2.0...fairshare-v2.3.0) (2026-08-17)
 
 
