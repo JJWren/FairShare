@@ -85,3 +85,82 @@ h1:focus {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* FairShare accent tokens. Parties get cool hues deliberately disjoint from the action
+   palette (blue Calculate, red Reset, green Export); the results card gets the page's one
+   warm accent so the answer draws the eye. Each emphasis/background pair keeps WCAG AA
+   text contrast in its theme - the dark values are re-tuned, not auto-derived. theme-init.js
+   always resolves "auto" and stamps data-bs-theme, so the dark block needs no media query. */
+:root {
+    --fs-plaintiff-border: #0aa2c0;
+    --fs-plaintiff-bg-subtle: #d2f4f8;
+    --fs-plaintiff-emphasis: #0a5866;
+    --fs-defendant-border: #8540f5;
+    --fs-defendant-bg-subtle: #e8dcfd;
+    --fs-defendant-emphasis: #4c2889;
+    --fs-results-border: #997404;
+    --fs-results-bg-subtle: #fff3cd;
+    --fs-results-emphasis: #664d03;
+}
+
+[data-bs-theme="dark"] {
+    --fs-plaintiff-border: #087990;
+    --fs-plaintiff-bg-subtle: #04333c;
+    --fs-plaintiff-emphasis: #7ae1f5;
+    --fs-defendant-border: #8f5cf7;
+    --fs-defendant-bg-subtle: #2c1a52;
+    --fs-defendant-emphasis: #c5a1fc;
+    --fs-results-border: #997404;
+    --fs-results-bg-subtle: #332701;
+    --fs-results-emphasis: #ffda6a;
+}
+
+/* Party cards: color is never the only distinguisher - the tinted edge pairs with the
+   labeled badge in each header (WCAG 1.4.1). */
+.fs-party-card {
+    border-left-style: solid;
+    border-left-width: 4px;
+}
+
+.fs-party-plaintiff {
+    border-left-color: var(--fs-plaintiff-border);
+}
+
+.fs-party-defendant {
+    border-left-color: var(--fs-defendant-border);
+}
+
+.fs-party-badge {
+    font-size: 0.875rem;
+}
+
+.fs-party-plaintiff .fs-party-badge {
+    background-color: var(--fs-plaintiff-bg-subtle);
+    border: 1px solid var(--fs-plaintiff-border);
+    color: var(--fs-plaintiff-emphasis);
+}
+
+.fs-party-defendant .fs-party-badge {
+    background-color: var(--fs-defendant-bg-subtle);
+    border: 1px solid var(--fs-defendant-border);
+    color: var(--fs-defendant-emphasis);
+}
+
+/* Results card: the gold accent also carries the worksheet's recommended-order row
+   (previously .table-primary, which read as if it belonged to the blue button). */
+.fs-results-card {
+    border-color: var(--fs-results-border);
+}
+
+.fs-results-card > .card-header {
+    background-color: var(--fs-results-bg-subtle);
+    border-bottom-color: var(--fs-results-border);
+    color: var(--fs-results-emphasis);
+}
+
+/* -state beats the striped -type variables in Bootstrap 5.3's cell color resolution,
+   so the highlight survives table-striped. */
+.worksheet-table > tbody > .fs-row-recommended-order {
+    --bs-table-bg-state: var(--fs-results-bg-subtle);
+    --bs-table-color-state: var(--fs-results-emphasis);
+}

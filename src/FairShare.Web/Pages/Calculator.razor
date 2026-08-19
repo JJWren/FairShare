@@ -46,7 +46,18 @@
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-12 col-sm-5 col-lg-3 text-center">
             <label class="form-label" for="NumberOfChildren">Number of Children</label>
-            <input type="number" id="NumberOfChildren" @bind="numberOfChildren" class="form-control" />
+            @* The schedule covers exactly 1-6 children (BcsoLookup.MinChildren/MaxChildren);
+               the old free number input defaulted to 0 and let 7+ through, both only to be
+               rejected at Calculate time. *@
+            <select id="NumberOfChildren" @bind="numberOfChildren" class="form-select" aria-describedby="NumberOfChildrenHelp">
+                @for (int children = 1; children <= 6; children++)
+                {
+                    <option value="@children">@children</option>
+                }
+            </select>
+            <div id="NumberOfChildrenHelp" class="form-text">
+                The schedule covers up to 6 children; beyond that, support is at the court's discretion.
+            </div>
         </div>
     </div>
 
@@ -81,18 +92,32 @@
 
     <div class="mt-3 d-flex gap-2">
         <button class="btn btn-primary" @onclick="() => CalculateAsync()" disabled="@calculating">Calculate</button>
-        <button class="btn btn-outline-secondary" @onclick="Reset">Reset</button>
-        <button class="btn btn-outline-primary ms-auto"
+        <button class="btn btn-outline-danger" @onclick="ResetAsync">Reset</button>
+        <button class="btn btn-outline-success ms-auto d-inline-flex align-items-center gap-2"
                 @onclick="ExportAsync"
                 disabled="@(exporting || !CanExport)"
-                title="Download the official worksheet with these figures filled in">
-            @(exporting ? "Preparing..." : "Export to Excel")
+                aria-label="Export to Excel"
+                title="Download the official Excel worksheet with these figures filled in">
+            @if (exporting)
+            {
+                <span>Preparing...</span>
+            }
+            else
+            {
+                @* Inline spreadsheet glyph (currentColor follows the button/theme); one icon
+                   does not justify vendoring an icon library into the WASM payload. *@
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+                     fill="currentColor" fill-rule="evenodd" aria-hidden="true" focusable="false">
+                    <path d="M2.5 2h11a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5zM3 3v2h10V3H3zm0 3v3h4.5V6H3zm5.5 0v3H13V6H8.5zM3 10v3h4.5v-3H3zm5.5 0v3H13v-3H8.5z"/>
+                </svg>
+                <span>Export</span>
+            }
         </button>
     </div>
 
     @if (errors.Any())
     {
-        <div class="mt-3">
+        <div class="mt-3" role="alert">
             <ul class="text-danger">
                 @foreach (var error in errors)
                 {
@@ -103,9 +128,11 @@
     }
 
     <div class="mt-5">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm fs-results-card">
             <div class="card-header text-center"><strong>Results</strong></div>
-            <div class="card-body">
+            @* aria-live so screen-reader users hear the outcome (or the failure) they asked
+               for - results used to appear silently. *@
+            <div class="card-body" aria-live="polite">
                 @if (submitted && result is not null && result.Success)
                 {
                     <p class="fw-bold text-center mb-0">@ResultSentence(result)</p>
@@ -127,8 +154,8 @@
                                 <tbody>
                                     @foreach (var line in result.Lines)
                                     {
-                                        <tr class="@(IsFinalLine(line) ? "table-primary fw-bold" : "")">
-                                            <td>@line.Number</td>
+                                        <tr class="@(IsFinalLine(line) ? "fs-row-recommended-order fw-bold" : "")">
+                                            <th scope="row" class="fw-normal text-start">@line.Number</th>
                                             <td>@line.Label</td>
                                             <td class="text-end">@FormatCell(line, line.Plaintiff)</td>
                                             <td class="text-end">@FormatCell(line, line.Defendant)</td>
@@ -168,7 +195,9 @@
 
     [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
 
-    private int numberOfChildren;
+    // 1 is the floor of the schedule's 1-6 range and the reason anyone opens the app;
+    // Reset returns here too (0 was an invalid state the dropdown cannot even express).
+    private int numberOfChildren = 1;
     private readonly ParentDataDto plaintiff = new();
     private readonly ParentDataDto defendant = new();
     private string? plaintiffName;
@@ -472,9 +501,16 @@
         HasPrimaryCustody = data.HasPrimaryCustody
     };
 
-    private void Reset()
+    private async Task ResetAsync()
     {
-        numberOfChildren = 0;
+        // Reset is destructive with no undo, so confirm - but only when there is
+        // something to lose, keeping the empty-form case one click.
+        if (HasEnteredData && !await JS.InvokeAsync<bool>("confirm", "Clear all entered figures and results?"))
+        {
+            return;
+        }
+
+        numberOfChildren = 1;
         plaintiff.ApplyFrom(new ParentDataDto());
         defendant.ApplyFrom(new ParentDataDto());
         plaintiffName = null;
@@ -484,6 +520,22 @@
         ClearResult();
         errors.Clear();
     }
+
+    private bool HasEnteredData =>
+        numberOfChildren != 1
+        || HasFigures(plaintiff)
+        || HasFigures(defendant)
+        || !string.IsNullOrWhiteSpace(plaintiffName)
+        || !string.IsNullOrWhiteSpace(defendantName)
+        || submitted;
+
+    private static bool HasFigures(ParentDataDto parent) =>
+        parent.MonthlyGrossIncome != 0
+        || parent.PreexistingChildSupport != 0
+        || parent.PreexistingAlimony != 0
+        || parent.WorkRelatedChildcareCosts != 0
+        || parent.HealthcareCoverageCosts != 0
+        || parent.HasPrimaryCustody;
 
     private void ClearResult()
     {
