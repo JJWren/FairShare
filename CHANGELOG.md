@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.3.2](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.1...fairshare-v2.3.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **web:** replace corrupted favicon with valid brand icon assets ([#89](https://github.com/JJWren/FairShare/issues/89)) ([dbf287d](https://github.com/JJWren/FairShare/commit/dbf287da5db2bef7beb02917b03aa891b3cc85ab))
+
 ## [2.3.1](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.0...fairshare-v2.3.1) (2026-08-18)
 
 

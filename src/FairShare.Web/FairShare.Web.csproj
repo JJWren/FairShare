@@ -7,10 +7,10 @@
     <AssemblyName>FairShare.Web</AssemblyName>
     <RootNamespace>FairShare.Web</RootNamespace>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <Version>2.3.1</Version>
-    <AssemblyVersion>2.3.1</AssemblyVersion>
-    <FileVersion>2.3.1</FileVersion>
-    <InformationalVersion>2.3.1</InformationalVersion>
+    <Version>2.3.2</Version>
+    <AssemblyVersion>2.3.2</AssemblyVersion>
+    <FileVersion>2.3.2</FileVersion>
+    <InformationalVersion>2.3.2</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
