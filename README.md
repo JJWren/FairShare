@@ -34,7 +34,7 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
 - **Admin Tools**: Comprehensive user management and automated database seeding.
 - **Health & Safety**: Integrated database integrity checks and automated backup zipping on startup.
-- **Guest mode**: Try the calculator without creating an account (no saving).
+- **Guest-first**: Visitors land straight on the calculator as guests — no account needed to calculate or export (no saving). Sign in from the navbar to unlock saved parents.
 
 ---
 
@@ -42,7 +42,7 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 
 | Role      | Typical Access       | Notes                                                                 |
 | --------- | --------------------- | ---------------------------------------------------------------------|
-| **Guest** | Limited preview       | Run calculations; no saving or admin. (`Continue as Guest` on login) |
+| **Guest** | Default identity      | Every visitor until they sign in; run calculations and export, no saving or admin. |
 | **User**  | Normal app usage      | Create and run scenarios, save parent profiles.                      |
 | **Admin** | Full administration   | Manage users, roles, and access the users dashboard.                 |
 

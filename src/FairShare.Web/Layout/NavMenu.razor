@@ -38,21 +38,29 @@
                     <Authorized>
                         @if (context.User.HasClaim("guest", "true"))
                         {
+                            @* Guests are the default identity: the badge names the state,
+                               the link is the way out of it. Logout would be meaningless. *@
                             <li class="nav-item">
-                                <span class="nav-link text-muted" title="Guest mode: limited functionality">
+                                <span class="nav-link text-muted" title="Guest mode: calculations and export only; sign in to save data">
                                     <small>Guest</small>
                                 </span>
                             </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="@SignInHref">Sign in</NavLink>
+                            </li>
                         }
-                        <li class="nav-item">
-                            <button class="btn btn-link nav-link" @onclick="LogoutAsync">
-                                Logout
-                            </button>
-                        </li>
+                        else
+                        {
+                            <li class="nav-item">
+                                <button class="btn btn-link nav-link" @onclick="LogoutAsync">
+                                    Logout
+                                </button>
+                            </li>
+                        }
                     </Authorized>
                     <NotAuthorized>
                         <li class="nav-item">
-                            <NavLink class="nav-link" href="login">Login</NavLink>
+                            <NavLink class="nav-link" href="login">Sign in</NavLink>
                         </li>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -69,10 +77,27 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => StateHasChanged();
 
+    // Signing in from anywhere returns to that page afterwards; the login page itself
+    // gets no returnUrl so a completed sign-in lands on the state picker instead.
+    private string SignInHref
+    {
+        get
+        {
+            string relative = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+            return relative.StartsWith("/login", StringComparison.OrdinalIgnoreCase)
+                ? "login"
+                : $"login?returnUrl={Uri.EscapeDataString(relative)}";
+        }
+    }
+
     private async Task LogoutAsync()
     {
+        // Guest-first landing: leaving an account drops back to the default guest
+        // identity rather than stranding the visitor on the login page.
         await AuthApi.LogoutAsync();
-        NavigationManager.NavigateTo("/login");
+        await AuthApi.TryStartGuestSessionAsync();
+        NavigationManager.NavigateTo("/");
     }
 
     public void Dispose()

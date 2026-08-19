@@ -77,8 +77,23 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     public Task<AuthResult> RegisterAsync(string userName, string password) =>
         SendAuthRequestAsync("api/v1/auth/register", new RegisterRequest { UserName = userName, Password = password });
 
-    public Task<AuthResult> ContinueAsGuestAsync() =>
-        SendAuthRequestAsync("api/v1/auth/guest", body: null);
+    /// <summary>
+    /// Attempts to start a guest session, e.g. for a visitor with no account session
+    /// (guest-first landing) or after logging out of an account. Never throws; returns
+    /// false when the API is unreachable, leaving the visitor anonymous.
+    /// </summary>
+    public async Task<bool> TryStartGuestSessionAsync()
+    {
+        try
+        {
+            AuthResult result = await SendAuthRequestAsync("api/v1/auth/guest", body: null);
+            return result.Success;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Attempts a silent refresh using the HttpOnly refresh cookie, e.g. to re-hydrate the

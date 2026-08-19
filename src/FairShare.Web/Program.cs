@@ -41,6 +41,14 @@ WebAssemblyHost host = builder.Build();
 
 // The access token lives only in memory, so a page reload loses it. Re-hydrate it from
 // the HttpOnly refresh cookie before first render so an active session survives reloads.
-await host.Services.GetRequiredService<AuthApiClient>().TryRefreshAsync();
+// Visitors with no session at all get a guest one so the calculator is usable immediately
+// (guest-first landing, ADR 0002); if the API is unreachable they stay anonymous and the
+// router falls back to the login redirect.
+AuthApiClient authApi = host.Services.GetRequiredService<AuthApiClient>();
+
+if (!await authApi.TryRefreshAsync())
+{
+    await authApi.TryStartGuestSessionAsync();
+}
 
 await host.RunAsync();
