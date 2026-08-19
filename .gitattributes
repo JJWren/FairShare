@@ -44,11 +44,13 @@
 ###############################################################################
 # behavior for image files
 #
-# image files are treated as binary by default.
+# image files are binary - never normalize line endings in them.
 ###############################################################################
-#*.jpg   binary
-#*.png   binary
-#*.gif   binary
+*.jpg   binary
+*.png   binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
 
 ###############################################################################
 # diff behavior for common document formats
