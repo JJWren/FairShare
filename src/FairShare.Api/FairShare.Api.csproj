@@ -7,10 +7,10 @@
     <AssemblyName>FairShare.Api</AssemblyName>
     <RootNamespace>FairShare.Api</RootNamespace>
     <UserSecretsId>aspnet-FairShare.Api-v2</UserSecretsId>
-    <Version>2.3.2</Version>
-    <AssemblyVersion>2.3.2</AssemblyVersion>
-    <FileVersion>2.3.2</FileVersion>
-    <InformationalVersion>2.3.2</InformationalVersion>
+    <Version>2.3.3</Version>
+    <AssemblyVersion>2.3.3</AssemblyVersion>
+    <FileVersion>2.3.3</FileVersion>
+    <InformationalVersion>2.3.3</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
