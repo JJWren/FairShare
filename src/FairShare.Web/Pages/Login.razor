@@ -39,7 +39,7 @@
         {
             <span></span>
         }
-        <button class="btn btn-link p-0" @onclick="ContinueAsGuestAsync" disabled="@_busy">Continue as Guest</button>
+        <a href="@SafeReturnTarget">&larr; Back</a>
     </div>
 </div>
 
@@ -73,32 +73,18 @@
             return;
         }
 
-        string target = !string.IsNullOrWhiteSpace(ReturnUrl) &&
-            ReturnUrl.StartsWith("/", StringComparison.Ordinal) &&
-            !ReturnUrl.StartsWith("//", StringComparison.Ordinal)
-                ? ReturnUrl
-                : "/";
-
-        Navigation.NavigateTo(target);
+        Navigation.NavigateTo(SafeReturnTarget);
     }
 
-    private async Task ContinueAsGuestAsync()
-    {
-        _busy = true;
-        _error = null;
-
-        var result = await AuthApi.ContinueAsGuestAsync();
-
-        _busy = false;
-
-        if (!result.Success)
-        {
-            _error = result.Error;
-            return;
-        }
-
-        Navigation.NavigateTo("/");
-    }
+    // Visitors arrive here already holding a guest session (guest-first landing), so the
+    // way out without signing in is simply going back. Only same-origin absolute paths
+    // are honored to keep the redirect target un-spoofable.
+    private string SafeReturnTarget =>
+        !string.IsNullOrWhiteSpace(ReturnUrl) &&
+        ReturnUrl.StartsWith("/", StringComparison.Ordinal) &&
+        !ReturnUrl.StartsWith("//", StringComparison.Ordinal)
+            ? ReturnUrl
+            : "/";
 
     private class LoginModel
     {

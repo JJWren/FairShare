@@ -7,7 +7,7 @@ Standalone Blazor WebAssembly SPA. Compiled to static WASM assets and served by 
 - `Auth/` — the client-side auth machinery:
   - `AuthApiClient` — typed wrapper for the `/api/v1/auth/*` endpoints; caches the server's auth-config flags (fail-closed).
   - `AuthTokenHandler` — `DelegatingHandler` that attaches the bearer token and, on 401, performs one serialized silent refresh + retry (skipped for anonymous auth endpoints so a failed login can't "succeed" via refresh).
-  - `InMemoryTokenStore` — the access token lives in memory only (XSS hardening); page reloads re-hydrate via the HttpOnly refresh cookie (`Program.cs` calls `TryRefreshAsync()` before first render).
+  - `InMemoryTokenStore` — the access token lives in memory only (XSS hardening); page reloads re-hydrate via the HttpOnly refresh cookie (`Program.cs` calls `TryRefreshAsync()` before first render, falling back to a fresh guest session — guest-first landing, ADR 0002).
   - `JwtAuthenticationStateProvider` / `JwtParser` — claims → `AuthenticationState`; policies `AdminOnly` and `NotGuest` mirror the API's.
 - `Pages/` — `Home` (state picker), `Calculator`, `Profiles` (saved parents), `Login`/`Register` (registration UI hides itself when the server reports self-registration disabled), `ChangePassword`, `Admin/*` (user management).
   - The two Primary Custody switches are mutually exclusive when clicked (flipping one flips the other to the opposite); loading a saved profile or clearing a card only affects that card. Interop/HTTP failures during Calculate/Export surface as inline messages, not Blazor's fatal banner (which is styled with Bootstrap's theme-aware warning tokens in `app.css`).

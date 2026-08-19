@@ -36,6 +36,13 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | **Payer** | The parent the recommended order applies to. "No net transfer" means neither parent owes the other. |
 | **Custodial parent** | On CS-42, the parent with primary physical custody; the other parent is the payer. CS-42-S has no custodial parent. |
 
+## Access vocabulary
+
+| Term | Meaning |
+|---|---|
+| **Guest** | The default identity — anyone who has not signed in. A guest can calculate and export, never persist. |
+| **User / Admin** | Admin-provisioned accounts. A user additionally saves parent profiles; an admin additionally manages accounts. |
+
 ## Fidelity vocabulary
 
 | Term | Meaning |
