@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [3.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.3...fairshare-v3.0.0) (2026-08-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* default deployment posture changes from login-first to public calculator; the login page's Continue as Guest affordance is removed.
+
+### Features
+
+* distinct party, results, and action styling with form a11y ([#99](https://github.com/JJWren/FairShare/issues/99)) ([6600b58](https://github.com/JJWren/FairShare/commit/6600b5823d96875b811da38137b2f5879cde9e03)), closes [#95](https://github.com/JJWren/FairShare/issues/95)
+* gate saved-parent features honestly for guests ([#98](https://github.com/JJWren/FairShare/issues/98)) ([3cec9d6](https://github.com/JJWren/FairShare/commit/3cec9d648707bad214964b4ec18b7952135d5f2c)), closes [#94](https://github.com/JJWren/FairShare/issues/94)
+* land visitors as guests with sign-in as an account upgrade ([#96](https://github.com/JJWren/FairShare/issues/96)) ([1cda739](https://github.com/JJWren/FairShare/commit/1cda739bb815254ea00298fd78f282880a0e709e)), closes [#93](https://github.com/JJWren/FairShare/issues/93)
+
 ## [2.3.3](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.2...fairshare-v2.3.3) (2026-08-19)
 
 
