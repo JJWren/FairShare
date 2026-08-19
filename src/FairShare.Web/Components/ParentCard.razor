@@ -3,10 +3,10 @@
 @inject NavigationManager Navigation
 
 <div class="col-12 col-lg-6">
-    <div class="card h-100 shadow-sm">
+    <div class="card h-100 shadow-sm fs-party-card @PartyClass">
         <div class="card-header text-center d-flex flex-column gap-2">
             <div class="d-flex justify-content-between align-items-center">
-                <strong>@Title</strong>
+                <span class="badge fs-party-badge">@Title</span>
                 @if (ShowPrimary)
                 {
                     <div class="form-check form-switch m-0">
@@ -131,6 +131,10 @@
 
     private string SignInHref =>
         $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";
+
+    // Prefix is the party identity ("Plaintiff"/"Defendant"); the class picks that
+    // party's accent tokens in app.css.
+    private string PartyClass => $"fs-party-{Prefix.ToLowerInvariant()}";
 
     private async Task OnPrimaryChanged(ChangeEventArgs e)
     {
