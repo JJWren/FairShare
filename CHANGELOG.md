@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [2.3.3](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.2...fairshare-v2.3.3) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** bump Microsoft packages to 10.0.11 and adopt KnownIPNetworks ([#91](https://github.com/JJWren/FairShare/issues/91)) ([16ba9ca](https://github.com/JJWren/FairShare/commit/16ba9ca5584323f340862d91f489533a54dc8baf))
+
 ## [2.3.2](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.1...fairshare-v2.3.2) (2026-08-19)
 
 
