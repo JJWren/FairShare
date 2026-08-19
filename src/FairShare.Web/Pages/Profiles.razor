@@ -16,7 +16,18 @@
     {
         @if (string.IsNullOrEmpty(error))
         {
-            <div class="alert alert-info">No saved parent profiles yet. Save one from the calculator.</div>
+            @if (isGuest)
+            {
+                @* "Save one from the calculator" would be false advice for a guest, who cannot save. *@
+                <div class="alert alert-info">
+                    Saved parents are available with an account.
+                    <a href="/login?returnUrl=%2Fprofiles">Sign in</a> to create parent profiles and reuse them on the calculator.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">No saved parent profiles yet. Save one from the calculator.</div>
+            }
         }
     }
     else
@@ -73,12 +84,31 @@
 </div>
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
     private List<ParentProfileDto>? profiles;
     private Guid? editingId;
     private string editingName = string.Empty;
     private string? error;
+    private bool isGuest;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            AuthenticationState authState = await AuthStateTask;
+            isGuest = authState.User.HasClaim(c => c.Type == "guest" && c.Value == "true");
+        }
+
+        // Guests have no profiles by definition; skip the request that would return [].
+        if (isGuest)
+        {
+            profiles = [];
+            return;
+        }
+
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {

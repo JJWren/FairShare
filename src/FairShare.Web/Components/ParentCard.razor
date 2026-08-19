@@ -1,5 +1,6 @@
 @using FairShare.Contracts.Calculation
 @using FairShare.Contracts.Parents
+@inject NavigationManager Navigation
 
 <div class="col-12 col-lg-6">
     <div class="card h-100 shadow-sm">
@@ -20,8 +21,11 @@
             </div>
             <div class="d-flex gap-2 align-items-start">
                 <select class="form-select form-select-sm"
+                        value="@(SelectedProfileId ?? string.Empty)"
                         @onchange="OnParentSelected"
-                        aria-label="Select saved parent to populate @Title fields">
+                        disabled="@IsGuest"
+                        aria-label="Select saved parent to populate @Title fields"
+                        aria-describedby="@(IsGuest ? $"{Prefix}_SavedParentsHint" : null)">
                     <option value="">-- Select saved parent --</option>
                     @if (SavedProfiles != null)
                     {
@@ -37,6 +41,14 @@
                     Clear
                 </button>
             </div>
+            @if (IsGuest)
+            {
+                @* The disabled picker advertises the account feature; the hint is tied to it via
+                   aria-describedby so screen readers hear why it is disabled, not just that it is. *@
+                <div id="@($"{Prefix}_SavedParentsHint")" class="form-text m-0">
+                    <a href="@SignInHref">Sign in</a> to save parents and reuse them here.
+                </div>
+            }
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -104,6 +116,22 @@
     [Parameter] public IEnumerable<ParentProfileDto>? SavedProfiles { get; set; }
     [Parameter] public EventCallback<ParentProfileDto?> OnProfileSelected { get; set; }
 
+    /// <summary>
+    /// Guests cannot save parents, so the picker is disabled with a sign-in hint instead
+    /// of rendering as an inexplicably empty list.
+    /// </summary>
+    [Parameter] public bool IsGuest { get; set; }
+
+    /// <summary>
+    /// The picker's selection, owned by the page so a page-level Reset can clear the
+    /// dropdown too (an unbound select would keep showing the last-chosen name).
+    /// </summary>
+    [Parameter] public string? SelectedProfileId { get; set; }
+    [Parameter] public EventCallback<string?> SelectedProfileIdChanged { get; set; }
+
+    private string SignInHref =>
+        $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";
+
     private async Task OnPrimaryChanged(ChangeEventArgs e)
     {
         // Blazor supplies a bool for checkboxes; accept a "true"/"false" string too so this can't silently stick off.
@@ -125,6 +153,9 @@
     private async Task OnParentSelected(ChangeEventArgs e)
     {
         var idString = e.Value?.ToString();
+
+        SelectedProfileId = idString;
+        await SelectedProfileIdChanged.InvokeAsync(idString);
 
         if (Guid.TryParse(idString, out var id))
         {
@@ -152,6 +183,9 @@
 
     private async Task ClearData()
     {
+        SelectedProfileId = string.Empty;
+        await SelectedProfileIdChanged.InvokeAsync(SelectedProfileId);
+
         Data.MonthlyGrossIncome = 0;
         Data.PreexistingChildSupport = 0;
         Data.PreexistingAlimony = 0;

@@ -64,7 +64,9 @@
                     @bind-ParentName="plaintiffName"
                     ShowPrimary="RequiresPrimaryCustody"
                     OnPrimaryCustodyChanged="value => MirrorPrimaryCustody(defendant, value)"
-                    SavedProfiles="savedProfiles" />
+                    SavedProfiles="savedProfiles"
+                    IsGuest="isGuest"
+                    @bind-SelectedProfileId="plaintiffSelectedProfileId" />
 
         <ParentCard Title="Defendant"
                     Prefix="Defendant"
@@ -72,7 +74,9 @@
                     @bind-ParentName="defendantName"
                     ShowPrimary="RequiresPrimaryCustody"
                     OnPrimaryCustodyChanged="value => MirrorPrimaryCustody(plaintiff, value)"
-                    SavedProfiles="savedProfiles" />
+                    SavedProfiles="savedProfiles"
+                    IsGuest="isGuest"
+                    @bind-SelectedProfileId="defendantSelectedProfileId" />
     </div>
 
     <div class="mt-3 d-flex gap-2">
@@ -162,11 +166,16 @@
     [Parameter] public string State { get; set; } = string.Empty;
     [Parameter] public string? Form { get; set; }
 
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
     private int numberOfChildren;
     private readonly ParentDataDto plaintiff = new();
     private readonly ParentDataDto defendant = new();
     private string? plaintiffName;
     private string? defendantName;
+    private string? plaintiffSelectedProfileId;
+    private string? defendantSelectedProfileId;
+    private bool isGuest;
     private CalculationResponse? result;
     private bool submitted;
     private bool calculating;
@@ -193,7 +202,21 @@
             ? !current.IsSharedCustody
             : string.Equals(Form, "CS42", StringComparison.OrdinalIgnoreCase);
 
-    protected override Task OnInitializedAsync() => LoadSavedProfilesAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            AuthenticationState authState = await AuthStateTask;
+            isGuest = authState.User.HasClaim(c => c.Type == "guest" && c.Value == "true");
+        }
+
+        // Guests have no saved parents by definition - the picker is disabled for them,
+        // so don't bother the API for the empty list it would return.
+        if (!isGuest)
+        {
+            await LoadSavedProfilesAsync();
+        }
+    }
 
     // Switching forms navigates between URLs that resolve to this same component, so Blazor reuses the
     // instance and only this hook runs: the entered figures survive, and we decide what to do with the result.
@@ -325,7 +348,9 @@
             result = await response.Content.ReadFromJsonAsync<CalculationResponse>();
             submitted = true;
 
-            if (persistParents && result is { Success: true })
+            // Guests cannot save parents (the API answers 403), so never fire the doomed
+            // write - a silently discarded failure would let a guest believe a name saved.
+            if (persistParents && !isGuest && result is { Success: true })
             {
                 await SaveParentsAsync();
             }
@@ -454,6 +479,8 @@
         defendant.ApplyFrom(new ParentDataDto());
         plaintiffName = null;
         defendantName = null;
+        plaintiffSelectedProfileId = null;
+        defendantSelectedProfileId = null;
         ClearResult();
         errors.Clear();
     }
