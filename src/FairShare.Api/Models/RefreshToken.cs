@@ -12,5 +12,12 @@ public class RefreshToken
     public DateTime? RevokedUtc { get; set; }
     public bool IsGuest { get; set; }
 
+    /// <summary>
+    /// "Remember this device" (ADR 0004): persistent sessions get a dated cookie and the full
+    /// refresh lifetime; non-persistent ones a session cookie and a 1-day row. Rotation
+    /// preserves the choice by copying this flag onto the replacement token.
+    /// </summary>
+    public bool IsPersistent { get; set; } = true;
+
     public bool IsActive => RevokedUtc is null && DateTime.UtcNow < ExpiresUtc;
 }

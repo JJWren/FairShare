@@ -64,14 +64,17 @@ public sealed class AnalyticsBeacon(NavigationManager navigation, IHttpClientFac
     }
 
     /// <summary>Reports a guest running into a users-only feature (conversion-intent signal).</summary>
-    public async Task TrackGatedHitAsync(string gate)
+    public Task TrackGatedHitAsync(string gate) => TrackEventAsync("gated-hit", gate);
+
+    /// <summary>Posts a client-side event. Only server-whitelisted names are ever recorded.</summary>
+    public async Task TrackEventAsync(string name, string? target)
     {
         if (!_started || _optedOut)
         {
             return;
         }
 
-        await PostQuietlyAsync("api/v1/analytics/events", new ClientEventRequest { Name = "gated-hit", Target = gate });
+        await PostQuietlyAsync("api/v1/analytics/events", new ClientEventRequest { Name = name, Target = target });
     }
 
     // Synchronous handler kicking off a task (not async void): TrackPageAsync swallows its

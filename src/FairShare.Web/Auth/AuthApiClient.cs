@@ -58,6 +58,36 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
         return new AuthConfigResponse();
     }
 
+    public Task<AuthResult> ChangeUserNameAsync(string newUserName) =>
+        SendAuthRequestAsync(
+            "api/v1/auth/account/username",
+            new ChangeUserNameRequest { NewUserName = newUserName });
+
+    /// <summary>
+    /// Hard-deletes the signed-in account and everything it owns. On success the caller
+    /// holds no session at all (the server cleared the cookie; the token store is cleared here).
+    /// </summary>
+    public async Task<AuthResult> DeleteAccountAsync()
+    {
+        using HttpRequestMessage request = new(HttpMethod.Delete, "api/v1/auth/account")
+        {
+            Content = JsonContent.Create(new DeleteAccountRequest { Confirm = "DELETE" })
+        };
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        using HttpResponseMessage response = await _http.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string? problemDetail = await TryReadFirstProblemErrorAsync(response);
+            return new AuthResult(false, problemDetail ?? $"Account deletion failed ({(int)response.StatusCode}).");
+        }
+
+        await _tokenStore.ClearAsync();
+        _authStateProvider.NotifyAuthenticationChanged();
+        return new AuthResult(true, null);
+    }
+
     public Task<AuthResult> ChangePasswordAsync(string currentPassword, string newPassword, string confirmNewPassword) =>
         SendAuthRequestAsync(
             "api/v1/auth/change-password",
@@ -68,14 +98,17 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
                 ConfirmNewPassword = confirmNewPassword
             });
 
-    public Task<AuthResult> LoginAsync(string userName, string password) =>
+    public Task<AuthResult> LoginAsync(string userName, string password, string? twoFactorCode = null, bool rememberDevice = false) =>
         SendAuthRequestAsync(
             "api/v1/auth/login",
-            new LoginRequest { UserName = userName, Password = password },
+            new LoginRequest
+            {
+                UserName = userName,
+                Password = password,
+                TwoFactorCode = twoFactorCode,
+                RememberDevice = rememberDevice
+            },
             unauthorizedMessage: "Invalid username or password.");
-
-    public Task<AuthResult> RegisterAsync(string userName, string password) =>
-        SendAuthRequestAsync("api/v1/auth/register", new RegisterRequest { UserName = userName, Password = password });
 
     /// <summary>
     /// Attempts to start a guest session, e.g. for a visitor with no account session
@@ -138,9 +171,31 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
 
         if (!response.IsSuccessStatusCode)
         {
-            if (response.StatusCode == HttpStatusCode.Unauthorized && unauthorizedMessage is not null)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                return new AuthResult(false, unauthorizedMessage);
+                // A 401 carrying a two-factor challenge is not a credential failure: the
+                // password verified and the server wants an authenticator code.
+                TwoFactorRequiredResponse? challenge = null;
+                try
+                {
+                    challenge = await response.Content.ReadFromJsonAsync<TwoFactorRequiredResponse>();
+                }
+                catch (Exception ex) when (ex is JsonException or NotSupportedException)
+                {
+                    // Empty or non-JSON 401 body - a plain unauthorized.
+                }
+
+                if (challenge is { RequiresTwoFactor: true })
+                {
+                    return new AuthResult(false,
+                        challenge.InvalidCode ? "That code did not match. Try again." : null,
+                        RequiresTwoFactor: true);
+                }
+
+                if (unauthorizedMessage is not null)
+                {
+                    return new AuthResult(false, unauthorizedMessage);
+                }
             }
 
             string? problemDetail = await TryReadFirstProblemErrorAsync(response);
@@ -195,4 +250,4 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     }
 }
 
-public record AuthResult(bool Success, string? Error);
+public record AuthResult(bool Success, string? Error, bool RequiresTwoFactor = false);

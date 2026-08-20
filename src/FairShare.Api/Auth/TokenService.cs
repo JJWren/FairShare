@@ -55,16 +55,23 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
         return new AccessToken(value, expiresUtc);
     }
 
-    public async Task<IssuedRefreshToken> IssueRefreshTokenAsync(Guid? userId, bool isGuest, CancellationToken ct = default)
+    public async Task<IssuedRefreshToken> IssueRefreshTokenAsync(Guid? userId, bool isGuest, bool persistent = true, CancellationToken ct = default)
     {
         string raw = GenerateRawToken();
-        DateTime expiresUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenDays);
+
+        // Non-persistent ("don't remember this device"): the cookie dies with the browser,
+        // and the server-side row backs only a day of in-browser refreshes so an exported
+        // session cookie can't quietly outlive the choice (ADR 0004).
+        DateTime expiresUtc = persistent
+            ? DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
+            : DateTime.UtcNow.AddDays(1);
 
         RefreshToken entity = new()
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             IsGuest = isGuest,
+            IsPersistent = persistent,
             TokenHash = Hash(raw),
             CreatedUtc = DateTime.UtcNow,
             ExpiresUtc = expiresUtc
@@ -73,7 +80,7 @@ public class TokenService(FairShareDbContext db, IOptions<JwtOptions> jwtOptions
         _db.RefreshTokens.Add(entity);
         await _db.SaveChangesAsync(ct);
 
-        return new IssuedRefreshToken(raw, expiresUtc);
+        return new IssuedRefreshToken(raw, expiresUtc, persistent);
     }
 
     public async Task<RefreshToken?> ConsumeRefreshTokenAsync(string rawToken, CancellationToken ct = default)

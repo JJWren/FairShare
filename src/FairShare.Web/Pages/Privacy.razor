@@ -1,0 +1,68 @@
+@page "/privacy"
+@attribute [AllowAnonymous]
+
+<PageTitle>FairShare - Privacy</PageTitle>
+
+@* Every sentence on this page must stay literally true of the running code (ADR 0003/0004).
+   If an implementation change would falsify one, change the sentence in the same PR. *@
+<div class="container my-5" style="max-width: 720px;">
+    <h1 class="h3 mb-4">Privacy</h1>
+    <p class="lead">
+        FairShare exists so parents can work out an Alabama child-support number without
+        handing their financial life to anyone - including us.
+    </p>
+
+    <h2 class="h5 mt-4">What you type stays yours</h2>
+    <p>
+        Calculations run against our server, but <strong>nothing you type is stored unless you
+        choose to save it</strong>. Guests can calculate and export freely; no incomes, names,
+        or case details are kept. If you sign in and choose to save parent profiles, they are
+        stored for your account only, and you can delete them - or your entire account - at any time.
+    </p>
+
+    <h2 class="h5 mt-4">Accounts</h2>
+    <p>
+        Sign-in uses your Google account. We store your <strong>email address and a Google
+        account identifier</strong> so you can sign back in - and nothing else Google knows
+        about you (we do not request your name or photo). FairShare never sees or stores a
+        password for Google accounts.
+    </p>
+    <p>
+        "Remember this device" is your call: leave it unchecked (the default) and your sign-in
+        ends when the browser closes; check it and this device stays signed in for 30 days.
+    </p>
+    <p>
+        <strong>Deleting your account deletes everything it owns</strong> - profiles, sessions,
+        the account itself - immediately and permanently. Minimal security records (for example,
+        that an account signed in or was deleted, with its name at the time) are kept for up to
+        one year and then erased; they never contain case content.
+    </p>
+
+    <h2 class="h5 mt-4">Counting visits without tracking you</h2>
+    <p>
+        We count visits with our own code - <strong>no third-party analytics, no advertising
+        scripts, and no cookies for tracking</strong>. Your address and browser details are
+        never stored; they briefly feed a one-way code that changes every day, so we can see
+        "how many people visited today" but <em>cannot</em> recognize you tomorrow, and neither
+        could anyone who obtained the data.
+    </p>
+    <p>
+        If your browser sends Do Not Track or Global Privacy Control, we record
+        <strong>nothing at all</strong>. What we do record is only events like "a calculation
+        was completed" - never the figures in it. Raw records are deleted after 90 days; only
+        daily totals remain.
+    </p>
+
+    <h2 class="h5 mt-4">The only cookie</h2>
+    <p>
+        The single cookie FairShare sets keeps you signed in (including guest sessions). It
+        identifies your session to our server and is never used for tracking or shared with anyone.
+    </p>
+
+    <h2 class="h5 mt-4">Questions</h2>
+    <p>
+        This page describes what the code actually does - the source is public at
+        <a href="https://github.com/JJWren/FairShare" rel="noopener" target="_blank">github.com/JJWren/FairShare</a>,
+        including the decision records that bind us to these behaviors.
+    </p>
+</div>

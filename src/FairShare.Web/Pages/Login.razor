@@ -2,43 +2,96 @@
 @attribute [AllowAnonymous]
 @inject FairShare.Web.Auth.AuthApiClient AuthApi
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
-<PageTitle>FairShare - Login</PageTitle>
+<PageTitle>FairShare - Sign in</PageTitle>
 
 <div class="container my-5" style="max-width: 420px;">
-    <h1 class="h4 mb-4 text-center">Sign in to FairShare</h1>
+    <h1 class="h4 mb-2 text-center">Sign in to FairShare</h1>
+    <p class="text-muted small text-center mb-4">
+        A free account saves your parent profiles so you can come back to them on any device.
+        Nothing you have typed is stored unless you choose to save it.
+    </p>
 
-    <EditForm Model="_model" OnValidSubmit="LoginAsync">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    @if (!string.IsNullOrEmpty(_externalError))
+    {
+        <div class="alert alert-danger py-2">@_externalError</div>
+    }
 
-        <div class="mb-3">
-            <label class="form-label" for="userName">Username</label>
-            <InputText id="userName" class="form-control" @bind-Value="_model.UserName" />
+    @if (_googleEnabled)
+    {
+        <a class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-2" href="@GoogleStartUrl">
+            @* Inline "G" mark - one icon does not justify an icon library (same rule as the export glyph). *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="#fff" d="M21.35 11.1H12v2.9h5.35c-.5 2.5-2.6 3.9-5.35 3.9a6 6 0 1 1 0-12c1.5 0 2.9.55 3.95 1.45l2.2-2.2A9 9 0 1 0 12 21c5.2 0 8.85-3.65 8.85-8.8 0-.4-.05-.75-.1-1.1z"/>
+            </svg>
+            Sign in with Google
+        </a>
+
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="rememberDevice" @bind="_rememberDevice" />
+            <label class="form-check-label" for="rememberDevice">
+                Remember this device
+                <span class="text-muted small d-block">Leave unchecked on a shared computer - you will be signed out when the browser closes.</span>
+            </label>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="password">Password</label>
-            <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
-        </div>
+        <p class="text-muted small mt-2 mb-0">
+            We store only your email address - see the <a href="/privacy">privacy page</a>.
+        </p>
 
-        @if (!string.IsNullOrEmpty(_error))
-        {
-            <div class="alert alert-danger py-2">@_error</div>
-        }
+        <hr class="my-4" />
 
-        <button type="submit" class="btn btn-primary w-100" disabled="@_busy">Login</button>
-    </EditForm>
+        <p class="text-center mb-2">
+            <button type="button" class="btn btn-link btn-sm p-0" @onclick="() => _showLocalForm = !_showLocalForm">
+                Administrator or family sign-in
+            </button>
+        </p>
+    }
 
-    <div class="d-flex justify-content-between mt-3">
-        @if (_allowSelfRegistration)
-        {
-            <a href="/register">Create an account</a>
-        }
-        else
-        {
-            <span></span>
-        }
+    @if (!_googleEnabled || _showLocalForm)
+    {
+        <EditForm Model="_model" OnValidSubmit="LoginAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label" for="userName">Username</label>
+                <InputText id="userName" class="form-control" @bind-Value="_model.UserName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="password">Password</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+            </div>
+
+            @if (_twoFactorRequired)
+            {
+                <div class="mb-3">
+                    <label class="form-label" for="totp">Authenticator code</label>
+                    <InputText id="totp" class="form-control" autocomplete="one-time-code" inputmode="numeric" @bind-Value="_model.TwoFactorCode" />
+                    <div class="form-text">Enter the 6-digit code from your authenticator app.</div>
+                </div>
+            }
+
+            @if (!_googleEnabled)
+            {
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberDeviceLocal" @bind="_rememberDevice" />
+                    <label class="form-check-label" for="rememberDeviceLocal">Remember this device</label>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger py-2">@_error</div>
+            }
+
+            <button type="submit" class="btn btn-outline-primary w-100" disabled="@_busy">Sign in</button>
+        </EditForm>
+    }
+
+    <div class="d-flex justify-content-end mt-3">
         <a href="@SafeReturnTarget">&larr; Back</a>
     </div>
 </div>
@@ -46,26 +99,52 @@
 @code {
     private readonly LoginModel _model = new();
     private string? _error;
+    private string? _externalError;
     private bool _busy;
-    private bool _allowSelfRegistration;
+    private bool _googleEnabled;
+    private bool _showLocalForm;
+    private bool _rememberDevice;
+    private bool _twoFactorRequired;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? ExternalErrorCode { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var config = await AuthApi.GetAuthConfigAsync();
-        _allowSelfRegistration = config.AllowSelfRegistration;
+        _googleEnabled = config.GoogleEnabled;
+
+        _externalError = ExternalErrorCode switch
+        {
+            "google" => "Google sign-in did not complete. Please try again.",
+            "disabled" => "This account is disabled.",
+            _ => null
+        };
     }
+
+    // The Google flow is driven by the API (it holds the client secret), so this is a plain
+    // top-level navigation to the API origin, not an XHR.
+    private string GoogleStartUrl =>
+        $"{Http.BaseAddress}api/v1/auth/google/start?returnUrl={Uri.EscapeDataString(SafeReturnTarget)}&remember={(_rememberDevice ? "true" : "false")}";
 
     private async Task LoginAsync()
     {
         _busy = true;
         _error = null;
 
-        var result = await AuthApi.LoginAsync(_model.UserName, _model.Password);
+        var result = await AuthApi.LoginAsync(_model.UserName, _model.Password, _model.TwoFactorCode, _rememberDevice);
 
         _busy = false;
+
+        if (result.RequiresTwoFactor)
+        {
+            _twoFactorRequired = true;
+            _error = result.Error;
+            return;
+        }
 
         if (!result.Success)
         {
@@ -93,5 +172,7 @@
 
         [System.ComponentModel.DataAnnotations.Required]
         public string Password { get; set; } = string.Empty;
+
+        public string? TwoFactorCode { get; set; }
     }
 }

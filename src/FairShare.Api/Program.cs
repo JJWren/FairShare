@@ -92,14 +92,36 @@ builder.Services.AddOptions<JwtOptions>()
 
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection("AdminSeed"));
 
-builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
-
-builder.Services.AddAuthentication(options =>
+var authenticationBuilder = builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer();
+
+// Google sign-in (ADR 0004): the API drives the code flow because the client secret lives
+// here. Registered only when configured - unconfigured instances simply have no public
+// sign-up (GET /auth/config tells the SPA). The External cookie is single-purpose
+// transport between the Google callback and /auth/google/complete.
+string? googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+if (!string.IsNullOrWhiteSpace(googleClientId))
+{
+    authenticationBuilder
+        .AddCookie(FairShare.Api.Controllers.AuthController.ExternalScheme, options =>
+        {
+            options.Cookie.Name = "fairshare_external";
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+        })
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
+            options.SignInScheme = FairShare.Api.Controllers.AuthController.ExternalScheme;
+            // Minimal data (ADR 0004): openid + email; the profile scope (name, photo) is
+            // deliberately not requested - we would not store it anyway.
+            options.Scope.Remove("profile");
+        });
+}
 
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<Microsoft.Extensions.Options.IOptions<JwtOptions>>((jwtBearerOptions, jwtOptionsAccessor) =>
