@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.1.0...fairshare-v4.0.0) (2026-08-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* POST /auth/register removed; GET /auth/config now returns { googleEnabled } instead of { allowSelfRegistration }.
+
+### Features
+
+* donations - Support page, footer link, first-party donate redirect ([#107](https://github.com/JJWren/FairShare/issues/107)) ([9b354de](https://github.com/JJWren/FairShare/commit/9b354debba26d6ef072f5b636d46301dad84d99a))
+* public sign-in — Google OAuth, remember-device, carry-over, hard delete, admin TOTP ([#104](https://github.com/JJWren/FairShare/issues/104)) ([9566549](https://github.com/JJWren/FairShare/commit/9566549eb3b449128cfd976baac584294c21ed21))
+
 ## [3.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.0.0...fairshare-v3.1.0) (2026-08-20)
 
 
