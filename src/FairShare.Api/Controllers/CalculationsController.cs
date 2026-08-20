@@ -1,4 +1,7 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FairShare.Api.Observability;
 using FairShare.Api.Services.Export;
 using FairShare.Contracts.Calculation;
 using FairShare.Domain.Helpers;
@@ -12,13 +15,14 @@ namespace FairShare.Api.Controllers;
 [ApiController]
 [Route("api/v1/states/{state}/forms/{form}/calculations")]
 [Authorize]
-public class CalculationsController(IStateGuidelineCatalog catalog, IWorksheetExporter exporter) : ControllerBase
+public class CalculationsController(IStateGuidelineCatalog catalog, IWorksheetExporter exporter, IAnalyticsService analytics) : ControllerBase
 {
     private readonly IStateGuidelineCatalog _catalog = catalog;
     private readonly IWorksheetExporter _exporter = exporter;
+    private readonly IAnalyticsService _analytics = analytics;
 
     [HttpPost]
-    public ActionResult<CalculationResponse> Calculate(string state, string form, [FromBody] CalculationRequest request)
+    public async Task<ActionResult<CalculationResponse>> Calculate(string state, string form, [FromBody] CalculationRequest request, CancellationToken ct)
     {
         IChildSupportCalculator? calculator = _catalog.GetCalculator(state, form);
 
@@ -27,10 +31,20 @@ public class CalculationsController(IStateGuidelineCatalog catalog, IWorksheetEx
             return NotFound(new { message = $"No calculator registered for {state}/{form}." });
         }
 
+        // Engagement telemetry (ADR 0003): the form key is the whole target - never inputs
+        // or results. "started" = a calculation was attempted, "completed" = it succeeded.
+        string eventTarget = $"{state}/{form}".ToLowerInvariant();
+        await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.CalculationStarted, eventTarget, ct);
+
         ParentData plaintiff = ToParentData(request.Plaintiff);
         ParentData defendant = ToParentData(request.Defendant);
 
         CalculationResult result = calculator.Calculate(plaintiff, defendant, request.NumberOfChildren);
+
+        if (result.Success)
+        {
+            await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.CalculationCompleted, eventTarget, ct);
+        }
 
         return Ok(ToResponse(result));
     }

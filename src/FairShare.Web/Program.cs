@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using FairShare.Web;
 using FairShare.Web.Auth;
+using FairShare.Web.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -36,6 +37,7 @@ builder.Services.AddHttpClient("Api", client => client.BaseAddress = new Uri(api
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 builder.Services.AddScoped<AuthApiClient>();
+builder.Services.AddSingleton<AnalyticsBeacon>();
 
 WebAssemblyHost host = builder.Build();
 
@@ -50,5 +52,10 @@ if (!await authApi.TryRefreshAsync())
 {
     await authApi.TryStartGuestSessionAsync();
 }
+
+// After auth bootstrap so the beacon's requests carry the session's own token (which is
+// how the server excludes the admin's browsing). Deliberately not awaited: analytics
+// must never delay first render.
+_ = host.Services.GetRequiredService<AnalyticsBeacon>().StartAsync();
 
 await host.RunAsync();

@@ -1,0 +1,23 @@
+@inject NavigationManager Navigation
+@inject FairShare.Web.Services.AnalyticsBeacon Beacon
+
+@* Shown when a guest lands on a users-only page. This is the conversion moment, so it is
+   also where the anonymous gated-hit signal is recorded (ADR 0003). *@
+<div class="container my-5 text-center">
+    <h3>Sign in to use this feature</h3>
+    <p class="text-muted mb-1">Saving and managing parent profiles needs a free account.</p>
+    <p class="text-muted">Nothing you have typed is stored unless you choose to save it.</p>
+    <a class="btn btn-primary" href="@LoginHref">Sign in</a>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        string relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+        string gate = relative.Split('?', '#')[0].Trim('/').Split('/')[0].ToLowerInvariant();
+        await Beacon.TrackGatedHitAsync(gate.Length == 0 ? "home" : gate);
+    }
+
+    private string LoginHref =>
+        $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";
+}

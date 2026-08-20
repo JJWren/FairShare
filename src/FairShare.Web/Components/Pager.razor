@@ -1,0 +1,18 @@
+@* Previous/next pager shared by the admin log and audit tables. *@
+@if (TotalPages > 1)
+{
+    <nav aria-label="Pagination" class="d-flex gap-2 align-items-center">
+        <button class="btn btn-sm btn-outline-secondary" disabled="@(Page <= 1)" @onclick="() => OnChange.InvokeAsync(Page - 1)">Previous</button>
+        <span class="small text-muted">Page @Page of @TotalPages</span>
+        <button class="btn btn-sm btn-outline-secondary" disabled="@(Page >= TotalPages)" @onclick="() => OnChange.InvokeAsync(Page + 1)">Next</button>
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired] public int Page { get; set; }
+    [Parameter, EditorRequired] public int TotalCount { get; set; }
+    [Parameter, EditorRequired] public int PageSize { get; set; }
+    [Parameter] public EventCallback<int> OnChange { get; set; }
+
+    private int TotalPages => Math.Max(1, (TotalCount + PageSize - 1) / PageSize);
+}

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using FairShare.Api.Auth;
 using FairShare.Api.Models;
+using FairShare.Api.Observability;
 using FairShare.Contracts.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,11 +17,12 @@ namespace FairShare.Api.Controllers;
 [Authorize(Policy = "AdminOnly")]
 [ApiController]
 [Route("api/v1/admin/users")]
-public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm, ITokenService tokenService) : ControllerBase
+public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm, ITokenService tokenService, IAuditService audit) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = um;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = rm;
     private readonly ITokenService _tokenService = tokenService;
+    private readonly IAuditService _audit = audit;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserListItem>>> GetUsers(string filter = "all")
@@ -86,6 +88,7 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         if (!result.Succeeded) return BadRequest(result.Errors);
 
         await _userManager.AddToRoleAsync(user, model.Role);
+        await _audit.WriteAsync(AuditActions.UserCreated, target: user.UserName, detail: $"role {model.Role}");
         return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
     }
 
@@ -111,6 +114,11 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
             await _userManager.RemoveFromRolesAsync(user, existingRoles);
             await _userManager.AddToRoleAsync(user, model.Role);
         }
+
+        await _audit.WriteAsync(
+            AuditActions.UserUpdated,
+            target: user.UserName,
+            detail: $"role {model.Role}{(model.IsDisabled ? ", disabled" : string.Empty)}");
 
         return NoContent();
     }
@@ -150,6 +158,7 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         }
 
         await _tokenService.RevokeAllForUserAsync(user.Id, ct);
+        await _audit.WriteAsync(AuditActions.PasswordReset, target: user.UserName, ct: ct);
 
         return NoContent();
     }
@@ -170,6 +179,7 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         if (user is null) return NotFound();
 
         await _userManager.DeleteAsync(user);
+        await _audit.WriteAsync(AuditActions.UserDeleted, target: user.UserName);
         return NoContent();
     }
 }

@@ -30,6 +30,12 @@ services:
       retries: 6
       start_period: 15s
     restart: unless-stopped
+    # Cap stdout logs: durable logs now live in SQLite (admin > Logs), stdout is a fallback.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build:
@@ -49,6 +55,11 @@ services:
       timeout: 3s
       retries: 6
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   fairshare-data:
