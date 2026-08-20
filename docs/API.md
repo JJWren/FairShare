@@ -184,6 +184,39 @@ Saved parent profiles. **Ownership-scoped**: every query filters by the authenti
 
 ---
 
+## Analytics beacon — `/api/v1/analytics` (anonymous)
+
+First-party, cookieless capture endpoints for the SPA (see `docs/adr/0003-first-party-cookieless-analytics.md`). Both return **204 regardless of whether anything was recorded** — the server applies every rule (DNT/`Sec-GPC` opt-out, bot user-agents, excluded paths, admin's own browsing) and callers cannot observe the outcome. No cookies, no identifiers: visitors are counted by a daily-rotating HMAC that cannot link two days together.
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/analytics/page-views` | `{ "path": "/states/al/cs42", "referrer": "https://..." }`. `referrer` only on the SPA's first load. |
+| POST | `/analytics/events` | `{ "name": "gated-hit", "target": "profiles" }`. Only whitelisted client event names are accepted (`gated-hit`); server-observed events (calculations) are recorded server-side and cannot be posted. Targets are restricted to short kebab-case tokens. |
+
+## Admin stats — `/api/v1/admin/stats` (Bearer + Admin role)
+
+`days` selects the period ending today (`7`, `30`, ...); omit or `0` for all time. Completed days come from nightly rollups; today is computed live.
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/admin/stats/summary?days=30` | Tiles: `{ pageViews, dailyVisitors, calculationsCompleted, gatedHits, donateClicks, firstDay }`. |
+| GET | `/admin/stats/pages?days=&page=&pageSize=&sort=views\|visitors\|path&desc=` | Top pages, paged: `{ items: [{ path, views, visitors }], page, pageSize, totalCount }`. |
+| GET | `/admin/stats/referrers?days=` | Top 10 external referrer hosts: `[{ referrerHost, views }]`. |
+| GET | `/admin/stats/events?days=` | Event counts: `[{ name, target, count }]`, descending. |
+
+## Admin logs — `/api/v1/admin/logs` (Bearer + Admin role)
+
+Diagnostic logs persist 30 days; audit events ~1 year (and survive account deletion). Verbose mode raises capture to Debug and **always turns itself back off** (~4 h or process restart); toggling it is itself an audit event.
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/admin/logs?level=&search=&page=&pageSize=` | Diagnostic logs, newest first. `level` = minimum (`Debug`/`Information`/`Warning`/`Error`); `search` matches message and category. |
+| GET | `/admin/logs/audit?page=&pageSize=` | Audit events, newest first: `{ items: [{ occurredAtUtc, actorName, action, target, detail }], ... }`. |
+| GET | `/admin/logs/verbose` | `{ "enabled": bool, "untilUtc": "..." }`. |
+| PUT | `/admin/logs/verbose` | `{ "enabled": true\|false }` → the new status. |
+
+---
+
 ## Misc
 
 | Method | Path | Auth | Description |

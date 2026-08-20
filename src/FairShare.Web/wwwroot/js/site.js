@@ -13,6 +13,19 @@ window.fairshareDownload = {
     }
 };
 
+// First-party analytics helpers: browser privacy signals and the first-load referrer.
+// No cookies, no identifiers, nothing stored client-side (ADR 0003).
+window.fairshareAnalytics = {
+    isOptedOut: function () {
+        return navigator.doNotTrack === '1'
+            || window.doNotTrack === '1'
+            || navigator.globalPrivacyControl === true;
+    },
+    referrer: function () {
+        return document.referrer || null;
+    }
+};
+
 window.fairshareTheme = {
     THEME_KEY: 'fairshare-theme',
     apply: function (theme) {

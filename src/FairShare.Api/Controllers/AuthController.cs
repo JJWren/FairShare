@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FairShare.Api.Auth;
 using FairShare.Api.Models;
+using FairShare.Api.Observability;
 using FairShare.Contracts.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,8 @@ public class AuthController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     ITokenService tokenService,
-    IOptions<AuthOptions> authOptions) : ControllerBase
+    IOptions<AuthOptions> authOptions,
+    IAuditService audit) : ControllerBase
 {
     private const string RefreshCookieName = "fairshare_refresh";
 
@@ -29,6 +31,7 @@ public class AuthController(
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly ITokenService _tokenService = tokenService;
     private readonly AuthOptions _authOptions = authOptions.Value;
+    private readonly IAuditService _audit = audit;
 
     [HttpGet("config")]
     [AllowAnonymous]
@@ -65,6 +68,7 @@ public class AuthController(
         }
 
         await _userManager.AddToRoleAsync(user, "User");
+        await _audit.WriteAsync(AuditActions.Registered, target: user.UserName, ct: ct);
 
         return await IssueTokensAsync(user, ct);
     }
@@ -78,6 +82,9 @@ public class AuthController(
 
         if (user is null || user.IsDisabled)
         {
+            // The attempted username is an identifier, not case content; recording it is
+            // what makes credential-stuffing visible in the audit view.
+            await _audit.WriteAsync(AuditActions.LoginFailed, target: request.UserName, detail: user is null ? "unknown user" : "disabled", ct: ct);
             return Unauthorized();
         }
 
@@ -85,9 +92,11 @@ public class AuthController(
 
         if (!signIn.Succeeded)
         {
+            await _audit.WriteAsync(AuditActions.LoginFailed, target: user.UserName, detail: signIn.IsLockedOut ? "locked out" : "bad password", ct: ct);
             return Unauthorized();
         }
 
+        await _audit.WriteAsync(AuditActions.LoginSucceeded, target: user.UserName, ct: ct);
         return await IssueTokensAsync(user, ct);
     }
 
@@ -170,6 +179,7 @@ public class AuthController(
         // Kill every other session, then re-issue for this one so the caller stays
         // signed in while stolen/old refresh tokens die immediately.
         await _tokenService.RevokeAllForUserAsync(user.Id, ct);
+        await _audit.WriteAsync(AuditActions.PasswordChanged, target: user.UserName, ct: ct);
 
         return await IssueTokensAsync(user, ct);
     }

@@ -20,6 +20,8 @@ using FairShare.Api.Services;
 using FairShare.Api.Services.Export;
 using FairShare.Api.Options;
 using FairShare.Api.Middleware;
+using FairShare.Api.Observability;
+using Microsoft.Extensions.Logging;
 using FairShare.Domain.Interfaces;
 using FairShare.Domain.Calculators;
 using FairShare.Domain.Services;
@@ -220,6 +222,20 @@ builder.Services.AddScoped<IParentProfileService, ParentProfileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<AdminSeeder>();
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
+
+// Observability (ADR 0003): first-party log persistence, audit trail, and analytics.
+// The provider is registered through DI so the sink can share its channel instance;
+// appsettings gives the "Sqlite" alias a permissive framework filter and the
+// LogLevelSwitch does the real (runtime-adjustable) filtering.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<LogLevelSwitch>();
+builder.Services.AddSingleton<SqliteLoggerProvider>();
+builder.Services.AddSingleton<ILoggerProvider>(sp => sp.GetRequiredService<SqliteLoggerProvider>());
+builder.Services.AddHostedService<LogSink>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddSingleton<AnalyticsSecretProvider>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddHostedService<ObservabilityMaintenanceService>();
 
 var app = builder.Build();
 

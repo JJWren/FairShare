@@ -1,0 +1,197 @@
+@page "/admin/stats"
+@using FairShare.Contracts.Observability
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject HttpClient Http
+
+<PageTitle>FairShare - Stats</PageTitle>
+
+<div class="container my-4">
+    <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+        <h2 class="mb-0">Stats</h2>
+        <select @bind="days" @bind:after="LoadAllAsync" class="form-select" style="width: auto;" aria-label="Period">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last 365 days</option>
+            <option value="0">All time</option>
+        </select>
+        @if (summary?.FirstDay is DateOnly first && days == 0)
+        {
+            <span class="text-muted small">since @first.ToString("yyyy-MM-dd")</span>
+        }
+    </div>
+
+    @if (loadFailed)
+    {
+        <div class="alert alert-warning" role="alert">Could not load statistics. Try again shortly.</div>
+    }
+    else if (summary is null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            <StatTile Label="Page views" Value="@summary.PageViews" />
+            <StatTile Label="Daily visitors" Value="@summary.DailyVisitors" />
+            <StatTile Label="Calculations" Value="@summary.CalculationsCompleted" />
+            <StatTile Label="Gated hits" Value="@summary.GatedHits" />
+            <StatTile Label="Donate clicks" Value="@summary.DonateClicks" />
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <h5>Top pages</h5>
+                @if (pages is null || pages.Items.Count == 0)
+                {
+                    <p class="text-muted">No page views in this period.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th role="button" @onclick='() => SortPages("path")'>Path @SortMarker("path")</th>
+                                    <th role="button" class="text-end" @onclick='() => SortPages("views")'>Views @SortMarker("views")</th>
+                                    <th role="button" class="text-end" @onclick='() => SortPages("visitors")'>Visitors @SortMarker("visitors")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (PageStatRow row in pages.Items)
+                                {
+                                    <tr>
+                                        <td><code>@row.Path</code></td>
+                                        <td class="text-end">@row.Views</td>
+                                        <td class="text-end">@row.Visitors</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (pages.TotalCount > pages.PageSize)
+                    {
+                        <nav aria-label="Top pages pagination" class="d-flex gap-2 align-items-center">
+                            <button class="btn btn-sm btn-outline-secondary" disabled="@(page <= 1)" @onclick="() => ChangePageAsync(-1)">Previous</button>
+                            <span class="small text-muted">Page @(page) of @TotalPages</span>
+                            <button class="btn btn-sm btn-outline-secondary" disabled="@(page >= TotalPages)" @onclick="() => ChangePageAsync(1)">Next</button>
+                        </nav>
+                    }
+                }
+            </div>
+            <div class="col-lg-5">
+                <h5>Top referrers</h5>
+                @if (referrers is null || referrers.Count == 0)
+                {
+                    <p class="text-muted">No external referrers in this period.</p>
+                }
+                else
+                {
+                    <table class="table table-striped table-sm align-middle">
+                        <thead><tr><th>Referrer</th><th class="text-end">Views</th></tr></thead>
+                        <tbody>
+                            @foreach (ReferrerStatRow row in referrers)
+                            {
+                                <tr><td>@row.ReferrerHost</td><td class="text-end">@row.Views</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                <h5 class="mt-4">Events</h5>
+                @if (events is null || events.Count == 0)
+                {
+                    <p class="text-muted">No events in this period.</p>
+                }
+                else
+                {
+                    <table class="table table-striped table-sm align-middle">
+                        <thead><tr><th>Event</th><th class="text-end">Count</th></tr></thead>
+                        <tbody>
+                            @foreach (EventStatRow row in events)
+                            {
+                                <tr>
+                                    <td>@row.Name@(row.Target is null ? string.Empty : $" · {row.Target}")</td>
+                                    <td class="text-end">@row.Count</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private int days = 30;
+    private int page = 1;
+    private const int PageSize = 10;
+    private string sort = "views";
+    private bool desc = true;
+    private bool loadFailed;
+
+    private StatsSummaryResponse? summary;
+    private PagedResult<PageStatRow>? pages;
+    private List<ReferrerStatRow>? referrers;
+    private List<EventStatRow>? events;
+
+    private int TotalPages => pages is null ? 1 : Math.Max(1, (pages.TotalCount + PageSize - 1) / PageSize);
+
+    protected override Task OnInitializedAsync() => LoadAllAsync();
+
+    private async Task LoadAllAsync()
+    {
+        page = 1;
+        loadFailed = false;
+
+        try
+        {
+            summary = await Http.GetFromJsonAsync<StatsSummaryResponse>($"api/v1/admin/stats/summary?days={days}");
+            referrers = await Http.GetFromJsonAsync<List<ReferrerStatRow>>($"api/v1/admin/stats/referrers?days={days}");
+            events = await Http.GetFromJsonAsync<List<EventStatRow>>($"api/v1/admin/stats/events?days={days}");
+            await LoadPagesAsync();
+        }
+        catch (HttpRequestException)
+        {
+            loadFailed = true;
+        }
+    }
+
+    private async Task LoadPagesAsync()
+    {
+        try
+        {
+            pages = await Http.GetFromJsonAsync<PagedResult<PageStatRow>>(
+                $"api/v1/admin/stats/pages?days={days}&page={page}&pageSize={PageSize}&sort={sort}&desc={desc}");
+        }
+        catch (HttpRequestException)
+        {
+            loadFailed = true;
+        }
+    }
+
+    private async Task SortPages(string column)
+    {
+        if (sort == column)
+        {
+            desc = !desc;
+        }
+        else
+        {
+            sort = column;
+            desc = column != "path";
+        }
+
+        page = 1;
+        await LoadPagesAsync();
+    }
+
+    private async Task ChangePageAsync(int delta)
+    {
+        page = Math.Clamp(page + delta, 1, TotalPages);
+        await LoadPagesAsync();
+    }
+
+    private string SortMarker(string column) => sort != column ? string.Empty : desc ? "▼" : "▲";
+}

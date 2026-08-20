@@ -4,7 +4,13 @@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
-                @if (context.User.Identity?.IsAuthenticated == true)
+                @if (context.User.HasClaim("guest", "true"))
+                {
+                    @* A guest on a users-only page is a would-be convert, not an intruder:
+                       invite the sign-in (and count the gated hit) instead of denying. *@
+                    <GatedSignInPrompt />
+                }
+                else if (context.User.Identity?.IsAuthenticated == true)
                 {
                     @* Signed in but lacking the required role/policy (e.g. non-admin on
                        /admin/users) - bouncing to /login would be misleading. *@

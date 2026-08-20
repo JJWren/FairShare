@@ -1,0 +1,14 @@
+@* One number-with-label card for the admin stats page. *@
+<div class="col-6 col-md-4 col-xl">
+    <div class="card text-center h-100">
+        <div class="card-body py-3">
+            <div class="fs-3 fw-semibold">@Value</div>
+            <div class="text-muted small">@Label</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public long Value { get; set; }
+}

@@ -41,7 +41,18 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | Term | Meaning |
 |---|---|
 | **Guest** | The default identity — anyone who has not signed in. A guest can calculate and export, never persist. |
-| **User / Admin** | Admin-provisioned accounts. A user additionally saves parent profiles; an admin additionally manages accounts. |
+| **User / Admin** | Signed-in accounts — a user signs in with an outside identity provider (or is admin-provisioned); an account is free. A user additionally saves parent profiles; an admin additionally manages accounts. |
+| **Guest work** | A guest's in-progress calculation. It lives only in their browser and is never stored unless they sign in and choose to save it. |
+| **Gated feature** | A capability reserved for users (e.g. saving a profile). The moment a guest reaches one is the invitation to sign in. |
+
+## Observability vocabulary
+
+| Term | Meaning |
+|---|---|
+| **Daily visitor** | A person counted at most once per UTC day by an anonymous key that cannot connect them across days. Never call this a "unique visitor" or "returning visitor" — FairShare cannot know either. |
+| **Audit event** | A record that an account did something accountability cares about (signed in, was created, changed, or deleted). Kept longer than diagnostic logs; outlives the account it names until it expires. |
+| **Diagnostic log** | A record of what the system did, kept briefly for troubleshooting. Never contains case content, names, or money amounts. |
+| **Verbose mode** | A temporary admin-switched state in which diagnostic logs capture extra detail. It always turns itself back off. |
 
 ## Fidelity vocabulary
 
