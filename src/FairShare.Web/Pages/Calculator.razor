@@ -1,11 +1,13 @@
 @page "/States/{State}/{Form?}"
 @attribute [Authorize]
+@implements IDisposable
 @using FairShare.Contracts.Calculation
 @using FairShare.Contracts.Catalog
 @using FairShare.Contracts.Parents
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject FairShare.Web.Services.AnalyticsBeacon Beacon
 
 <PageTitle>FairShare - @State - @(CurrentForm?.DisplayName ?? Form) Calculator</PageTitle>
 
@@ -65,6 +67,19 @@
     {
         <div class="alert alert-info py-2 small text-center">
             Mark exactly one parent as having Primary Custody.
+        </div>
+    }
+
+    @if (showImportPrompt)
+    {
+        @* The conversion moment (ADR 0004): a guest's work followed them through sign-in;
+           nothing is saved without an explicit yes. *@
+        <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2" role="alert">
+            <span>Welcome back - your figures came with you. Save these parents to your account?</span>
+            <span class="d-flex gap-2">
+                <button class="btn btn-sm btn-success" @onclick="ImportStashAsync">Save to my account</button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => showImportPrompt = false">Not now</button>
+            </span>
         </div>
     }
 
@@ -245,6 +260,96 @@
         {
             await LoadSavedProfilesAsync();
         }
+
+        await RestoreStashAsync();
+    }
+
+    // ---- Sign-in stash (ADR 0004): work survives the round-trip through /login ------
+    // Dispose writes the in-progress figures to sessionStorage whenever the visitor leaves
+    // this page (heading to the login page, and from there possibly through the Google
+    // redirect); the next visit restores them. The stash never leaves the browser.
+
+    private const string StashKey = "fairshare-signin-stash";
+    private bool showImportPrompt;
+
+    public void Dispose()
+    {
+        if (!HasEnteredData || JS is not IJSInProcessRuntime syncJs)
+        {
+            return;
+        }
+
+        try
+        {
+            SignInStash stash = new()
+            {
+                NumberOfChildren = numberOfChildren,
+                Plaintiff = plaintiff,
+                Defendant = defendant,
+                PlaintiffName = plaintiffName,
+                DefendantName = defendantName
+            };
+
+            syncJs.InvokeVoid("sessionStorage.setItem", StashKey, System.Text.Json.JsonSerializer.Serialize(stash));
+        }
+        catch (Exception)
+        {
+            // Losing the stash only costs convenience; leaving the page must never fail.
+        }
+    }
+
+    private async Task RestoreStashAsync()
+    {
+        try
+        {
+            string? json = await JS.InvokeAsync<string?>("sessionStorage.getItem", StashKey);
+
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            await JS.InvokeVoidAsync("sessionStorage.removeItem", StashKey);
+
+            SignInStash? stash = System.Text.Json.JsonSerializer.Deserialize<SignInStash>(json);
+
+            if (stash is null)
+            {
+                return;
+            }
+
+            numberOfChildren = stash.NumberOfChildren is >= 1 and <= 6 ? stash.NumberOfChildren : 1;
+            plaintiff.ApplyFrom(stash.Plaintiff);
+            defendant.ApplyFrom(stash.Defendant);
+            plaintiffName = stash.PlaintiffName;
+            defendantName = stash.DefendantName;
+
+            // The explicit yes/no is the point: a signed-in user with named parents gets
+            // asked; nothing is written without the answer (fires on every sign-in, not
+            // just the first).
+            showImportPrompt = !isGuest
+                && (!string.IsNullOrWhiteSpace(plaintiffName) || !string.IsNullOrWhiteSpace(defendantName));
+        }
+        catch (Exception)
+        {
+            // A corrupt or unreadable stash is discarded silently.
+        }
+    }
+
+    private async Task ImportStashAsync()
+    {
+        showImportPrompt = false;
+        await SaveParentsAsync();
+        await Beacon.TrackEventAsync("guest-work-imported", target: null);
+    }
+
+    private sealed class SignInStash
+    {
+        public int NumberOfChildren { get; set; } = 1;
+        public ParentDataDto Plaintiff { get; set; } = new();
+        public ParentDataDto Defendant { get; set; } = new();
+        public string? PlaintiffName { get; set; }
+        public string? DefendantName { get; set; }
     }
 
     // Switching forms navigates between URLs that resolve to this same component, so Blazor reuses the

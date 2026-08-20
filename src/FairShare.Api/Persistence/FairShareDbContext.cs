@@ -35,6 +35,10 @@ public class FairShareDbContext : IdentityDbContext<ApplicationUser, IdentityRol
         {
             b.HasKey(t => t.Id);
             b.Property(t => t.TokenHash).IsRequired();
+            // Default TRUE so rows minted before remember-this-device existed keep the
+            // 30-day behavior they were issued with - the migration must not downgrade
+            // live sessions.
+            b.Property(t => t.IsPersistent).HasDefaultValue(true);
             b.HasIndex(t => t.TokenHash).IsUnique();
             b.HasIndex(t => t.UserId);
         });

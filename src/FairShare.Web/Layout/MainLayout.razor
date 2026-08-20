@@ -7,8 +7,9 @@
     @Body
 </main>
 
-<footer class="container small text-muted py-4">
-    &copy; @DateTime.UtcNow.Year - FairShare v@(AppVersion)
+<footer class="container small text-muted py-4 d-flex gap-3 flex-wrap">
+    <span>&copy; @DateTime.UtcNow.Year - FairShare v@(AppVersion)</span>
+    <a href="/privacy" class="link-secondary">Privacy</a>
 </footer>
 
 @code {

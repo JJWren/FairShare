@@ -1,0 +1,251 @@
+@page "/account"
+@using FairShare.Contracts.Auth
+@attribute [Authorize(Policy = "NotGuest")]
+@inject FairShare.Web.Auth.AuthApiClient AuthApi
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>FairShare - Account</PageTitle>
+
+<div class="container my-5" style="max-width: 560px;">
+    <h1 class="h4 mb-4">Your account</h1>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h2 class="h6">Display name</h2>
+            <p class="text-muted small">Shown in the navbar and result captions - change it to whatever you like.</p>
+            <div class="d-flex gap-2">
+                <input class="form-control" style="max-width: 16rem;" aria-label="Display name" @bind="_newUserName" />
+                <button class="btn btn-outline-primary" @onclick="SaveUserNameAsync" disabled="@_busy">Save</button>
+            </div>
+            @if (!string.IsNullOrEmpty(_nameMessage))
+            {
+                <div class="small mt-2 @(_nameSaved ? "text-success" : "text-danger")">@_nameMessage</div>
+            }
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h2 class="h6">Password</h2>
+            <p class="text-muted small mb-2">Accounts created with Google have no FairShare password.</p>
+            <a class="btn btn-outline-secondary btn-sm" href="/account/change-password">Change password</a>
+        </div>
+    </section>
+
+    <AuthorizeView Policy="AdminOnly">
+        <Authorized Context="adminContext">
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h2 class="h6">Two-factor authentication</h2>
+                    <p class="text-muted small">An authenticator-app code on top of your password. Required posture for the admin account.</p>
+
+                    @if (_twoFactorEnabled is null)
+                    {
+                        <p class="text-muted small mb-0">Checking status...</p>
+                    }
+                    else if (_twoFactorEnabled == true)
+                    {
+                        <p class="mb-2"><span class="badge text-bg-success">Enabled</span></p>
+                        <div class="d-flex gap-2">
+                            <input class="form-control" style="max-width: 10rem;" aria-label="Authenticator code" placeholder="6-digit code" inputmode="numeric" @bind="_totpCode" />
+                            <button class="btn btn-outline-danger" @onclick="DisableTwoFactorAsync" disabled="@_busy">Disable</button>
+                        </div>
+                    }
+                    else if (_setup is null)
+                    {
+                        <p class="mb-2"><span class="badge text-bg-warning">Not enabled</span></p>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="StartTwoFactorSetupAsync" disabled="@_busy">Set up authenticator</button>
+                    }
+                    else
+                    {
+                        <ol class="small">
+                            <li>Add FairShare to your authenticator app with this key (or the link below):
+                                <div class="my-2"><code>@_setup.SharedKey</code></div>
+                                <div class="text-break small"><a href="@_setup.AuthenticatorUri">@_setup.AuthenticatorUri</a></div>
+                            </li>
+                            <li class="mt-2">Enter the app's current 6-digit code to turn it on:</li>
+                        </ol>
+                        <div class="d-flex gap-2">
+                            <input class="form-control" style="max-width: 10rem;" aria-label="Authenticator code" placeholder="6-digit code" inputmode="numeric" @bind="_totpCode" />
+                            <button class="btn btn-primary" @onclick="EnableTwoFactorAsync" disabled="@_busy">Enable</button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(_totpMessage))
+                    {
+                        <div class="small mt-2 text-danger">@_totpMessage</div>
+                    }
+                </div>
+            </section>
+        </Authorized>
+    </AuthorizeView>
+
+    <section class="card border-danger">
+        <div class="card-body">
+            <h2 class="h6 text-danger">Delete account</h2>
+            <p class="text-muted small">
+                Permanently deletes your account, saved parent profiles, and sessions - immediately,
+                with no recovery. Minimal security records (that the account existed and was deleted)
+                remain for up to a year; see the <a href="/privacy">privacy page</a>.
+            </p>
+            <label class="form-label small" for="deleteConfirm">Type <strong>DELETE</strong> to confirm:</label>
+            <div class="d-flex gap-2">
+                <input id="deleteConfirm" class="form-control" style="max-width: 10rem;" @bind="_deleteConfirm" @bind:event="oninput" />
+                <button class="btn btn-danger" @onclick="DeleteAccountAsync"
+                        disabled="@(_busy || _deleteConfirm != "DELETE")">Delete my account</button>
+            </div>
+            @if (!string.IsNullOrEmpty(_deleteMessage))
+            {
+                <div class="small mt-2 text-danger">@_deleteMessage</div>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    private string _newUserName = string.Empty;
+    private string? _nameMessage;
+    private bool _nameSaved;
+    private bool _busy;
+
+    private bool? _twoFactorEnabled;
+    private TwoFactorSetupResponse? _setup;
+    private string _totpCode = string.Empty;
+    private string? _totpMessage;
+
+    private string _deleteConfirm = string.Empty;
+    private string? _deleteMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            AuthenticationState state = await AuthStateTask;
+            _newUserName = state.User.Identity?.Name ?? string.Empty;
+
+            if (state.User.IsInRole("Admin"))
+            {
+                await LoadTwoFactorStatusAsync();
+            }
+        }
+    }
+
+    private async Task SaveUserNameAsync()
+    {
+        _busy = true;
+        _nameMessage = null;
+
+        var result = await AuthApi.ChangeUserNameAsync(_newUserName.Trim());
+
+        _busy = false;
+        _nameSaved = result.Success;
+        _nameMessage = result.Success ? "Saved." : result.Error;
+    }
+
+    private async Task LoadTwoFactorStatusAsync()
+    {
+        try
+        {
+            TwoFactorStatusResponse? status = await Http.GetFromJsonAsync<TwoFactorStatusResponse>("api/v1/auth/2fa/status");
+            _twoFactorEnabled = status?.Enabled ?? false;
+        }
+        catch (Exception)
+        {
+            _twoFactorEnabled = false;
+        }
+    }
+
+    private async Task StartTwoFactorSetupAsync()
+    {
+        _busy = true;
+        _totpMessage = null;
+
+        try
+        {
+            _setup = await Http.GetFromJsonAsync<TwoFactorSetupResponse>("api/v1/auth/2fa/setup");
+        }
+        catch (Exception)
+        {
+            _totpMessage = "Could not start setup. Try again.";
+        }
+
+        _busy = false;
+    }
+
+    private async Task EnableTwoFactorAsync()
+    {
+        _busy = true;
+        _totpMessage = null;
+
+        try
+        {
+            HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/auth/2fa/enable", new TwoFactorCodeRequest { Code = _totpCode });
+
+            if (response.IsSuccessStatusCode)
+            {
+                _twoFactorEnabled = true;
+                _setup = null;
+                _totpCode = string.Empty;
+            }
+            else
+            {
+                _totpMessage = await FairShare.Web.Auth.AuthApiClient.TryReadFirstProblemErrorAsync(response) ?? "The code did not match.";
+            }
+        }
+        catch (Exception)
+        {
+            _totpMessage = "Could not reach the server. Try again.";
+        }
+
+        _busy = false;
+    }
+
+    private async Task DisableTwoFactorAsync()
+    {
+        _busy = true;
+        _totpMessage = null;
+
+        try
+        {
+            HttpResponseMessage response = await Http.PostAsJsonAsync("api/v1/auth/2fa/disable", new TwoFactorCodeRequest { Code = _totpCode });
+
+            if (response.IsSuccessStatusCode)
+            {
+                _twoFactorEnabled = false;
+                _totpCode = string.Empty;
+            }
+            else
+            {
+                _totpMessage = await FairShare.Web.Auth.AuthApiClient.TryReadFirstProblemErrorAsync(response) ?? "The code did not match.";
+            }
+        }
+        catch (Exception)
+        {
+            _totpMessage = "Could not reach the server. Try again.";
+        }
+
+        _busy = false;
+    }
+
+    private async Task DeleteAccountAsync()
+    {
+        _busy = true;
+        _deleteMessage = null;
+
+        var result = await AuthApi.DeleteAccountAsync();
+
+        if (!result.Success)
+        {
+            _busy = false;
+            _deleteMessage = result.Error;
+            return;
+        }
+
+        // Gone for real: drop back to a fresh guest on the state picker (guest-first landing).
+        await AuthApi.TryStartGuestSessionAsync();
+        Navigation.NavigateTo("/");
+    }
+}

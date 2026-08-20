@@ -44,25 +44,33 @@ POST /api/v1/auth/logout (cookie) ──► 204, cookie consumed + cleared
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/auth/config` | none | Server capabilities: `{ "allowSelfRegistration": bool }`. |
-| POST | `/auth/register` | none | Create an account. Returns **403** when self-registration is disabled (the default). |
-| POST | `/auth/login` | none | Exchange credentials for tokens. |
+| GET | `/auth/config` | none | Server capabilities: `{ "googleEnabled": bool }`. |
+| GET | `/auth/google/start?returnUrl=&remember=` | none | Begins the Google sign-in flow (top-level navigation, not XHR). **404** when Google is not configured. The only public sign-up path (ADR 0004) — `/auth/register` no longer exists. |
+| GET | `/auth/google/complete` | (flow-internal) | Lands the Google result: finds or creates the account (storing only the Google subject ID and email), sets the refresh cookie, redirects back to the SPA. |
+| POST | `/auth/login` | none | Exchange local credentials for tokens. Accounts with TOTP enabled get `401 { "requiresTwoFactor": true }` until a valid `twoFactorCode` accompanies the password — the challenge appears only *after* the password verified. |
 | POST | `/auth/guest` | none | Issue a guest session. Takes no request body; returns the standard token response below. |
-| POST | `/auth/refresh` | refresh cookie | Rotate the refresh token, get a new access token. |
+| POST | `/auth/refresh` | refresh cookie | Rotate the refresh token, get a new access token. Preserves the session's remember-this-device choice. |
 | POST | `/auth/logout` | refresh cookie | Revoke the presented refresh token, clear the cookie. 204. |
 | POST | `/auth/change-password` | Bearer, NotGuest | Change your own password. Revokes **all** of your refresh tokens, then returns fresh ones so the current session survives. |
+| POST | `/auth/account/username` | Bearer, NotGuest | Change your display name: `{ "newUserName" }` → fresh token response (the name rides in the JWT). |
+| DELETE | `/auth/account` | Bearer, NotGuest | **Hard delete**: `{ "confirm": "DELETE" }` → profiles, sessions, external logins, and the account are gone at once (204). Audit rows naming the account survive until their ~1-year retention expires. |
+| GET | `/auth/2fa/status` | Bearer, Admin | `{ "enabled": bool }`. TOTP is scoped to local Admin accounts; Google users inherit Google's 2FA. |
+| GET | `/auth/2fa/setup` | Bearer, Admin | `{ "sharedKey", "authenticatorUri" }` for authenticator-app enrollment. |
+| POST | `/auth/2fa/enable` / `/auth/2fa/disable` | Bearer, Admin | `{ "code": "123456" }` → 204; 400 when the code does not match. |
+
+**Remember this device**: `login`'s `rememberDevice` (and `google/start`'s `remember`) — `false` (default) issues a session cookie backed by a 1-day server row; `true` keeps the 30-day rotating cookie.
 
 **Request bodies**
 
 ```json
-// login / register
-{ "userName": "alice", "password": "correct-horse-1" }
+// login
+{ "userName": "alice", "password": "correct-horse-1", "twoFactorCode": null, "rememberDevice": false }
 
 // change-password
 { "currentPassword": "old-1", "newPassword": "new-passw0rd", "confirmNewPassword": "new-passw0rd" }
 ```
 
-**Token response** (login / register / guest / refresh / change-password):
+**Token response** (login / guest / refresh / change-password / account/username):
 
 ```json
 {
@@ -229,7 +237,8 @@ Diagnostic logs persist 30 days; audit events ~1 year (and survive account delet
 
 These are features, not bugs, when testing:
 
-- `POST /auth/register` → 403 unless the operator enabled self-registration.
+- `POST /auth/register` → 404: self-registration is retired; Google sign-in is the only public sign-up path (and 404s when unconfigured).
+- A wrong password never reveals whether the account has 2FA — the challenge body only follows a verified password.
 - 11th auth request within a minute → 429.
 - Reused refresh cookie → 401 (rotation detected).
 - Guest token on any NotGuest/Admin endpoint → 403.

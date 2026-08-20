@@ -11,12 +11,17 @@ public static class AnalyticsEventNames
     public const string CalculationCompleted = "calculation-completed";
     public const string GatedHit = "gated-hit";
     public const string DonateClick = "donate-click";
+    public const string SignIn = "sign-in";
+    public const string AccountCreated = "account-created";
+    public const string AccountDeleted = "account-deleted";
+    public const string GuestWorkImported = "guest-work-imported";
 
     /// <summary>
     /// The only names a browser may post directly. Server-observed events (calculations,
-    /// donate redirects) are recorded server-side so clients cannot forge them.
+    /// sign-ins, donate redirects) are recorded server-side so clients cannot forge them;
+    /// guest-work-imported is client-posted because the import itself happens in the SPA.
     /// </summary>
-    public static readonly string[] ClientPostable = [GatedHit];
+    public static readonly string[] ClientPostable = [GatedHit, GuestWorkImported];
 }
 
 /// <summary>

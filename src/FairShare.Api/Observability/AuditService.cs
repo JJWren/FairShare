@@ -21,6 +21,11 @@ public static class AuditActions
     public const string PasswordReset = "password-reset";
     public const string VerboseEnabled = "verbose-enabled";
     public const string VerboseDisabled = "verbose-disabled";
+    public const string AccountCreated = "account-created";
+    public const string AccountDeleted = "account-deleted";
+    public const string UserNameChanged = "username-changed";
+    public const string TwoFactorEnabled = "2fa-enabled";
+    public const string TwoFactorDisabled = "2fa-disabled";
 }
 
 public interface IAuditService
