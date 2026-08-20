@@ -34,6 +34,9 @@ public class AuthConfigResponse
 {
     /// <summary>Whether "Sign in with Google" is configured on this server.</summary>
     public bool GoogleEnabled { get; set; }
+
+    /// <summary>Whether a donation destination is configured (shows the Support surface).</summary>
+    public bool DonationsEnabled { get; set; }
 }
 
 /// <summary>401 body when a password checked out but the account requires a TOTP code.

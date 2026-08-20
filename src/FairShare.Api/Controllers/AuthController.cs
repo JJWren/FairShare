@@ -50,7 +50,12 @@ public class AuthController(
     [HttpGet("config")]
     [AllowAnonymous]
     public ActionResult<AuthConfigResponse> GetConfig() =>
-        Ok(new AuthConfigResponse { GoogleEnabled = GoogleEnabled });
+        Ok(new AuthConfigResponse
+        {
+            GoogleEnabled = GoogleEnabled,
+            DonationsEnabled = Uri.TryCreate(_configuration["Donations:BuyMeACoffeeUrl"], UriKind.Absolute, out Uri? donateUri)
+                && donateUri.Scheme == Uri.UriSchemeHttps
+        });
 
     [HttpPost("login")]
     [AllowAnonymous]

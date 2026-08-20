@@ -1,0 +1,63 @@
+@page "/support"
+@attribute [AllowAnonymous]
+@inject FairShare.Web.Auth.AuthApiClient AuthApi
+@inject HttpClient Http
+
+<PageTitle>FairShare - Support</PageTitle>
+
+<div class="container my-5" style="max-width: 640px;">
+    <h1 class="h3 mb-4">Support FairShare</h1>
+
+    <p class="lead">
+        FairShare is free, has no ads, and sells nothing - least of all your data.
+        It stays that way because it costs one person a manageable amount to run.
+    </p>
+
+    <p>
+        What it actually takes: a server that is on around the clock, the domain, backups,
+        and the hours that go into keeping the worksheets matched to Alabama's official
+        forms as they change. None of that requires your money - the calculator is yours
+        either way, and no feature ever sits behind a donation.
+    </p>
+
+    <p>
+        But if the tool helped you through a hard season and you would like to chip in,
+        a few dollars genuinely covers real costs and keeps it free for the next parent:
+    </p>
+
+    @if (_donationsEnabled)
+    {
+        <p class="my-4">
+            <a class="btn btn-warning" href="@DonateHref" rel="noopener">
+                ☕ Buy me a coffee
+            </a>
+        </p>
+        <p class="text-muted small">
+            Donations happen entirely on Buy Me a Coffee's site - FairShare never sees or
+            stores any payment details. The click itself is counted only as an anonymous
+            "someone donated-clicked today" (see the <a href="/privacy">privacy page</a>).
+        </p>
+    }
+    else
+    {
+        <p class="text-muted">Donations aren't set up on this server - just enjoy the tool.</p>
+    }
+
+    <div class="mt-4">
+        <a href="/" class="btn btn-link">&larr; Back to the calculator</a>
+    </div>
+</div>
+
+@code {
+    private bool _donationsEnabled;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var config = await AuthApi.GetAuthConfigAsync();
+        _donationsEnabled = config.DonationsEnabled;
+    }
+
+    // Top-level navigation to the API's first-party redirect (not an XHR), so the click
+    // is counted server-side and the destination stays admin-controlled.
+    private string DonateHref => $"{Http.BaseAddress}go/donate";
+}
