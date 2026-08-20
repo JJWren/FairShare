@@ -229,6 +229,7 @@ Diagnostic logs persist 30 days; audit events ~1 year (and survive account delet
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
+| GET | `/go/donate` | none | First-party donate redirect: 302 to the operator's configured Buy Me a Coffee page (`Donations:BuyMeACoffeeUrl`, https only), counting an anonymous `donate-click` event first (same opt-out/bot/admin rules as all analytics). **404** when unconfigured. `GET /auth/config` exposes `donationsEnabled`. |
 | GET | `/healthz` | none | Liveness probe: `{ "status": "ok" }`. Exempt from rate limiting. |
 
 ---

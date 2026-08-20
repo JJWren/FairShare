@@ -19,6 +19,8 @@ services:
       # Google sign-in (ADR 0004): leave unset to run without public sign-up.
       Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Authentication__Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
+      # Donations: https URL of the operator's Buy Me a Coffee page; unset hides the Support surface.
+      Donations__BuyMeACoffeeUrl: "${DONATE_URL:-}"
       Cors__AllowedOrigins__0: "${WEB_ORIGIN:-http://localhost:5858}"
       # DataProtection keys on the data volume so Identity tokens survive container recreates.
       DataProtection__KeysPath: "/data/keys"
