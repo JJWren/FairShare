@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [3.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.0.0...fairshare-v3.1.0) (2026-08-20)
+
+
+### Features
+
+* admin observability — persistent logs, audit trail, first-party analytics ([#101](https://github.com/JJWren/FairShare/issues/101)) ([85b4228](https://github.com/JJWren/FairShare/commit/85b42285066ac0436eac9b5518d16eec6bff0ebd))
+
 ## [3.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v2.3.3...fairshare-v3.0.0) (2026-08-19)
 
 
