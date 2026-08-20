@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FairShare.Api.Migrations
 {
     [DbContext(typeof(FairShareDbContext))]
-    [Migration("20260820220730_AddRememberDevice")]
+    [Migration("20260820221851_AddRememberDevice")]
     partial class AddRememberDevice
     {
         /// <inheritdoc />
@@ -185,7 +185,9 @@ namespace FairShare.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsPersistent")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<DateTime?>("RevokedUtc")
                         .HasColumnType("TEXT");

@@ -15,7 +15,7 @@ namespace FairShare.Api.Migrations
                 table: "RefreshTokens",
                 type: "INTEGER",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
         }
 
         /// <inheritdoc />

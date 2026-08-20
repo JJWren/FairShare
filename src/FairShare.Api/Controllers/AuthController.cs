@@ -305,7 +305,13 @@ public class AuthController(
         }
 
         user.UpdatedUtc = DateTime.UtcNow;
-        await _userManager.UpdateAsync(user);
+        IdentityResult updated = await _userManager.UpdateAsync(user);
+
+        if (!updated.Succeeded)
+        {
+            return IdentityValidationProblem(updated);
+        }
+
         await _audit.WriteAsync(AuditActions.UserNameChanged, target: request.NewUserName, detail: $"was {oldName}", ct: ct);
 
         // The display name lives in the JWT, so hand back fresh tokens that carry it.

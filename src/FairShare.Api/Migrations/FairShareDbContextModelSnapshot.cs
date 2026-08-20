@@ -182,7 +182,9 @@ namespace FairShare.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsPersistent")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<DateTime?>("RevokedUtc")
                         .HasColumnType("TEXT");
