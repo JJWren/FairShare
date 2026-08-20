@@ -54,7 +54,8 @@ if (!await authApi.TryRefreshAsync())
 }
 
 // After auth bootstrap so the beacon's requests carry the session's own token (which is
-// how the server excludes the admin's browsing). Fire-and-forget by design.
-await host.Services.GetRequiredService<AnalyticsBeacon>().StartAsync();
+// how the server excludes the admin's browsing). Deliberately not awaited: analytics
+// must never delay first render.
+_ = host.Services.GetRequiredService<AnalyticsBeacon>().StartAsync();
 
 await host.RunAsync();

@@ -10,7 +10,7 @@ ADR 0002 made a bet — guest-first landing with gated persistence — and nothi
 
 Analytics are **first-party, cookieless, and content-free**, stored in the app's own SQLite database and visible only at `/admin/stats`.
 
-1. **Capture**: API-backed actions record events server-side. Page views come from a tiny first-party beacon — the SPA router fires `POST /api/v1/analytics/pageview` on navigation. `DNT: 1` and `Sec-GPC: 1` suppress recording, checked on both client and server. No cookies, no pixels, no third-party script.
+1. **Capture**: API-backed actions record events server-side. Page views come from a tiny first-party beacon — the SPA router fires `POST /api/v1/analytics/page-views` on navigation. `DNT: 1` and `Sec-GPC: 1` suppress recording, checked on both client and server. No cookies, no pixels, no third-party script.
 2. **Visitors**: counted as **Daily visitors** — `HMAC(per-install secret, UTC date + IP + UA)`. The date inside the hash makes cross-day linkage deliberately impossible; IP and user-agent are hash inputs only, never stored. Bot UAs (and empty UAs) are excluded; admin browsing is excluded.
 3. **Events carry a name and a coarse target, never content.** v1 taxonomy: `calculation-started` / `calculation-completed` (target: form key), `gated-hit` (target: which gate), `donate-click` (via a first-party redirect); the accounts effort adds `sign-in`, `account-created`, `account-deleted`, `guest-work-imported`. No money amounts, no child counts, no case data — ever, including in targets.
 4. **Retention**: a nightly rollup service aggregates raw rows into daily stat tables and deletes raw rows after 90 days; aggregates are kept; "today" is computed live from raw rows.

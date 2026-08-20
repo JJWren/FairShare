@@ -46,6 +46,7 @@
                 <option value="Error">Error+</option>
             </select>
             <input class="form-control" style="max-width: 20rem;" placeholder="Search message or category"
+                   aria-label="Search message or category"
                    @bind="search" @bind:event="oninput" @onkeydown="OnSearchKeyDown" />
             <button class="btn btn-outline-secondary" @onclick="ReloadAsync">Search</button>
         </div>
@@ -166,8 +167,10 @@
                     $"api/v1/admin/logs?page={page}&pageSize={PageSize}&level={Uri.EscapeDataString(level)}&search={Uri.EscapeDataString(search)}");
             }
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
+            // Also JsonException/NotSupportedException: an expired session can answer with
+            // non-JSON, and the page must degrade to the banner rather than crash.
             loadFailed = true;
         }
     }
@@ -178,7 +181,7 @@
         {
             verbose = await Http.GetFromJsonAsync<VerboseStatusResponse>("api/v1/admin/logs/verbose");
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
             loadFailed = true;
         }
@@ -195,7 +198,7 @@
                 verbose = await response.Content.ReadFromJsonAsync<VerboseStatusResponse>();
             }
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
             loadFailed = true;
         }

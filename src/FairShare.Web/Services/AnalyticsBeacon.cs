@@ -74,8 +74,10 @@ public sealed class AnalyticsBeacon(NavigationManager navigation, IHttpClientFac
         await PostQuietlyAsync("api/v1/analytics/events", new ClientEventRequest { Name = "gated-hit", Target = gate });
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
-        await TrackPageAsync(e.Location, referrer: null);
+    // Synchronous handler kicking off a task (not async void): TrackPageAsync swallows its
+    // own failures, so the discarded task can never surface an unobserved exception.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        _ = TrackPageAsync(e.Location, referrer: null);
 
     private async Task TrackPageAsync(string uri, string? referrer)
     {
