@@ -7,7 +7,15 @@
 <PageTitle>FairShare - Select State</PageTitle>
 
 <div class="container my-5">
-    <h1 class="h4 mb-4 text-center">Choose Your State</h1>
+    @* The home page must name the app and state its purpose in a first-time visitor's
+       words - Google's OAuth verification checks that the consent screen's app name
+       matches what this page shows and that the purpose is stated here. *@
+    <h1 class="h3 mb-2 text-center">FairShare</h1>
+    <p class="lead text-center mx-auto mb-4" style="max-width: 640px;">
+        A free child-support calculator: transparent, line-by-line estimates under your
+        state's official guidelines, matching the court's own worksheets.
+    </p>
+    <h2 class="h5 mb-4 text-center">Choose your state</h2>
 
     @if (states is null)
     {

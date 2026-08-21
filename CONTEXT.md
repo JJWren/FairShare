@@ -33,6 +33,7 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | **Shared 50% physical-custody obligation** | CS-42-S line 5: 150% of the BCSO, reflecting two households. |
 | **Shared-custody credit** | CS-42-S line 12: half of the shared obligation credited to each parent for the time the children are with them. |
 | **Recommended child-support order** | The last line of either form: the amount the paying parent owes per month. On CS-42 the order applies to the non-custodial parent; on CS-42-S it is the higher line-13 amount, placed in that parent's column. |
+| **Estimate** | What FairShare produces: a calculation of the recommended order under a state's published guidelines. Never a court order — only a court sets an actual support obligation. |
 | **Payer** | The parent the recommended order applies to. "No net transfer" means neither parent owes the other. |
 | **Custodial parent** | On CS-42, the parent with primary physical custody; the other parent is the payer. CS-42-S has no custodial parent. |
 
