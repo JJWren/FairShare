@@ -1,20 +1,24 @@
 @using System.Reflection
 @inherits LayoutComponentBase
 
-<NavMenu />
+@* min-vh-100 flex column + mt-auto keeps the footer at the bottom of the viewport even
+   on pages shorter than the screen; content taller than the screen pushes it down. *@
+<div class="d-flex flex-column min-vh-100">
+    <NavMenu />
 
-<main class="container my-4">
-    @Body
-</main>
+    <main class="container my-4 flex-grow-1">
+        @Body
+    </main>
 
-<footer class="container small text-muted py-4 d-flex gap-3 flex-wrap">
-    <span>&copy; @DateTime.UtcNow.Year - FairShare v@(AppVersion)</span>
-    <a href="/terms" class="link-secondary">Terms</a>
-    <a href="/privacy" class="link-secondary">Privacy</a>
-    <a href="/support" class="link-secondary">Support FairShare</a>
-    <a href="https://github.com/JJWren/FairShare/blob/HEAD/LICENSE" class="link-secondary"
-       rel="noopener" target="_blank" title="FairShare is open source">Apache-2.0</a>
-</footer>
+    <footer class="container small text-muted py-4 d-flex gap-3 flex-wrap justify-content-center mt-auto">
+        <span>&copy; @DateTime.UtcNow.Year - FairShare v@(AppVersion)</span>
+        <a href="/terms" class="link-secondary">Terms</a>
+        <a href="/privacy" class="link-secondary">Privacy</a>
+        <a href="/support" class="link-secondary">Support FairShare</a>
+        <a href="https://github.com/JJWren/FairShare/blob/HEAD/LICENSE" class="link-secondary"
+           rel="noopener" target="_blank" title="FairShare is open source">Apache-2.0</a>
+    </footer>
+</div>
 
 @code {
     // InformationalVersion is stamped by release-please via the csproj; the SDK's
