@@ -1,8 +1,8 @@
 FairShare
 
-Copyright (c) {2025} {Joshua Mykitta}
+Copyright (c) 2025-2026 Joshua Mykitta
 
-This product includes software developed by {Joshua Mykitta} (https://github.com/JJWren).
+This product includes software developed by Joshua Mykitta (https://github.com/JJWren).
 
 Third-party components:
 - ClosedXML (MIT License) - https://github.com/ClosedXML/ClosedXML - used by the API to fill worksheet workbooks.
