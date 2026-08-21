@@ -4,21 +4,15 @@
 
 *Lightweight child-support “what-if” calculator (currently Alabama). A standalone **Blazor WebAssembly SPA** backed by a decoupled **REST API** (JWT auth, ASP.NET Core, SQLite).*
 
-FairShare gives a quick, transparent estimate of who pays child support and how much under Alabama’s guidelines (CS-42 / CS-42-S).
+FairShare gives a quick, transparent estimate of who pays child support and how much under a state's guidelines — currently Alabama's CS-42 / CS-42-S — with line-by-line parity against the official worksheets.
 
 > ⚠️ Disclaimer: Informational/educational only. Not legal advice. Not a substitute for an attorney or court-approved worksheets.
 
 ---
 
-## What’s new in v2
+## Release history
 
-- **Public hardening (2.0.0)**: Per-IP rate limiting (strict budget on the auth endpoints), self-registration disabled by default (**breaking** — set `ALLOW_SELF_REGISTRATION=true` to restore sign-ups), self-service change-password and admin password reset (both revoke all of the user's sessions), automatic refresh-token cleanup, and CSP/security headers on the web container.
-- **Architecture Overhaul**: Split into a standalone Blazor WebAssembly SPA (`FairShare.Web`) and an independent REST API (`FairShare.Api`), replacing the previous hybrid server-hosted-WASM app.
-- **JWT Auth**: Cookie-based ASP.NET Identity replaced with JWT bearer auth (access + rotating refresh tokens), so the API is directly usable from curl/Postman/any CLI — not just the browser.
-- **Server-side Calculations**: Calculation logic moved behind `POST /api/v1/states/{state}/forms/{form}/calculations`, so results are consistent regardless of client.
-- **Theme Toggle**: Light/Dark/Auto, persisted in `localStorage`, applied pre-render.
-- **Saved Parent Profiles Page**: Standalone `/profiles` page to rename/archive saved profiles, in addition to inline reuse from the calculator.
-- **Two-container Docker Compose**: `docker compose up --build` runs the API (with a persistent SQLite volume) and the nginx-served Web app; bare `dotnet run` still works too.
+See [`CHANGELOG.md`](CHANGELOG.md) — maintained automatically by release-please, so it is always current.
 
 ---
 
@@ -29,12 +23,14 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
   - Line-by-line parity with the official AOC Excel worksheets — every numbered line comes back with the result (see `CONTEXT.md` and `docs/adr/`).
   - Switch between the two forms on the calculator page without re-entering figures; the full worksheet renders under the result.
   - Export the completed **official AOC Excel workbook** for the form you are viewing (inputs typed into its cells, formulas left live).
-- **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5).
-- **Theme Support**: Light/Dark/Auto theme toggle.
+- **Guest-first**: Visitors land on the state picker as guests — no account needed to calculate or export. Saving is the gated feature that invites sign-in (see `docs/adr/0002`).
+- **Accounts via Google sign-in**: Free public accounts use Google OAuth only — FairShare never holds a password for them (`docs/adr/0004`). Opt-in "remember this device", guest work carried over on sign-in (saved only on an explicit yes), and self-service **hard delete** from the Account page.
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
-- **Admin Tools**: Comprehensive user management and automated database seeding.
+- **Privacy-first analytics**: First-party, cookieless, content-free page views and events; Do Not Track / Global Privacy Control honored by recording nothing (`docs/adr/0003`). Disclosed in full on the in-app `/privacy` page.
+- **Admin observability**: `/admin/stats` dashboard, persistent diagnostic logs and audit trail at `/admin/logs`, and a verbose-logging mode that always turns itself back off.
+- **Donations**: Optional `/support` page with a first-party `/go/donate` redirect — hidden entirely unless `DONATE_URL` is configured.
+- **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5), with a Light/Dark/Auto theme toggle.
 - **Health & Safety**: Integrated database integrity checks and automated backup zipping on startup.
-- **Guest-first**: Visitors land straight on the calculator as guests — no account needed to calculate or export (no saving). Sign in from the navbar to unlock saved parents.
 
 ---
 
@@ -43,8 +39,8 @@ FairShare gives a quick, transparent estimate of who pays child support and how 
 | Role      | Typical Access       | Notes                                                                 |
 | --------- | --------------------- | ---------------------------------------------------------------------|
 | **Guest** | Default identity      | Every visitor until they sign in; run calculations and export, no saving or admin. |
-| **User**  | Normal app usage      | Create and run scenarios, save parent profiles.                      |
-| **Admin** | Full administration   | Manage users, roles, and access the users dashboard.                 |
+| **User**  | Normal app usage      | Signs in with Google; create and run scenarios, save parent profiles. |
+| **Admin** | Full administration   | Manage users and roles, view the stats dashboard, logs, and audit trail, toggle verbose logging. Local sign-in with a mandatory authenticator (TOTP) code. |
 
 ---
 
@@ -65,9 +61,10 @@ Each project has its own README with conventions and extension points; the full 
 ## Tech Stack
 
 - **Frontend**: Blazor WebAssembly (.NET 10, standalone)
-- **Backend**: ASP.NET Core Web API, JWT bearer auth
+- **Backend**: ASP.NET Core Web API
+- **Auth**: JWT bearer (access + rotating refresh tokens); Google OAuth for public accounts; TOTP two-factor for admin accounts
 - **Shared Logic**: .NET class libraries (Domain calculators, Contracts DTOs)
-- **Database**: SQLite (EF Core)
+- **Database**: SQLite (EF Core) — also backs the first-party analytics, diagnostic logs, and audit trail
 - **Styling**: Bootstrap 5
 - **Deployment**: Docker Compose (API container + nginx container for the SPA), or bare `dotnet run`
 
@@ -87,21 +84,14 @@ docker compose up --build
 - Web app: http://localhost:5858
 - API: http://localhost:5859 (`/healthz`; Swagger is **Development-only** and not served by the Production compose build — use the bare `dotnet run` setup below to browse it)
 
-If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once in `docker compose logs api`. The SQLite database (and pre-migration backups) persist in the named `fairshare-data` volume across restarts.
+If `ADMIN_PASSWORD` was left empty, the generated admin password is printed once in `docker compose logs api`. The SQLite database (and pre-migration backups) persist in the named `fairshare-data` volume across restarts. Both images build from source — no registry needed.
 
-Both images build from source — no registry needed. Ports and browser-visible URLs are configurable in `.env` (`WEB_PORT`/`API_PORT`/`WEB_ORIGIN`/`API_BASE_URL`).
+That is the whole happy path — a local instance with admin-created accounts only. Everything beyond it lives in the **[setup guide](docs/SETUP.md)**:
 
-**Prebuilt images:** every release publishes `ghcr.io/jjwren/fairshare-api:<version>` and `ghcr.io/jjwren/fairshare-web:<version>` (plus `:latest` = newest release), and every merge to `main` publishes `:main` (and `:sha-<short>`). To run a pinned version instead of building, replace each service's `build:` with `image: ghcr.io/jjwren/fairshare-api:<version>` and `image: ghcr.io/jjwren/fairshare-web:<version>`; the environment and volume settings are unchanged.
-
-**Hosting behind a reverse proxy (VPS):** terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes), set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL. `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name. Note that rate limiting keys on the direct peer IP: behind a reverse proxy every client collapses into the proxy's bucket. That is deliberate — trusting `X-Forwarded-For` without pinning the proxy in `KnownProxies` would let clients spoof their way out of throttling — so pin your proxy before switching the limiter to forwarded addresses.
-
-### Hardening a public instance
-
-- **Self-registration is disabled by default** (`ALLOW_SELF_REGISTRATION=false`): create accounts from **Admin → Users**. Only enable it if you want strangers to be able to sign up.
-- **Admin bootstrap:** set a strong `ADMIN_PASSWORD` in `.env` before first boot. If you let the seeder generate one, treat it as burned — Docker persists container logs — so log in, change it from the **Account** page, and consider renaming the account (`ADMIN_USER`); every credential-stuffing bot tries `admin` first.
-- **After first boot**, set `ADMIN_SEED_ENABLED=false` and remove `ADMIN_PASSWORD` from `.env` — the seeder only matters once.
-- **Signing key:** generate a fresh `JWT_SIGNING_KEY` for production (`openssl rand -base64 48`); never reuse a key that has been committed anywhere. Rotating it only invalidates outstanding access tokens (≤30 min); sessions recover silently via the refresh cookie.
-- **Passwords:** users change their own via **Account → Change password**; admins reset others' via **Admin → Users → Edit**. Both revoke all of that user's refresh tokens.
+- **Google sign-in** — the only public sign-up path; without it, no one can create an account
+- **Donations** (`DONATE_URL` / the `/support` page)
+- The complete `.env` and configuration reference, including what happens when each key is absent
+- Prebuilt GHCR images, reverse-proxy/TLS hosting, and hardening a public instance
 
 ---
 
@@ -138,31 +128,13 @@ curl http://localhost:5080/api/v1/states \
   -H "Authorization: Bearer <accessToken>"
 ```
 
-Swagger UI is available at `/swagger` in Development. The full endpoint reference — auth flow, request/response bodies, error shapes, and rate-limit behavior — is in [`docs/API.md`](docs/API.md), and a ready-to-import Postman collection (chained auth, sample bodies, assertions) is at [`docs/FairShare.postman_collection.json`](docs/FairShare.postman_collection.json).
+An admin account with TOTP enrolled gets `401` with `"requiresTwoFactor": true` — repeat the login with a `twoFactorCode` field. Swagger UI is available at `/swagger` in Development. The full endpoint reference — auth flow, request/response bodies, error shapes, and rate-limit behavior — is in [`docs/API.md`](docs/API.md), and a ready-to-import Postman collection (chained auth, sample bodies, assertions) is at [`docs/FairShare.postman_collection.json`](docs/FairShare.postman_collection.json).
 
 ---
 
 ## Configuration
 
-| Setting (API)                      | Default      | Purpose                                                                                |
-| ----------------------------------- | ------------ | -------------------------------------------------------------------------------------- |
-| `ConnectionStrings:Default`         | —            | SQLite connection string.                                                              |
-| `Jwt:SigningKey`                    | —            | HMAC-SHA256 signing key for access tokens. Required; set via user-secrets/env var in real deployments. |
-| `Jwt:AccessTokenMinutes`            | `30`         | Access token lifetime.                                                                 |
-| `Jwt:RefreshTokenDays`              | `30`         | Refresh token lifetime.                                                                |
-| `Cors:AllowedOrigins`               | `[]`         | Origins allowed to call the API (the Web app's URL).                                   |
-| `AdminSeed:Enabled`                 | `true`       | Enables seeding the initial admin account. Disable after first boot.                   |
-| `AdminSeed:User`                    | `admin`      | Username for the initial admin.                                                        |
-| `AdminSeed:Password`                | *(random)*   | Password for the initial admin (logged on first run if empty).                         |
-| `AdminSeed:LogGeneratedPassword`    | `true`       | Whether a generated admin password is printed to the log.                              |
-| `Auth:AllowSelfRegistration`        | `false`      | Whether `POST /api/v1/auth/register` is open. Off = admin creates accounts.            |
-| `RateLimiting:Enabled`              | `true`       | Kill-switch for rate limiting (values are fixed: 100 req/min per IP globally, 10 req/min per IP on the auth endpoints). |
-| `DataProtection:KeysPath`           | *(unset)*    | Directory for ASP.NET DataProtection keys (Identity tokens). Set it to a volume path (the compose stacks use `/data/keys`) so keys survive container recreates; unset = framework default inside the container. |
-| `HttpsRedirection:HttpsPort` / `HTTPS_PORT` / `ASPNETCORE_HTTPS_PORT` | *(unset)* | Only needed when Kestrel itself serves TLS (any of the three keys, a valid port number). Behind a TLS-terminating proxy leave it unset: the API then skips `UseHttpsRedirection` (the proxy forces HTTPS) instead of logging "Failed to determine the https port for redirect" on every start. |
-
-| Setting (Web)     | Default | Purpose                                    |
-| ------------------ | ------- | ------------------------------------------ |
-| `Api:BaseUrl`       | —       | Base URL of `FairShare.Api` to call.       |
+The complete configuration reference — every `.env` variable and API setting, with defaults and the behavior when each is absent — is in [`docs/SETUP.md`](docs/SETUP.md). For bare-`dotnet run` development the ones that matter are `Jwt:SigningKey` (required) and the web app's `Api:BaseUrl`.
 
 ---
 
@@ -184,13 +156,13 @@ Keep calculation logic in `FairShare.Domain` and wire types in `FairShare.Contra
 
 ## License
 
-Apache 2.0. See `LICENSE`.
+Apache 2.0. See [`LICENSE`](LICENSE), and [`NOTICE`](NOTICE) for third-party components and the embedded official AOC worksheet workbooks.
 
 ---
 
 ## Support
 
-Issues → [GitHub Issues](https://github.com/JJWren/FairShare/issues).
+Issues → [GitHub Issues](https://github.com/JJWren/FairShare/issues). A deployed instance also serves an in-app `/support` page explaining the project's costs and how to help with them.
 
 ### Enjoy my work?
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%23FFDD00?logo=buy-me-a-coffee&logoColor=black&labelColor=%23FFDD00)](https://www.buymeacoffee.com/jmykitta)
