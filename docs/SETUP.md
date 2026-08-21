@@ -80,7 +80,7 @@ Settings read by `FairShare.Api` (compose maps the `.env` variables above onto t
 
 ## 4. Google sign-in
 
-Google OAuth is the **only public sign-up path** (see `docs/adr/0004`): without it, accounts are admin-created only. First Google sign-in creates the account; FairShare stores only the Google subject ID and email, never a password.
+Google OAuth is the **only public sign-up path** ([ADR 0004](adr/0004-external-oauth-only-public-accounts.md)): without it, accounts are admin-created only. First Google sign-in creates the account; FairShare stores only the Google subject ID and email, never a password.
 
 The guided way: run the wizard, which walks you through the Google Cloud console and writes the values into your stack's `.env`:
 
@@ -126,7 +126,7 @@ Leave the `HttpsRedirection` keys unset when the proxy terminates TLS (section 3
 ## 8. Data, backups & retention
 
 - The SQLite database lives in the named `fairshare-data` volume; it also holds pre-migration backups (zipped automatically on startup) and, when `DataProtection:KeysPath` points there (`/data/keys` in the shipped compose), the DataProtection keys.
-- Retention is automatic (see `docs/adr/0003`): raw analytics rows roll up nightly and are deleted after **90 days** (daily aggregates kept), diagnostic logs after **30 days**, audit events after about **one year**. Deleting an account removes everything it owns immediately; only its audit events survive until their own expiry.
+- Retention is automatic ([ADR 0003](adr/0003-first-party-cookieless-analytics.md)): raw analytics rows roll up nightly and are deleted after **90 days** (daily aggregates kept), diagnostic logs after **30 days**, audit events after about **one year**. Deleting an account removes everything it owns immediately; only its audit events survive until their own expiry.
 - Back up the volume itself (e.g. `docker run --rm -v fairshare-data:/data -v "$PWD":/backup alpine tar czf /backup/fairshare-data.tgz /data`) with the stack stopped, or rely on the startup backup zips for point-in-time copies.
 
 ## 9. Verifying a deployment

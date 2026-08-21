@@ -23,10 +23,10 @@ See [`CHANGELOG.md`](CHANGELOG.md) — maintained automatically by release-pleas
   - Line-by-line parity with the official AOC Excel worksheets — every numbered line comes back with the result (see `CONTEXT.md` and `docs/adr/`).
   - Switch between the two forms on the calculator page without re-entering figures; the full worksheet renders under the result.
   - Export the completed **official AOC Excel workbook** for the form you are viewing (inputs typed into its cells, formulas left live).
-- **Guest-first**: Visitors land on the state picker as guests — no account needed to calculate or export. Saving is the gated feature that invites sign-in (see `docs/adr/0002`).
-- **Accounts via Google sign-in**: Free public accounts use Google OAuth only — FairShare never holds a password for them (`docs/adr/0004`). Opt-in "remember this device", guest work carried over on sign-in (saved only on an explicit yes), and self-service **hard delete** from the Account page.
+- **Guest-first**: Visitors land on the state picker as guests — no account needed to calculate or export. Saving is the gated feature that invites sign-in ([ADR 0002](docs/adr/0002-guest-first-landing.md)).
+- **Accounts via Google sign-in**: Free public accounts use Google OAuth only — FairShare never holds a password for them ([ADR 0004](docs/adr/0004-external-oauth-only-public-accounts.md)). Opt-in "remember this device", guest work carried over on sign-in (saved only on an explicit yes), and self-service **hard delete** from the Account page.
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
-- **Privacy-first analytics**: First-party, cookieless, content-free page views and events; Do Not Track / Global Privacy Control honored by recording nothing (`docs/adr/0003`). Disclosed in full on the in-app `/privacy` page.
+- **Privacy-first analytics**: First-party, cookieless, content-free page views and events; Do Not Track / Global Privacy Control honored by recording nothing ([ADR 0003](docs/adr/0003-first-party-cookieless-analytics.md)). Disclosed in full on the in-app `/privacy` page.
 - **Admin observability**: `/admin/stats` dashboard, persistent diagnostic logs and audit trail at `/admin/logs`, and a verbose-logging mode that always turns itself back off.
 - **Donations**: Optional `/support` page with a first-party `/go/donate` redirect — hidden entirely unless `DONATE_URL` is configured.
 - **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5), with a Light/Dark/Auto theme toggle.
