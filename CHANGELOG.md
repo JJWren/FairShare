@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.1.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.1.0...fairshare-v4.1.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* center footer content and pin the footer to the bottom of the viewport ([#116](https://github.com/JJWren/FairShare/issues/116)) ([b551e3e](https://github.com/JJWren/FairShare/commit/b551e3e3d4b9db4648a911db246537518e0ea753)), closes [#115](https://github.com/JJWren/FairShare/issues/115)
+
 ## [4.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.1...fairshare-v4.1.0) (2026-08-21)
 
 
