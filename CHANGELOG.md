@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.1.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.1...fairshare-v4.1.0) (2026-08-21)
+
+
+### Features
+
+* legal surface - /terms page, results disclaimer, sign-in agreement line, license repair ([#112](https://github.com/JJWren/FairShare/issues/112)) ([96929f7](https://github.com/JJWren/FairShare/commit/96929f7df8de7852c5e4f4dd9054f7d580e7aa6a))
+
 ## [4.0.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.0...fairshare-v4.0.1) (2026-08-21)
 
 
