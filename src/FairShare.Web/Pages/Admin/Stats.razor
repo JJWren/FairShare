@@ -149,7 +149,8 @@
         {
             summary = await Http.GetFromJsonAsync<StatsSummaryResponse>($"api/v1/admin/stats/summary?days={days}");
             referrers = await Http.GetFromJsonAsync<List<ReferrerStatRow>>($"api/v1/admin/stats/referrers?days={days}");
-            events = await Http.GetFromJsonAsync<List<EventStatRow>>($"api/v1/admin/stats/events?days={days}");
+            // "activity" route: the natural name ("events") trips ad-blocker filter lists.
+            events = await Http.GetFromJsonAsync<List<EventStatRow>>($"api/v1/admin/stats/activity?days={days}");
             await LoadPagesAsync();
         }
         catch (Exception)

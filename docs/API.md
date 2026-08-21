@@ -210,7 +210,7 @@ First-party, cookieless capture endpoints for the SPA (see `docs/adr/0003-first-
 | GET | `/admin/stats/summary?days=30` | Tiles: `{ pageViews, dailyVisitors, calculationsCompleted, gatedHits, donateClicks, firstDay }`. |
 | GET | `/admin/stats/pages?days=&page=&pageSize=&sort=views\|visitors\|path&desc=` | Top pages, paged: `{ items: [{ path, views, visitors }], page, pageSize, totalCount }`. |
 | GET | `/admin/stats/referrers?days=` | Top 10 external referrer hosts: `[{ referrerHost, views }]`. |
-| GET | `/admin/stats/events?days=` | Event counts: `[{ name, target, count }]`, descending. |
+| GET | `/admin/stats/activity?days=` | Event counts: `[{ name, target, count }]`, descending. (Named "activity" rather than "events" because ad-blocker filter lists block `/stats/events` URL patterns, which broke the page for admins running a blocker.) |
 
 ## Admin logs — `/api/v1/admin/logs` (Bearer + Admin role)
 

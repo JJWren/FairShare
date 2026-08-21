@@ -33,7 +33,11 @@ public class StatsController(IAnalyticsService analytics) : ControllerBase
     public async Task<ActionResult<List<ReferrerStatRow>>> GetReferrers(int? days, CancellationToken ct) =>
         Ok(await _analytics.GetTopReferrersAsync(Normalize(days), take: 10, ct));
 
-    [HttpGet("events")]
+    // "activity", not "events": ad-blocker filter lists (EasyPrivacy etc.) block URL
+    // patterns like "/stats/events" on any site, which broke this page for admins running
+    // a blocker - the beacon endpoints stay blockable by design (ADR 0003), but the
+    // admin's own dashboard reading its own data is not tracking anyone.
+    [HttpGet("activity")]
     public async Task<ActionResult<List<EventStatRow>>> GetEvents(int? days, CancellationToken ct) =>
         Ok(await _analytics.GetEventsAsync(Normalize(days), ct));
 
