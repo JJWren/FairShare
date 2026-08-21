@@ -153,7 +153,7 @@ public class ObservabilityEndpointsTests : IClassFixture<FairShareApiFactory>
         foreach (string route in new[]
                  {
                      "api/v1/admin/stats/summary", "api/v1/admin/stats/pages", "api/v1/admin/stats/referrers",
-                     "api/v1/admin/stats/events", "api/v1/admin/logs", "api/v1/admin/logs/audit", "api/v1/admin/logs/verbose"
+                     "api/v1/admin/stats/activity", "api/v1/admin/logs", "api/v1/admin/logs/audit", "api/v1/admin/logs/verbose"
                  })
         {
             Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync(route)).StatusCode);
