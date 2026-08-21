@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.0.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.0.0...fairshare-v4.0.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* rename admin stats events endpoint to dodge ad-blocker filter lists ([#108](https://github.com/JJWren/FairShare/issues/108)) ([cb4bb29](https://github.com/JJWren/FairShare/commit/cb4bb2915f9dda72605864e1bbeb535ee206b2f3))
+
 ## [4.0.0](https://github.com/JJWren/FairShare/compare/fairshare-v3.1.0...fairshare-v4.0.0) (2026-08-20)
 
 
