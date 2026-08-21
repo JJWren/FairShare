@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FairShare API",
-    "description": "FairShare child-support calculator API (v2.0.0).\n\nQuick start:\n1. Set `adminUser` / `adminPassword` in the collection variables (or an environment).\n2. Run **Auth / Login** — it stores `accessToken` automatically; every other request uses it via collection-level Bearer auth.\n3. Tokens expire after 30 minutes — re-run Login or Refresh.\n\nNotes:\n- login/register/guest/refresh share a 10 req/min per-IP rate limit → expect 429 + Retry-After on bursts (by design).\n- The refresh token is an HttpOnly cookie (`fairshare_refresh`) handled by Postman's cookie jar; it rotates on every use, so replaying an old value returns 401.\n- Validation errors come back as RFC 7807 problem details with an `errors` object keyed by error code.",
+    "description": "FairShare child-support calculator API.\n\nQuick start:\n1. Set `adminUser` / `adminPassword` in the collection variables (or an environment).\n2. Run **Auth / Login** — it stores `accessToken` automatically; every other request uses it via collection-level Bearer auth.\n3. Tokens expire after 30 minutes — re-run Login or Refresh.\n\nNotes:\n- login/guest/refresh share a 10 req/min per-IP rate limit → expect 429 + Retry-After on bursts (by design).\n- The refresh token is an HttpOnly cookie (`fairshare_refresh`) handled by Postman's cookie jar; it rotates on every use, so replaying an old value returns 401.\n- Validation errors come back as RFC 7807 problem details with an `errors` object keyed by error code.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -35,7 +35,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('registration disabled', () => pm.expect(pm.response.json().allowSelfRegistration).to.be.false);"
+                  "pm.test('feature flags present', () => { const json = pm.response.json(); pm.expect(json.googleEnabled).to.be.a('boolean'); pm.expect(json.donationsEnabled).to.be.a('boolean'); });"
                 ]
               }
             }
@@ -124,28 +124,6 @@
                 "exec": [
                   "pm.test('204 No Content', () => pm.response.to.have.status(204));",
                   "pm.collectionVariables.set('accessToken', '');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Register (expect 403 - disabled)",
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"someone-new\",\n  \"password\": \"Password-1\"\n}" },
-            "url": "{{baseUrl}}/api/v1/auth/register"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('403 while self-registration is disabled', () => pm.response.to.have.status(403));",
-                  "pm.test('problem details body', () => pm.expect(pm.response.json().title).to.include('Self-registration'));"
                 ]
               }
             }
