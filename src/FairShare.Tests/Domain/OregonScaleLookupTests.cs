@@ -52,10 +52,19 @@ public class OregonScaleLookupTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(11)]
-    public void Get_ChildrenOutOfRange_Throws(int children)
+    [InlineData(-3)]
+    public void Get_ChildrenBelowOne_Throws(int children)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => OregonScaleLookup.Get(5000, children));
+    }
+
+    [Theory]
+    [InlineData(11)]
+    [InlineData(14)]
+    public void Get_MoreThanTenChildren_UsesTheTenChildColumn(int children)
+    {
+        // OAR 137-050-0725: more than ten children use the ten-child figure.
+        Assert.Equal(OregonScaleLookup.Get(5000, 10), OregonScaleLookup.Get(5000, children));
     }
 
     [Fact]

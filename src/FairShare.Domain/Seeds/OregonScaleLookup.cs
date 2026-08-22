@@ -47,16 +47,17 @@ namespace FairShare.Domain.Seeds
         /// threshold (including negative) use the $0 row; incomes above the top use the top row.
         /// </summary>
         /// <param name="combinedAdjustedIncome">Combined adjusted income in whole dollars. May be negative.</param>
-        /// <param name="children">Number of children (1 to 10 inclusive).</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="children"/> is outside 1-10.</exception>
+        /// <param name="children">Number of children (at least 1; more than 10 use the 10-child column).</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="children"/> is below 1.</exception>
         public static int Get(int combinedAdjustedIncome, int children)
         {
-            if (children < MinChildren || children > MaxChildren)
+            if (children < MinChildren)
             {
-                throw new ArgumentOutOfRangeException(nameof(children), $"Number of children must be between {MinChildren} and {MaxChildren}.");
+                throw new ArgumentOutOfRangeException(nameof(children), $"Number of children must be at least {MinChildren}.");
             }
 
-            return Table[(ThresholdFor(combinedAdjustedIncome), children)];
+            // OAR 137-050-0725: more than ten children use the ten-child figure.
+            return Table[(ThresholdFor(combinedAdjustedIncome), Math.Min(children, MaxChildren))];
         }
 
         /// <summary>
