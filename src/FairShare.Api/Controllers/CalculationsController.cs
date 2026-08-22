@@ -119,12 +119,14 @@ public class CalculationsController(IStateGuidelineCatalog catalog, IWorksheetEx
     /// </summary>
     private static CalculationResult ToCalculationResult(OregonWorksheetCalculator calculator, OregonCalculationRequest request, OregonCalculationOutcome outcome)
         => new(outcome.PaysForMinorChildren?.ToString() ?? string.Empty,
-               (int)(outcome.PaysForMinorChildren switch
+               // Line 9e is whole-dollar by construction (9a-9d each round to the dollar), so this
+               // rounding is a guard against truncation, not a change of value.
+               (int)Math.Round(outcome.PaysForMinorChildren switch
                {
                    Enums.ParentType.Plaintiff => outcome.PlaintiffTotalSupport,
                    Enums.ParentType.Defendant => outcome.DefendantTotalSupport,
                    _ => 0m,
-               }))
+               }, 0, MidpointRounding.AwayFromZero))
         {
             Success = outcome.Success,
             Errors = [.. outcome.Errors],
