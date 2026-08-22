@@ -37,6 +37,28 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | **Payer** | The parent the recommended order applies to. "No net transfer" means neither parent owes the other. |
 | **Custodial parent** | On CS-42, the parent with primary physical custody; the other parent is the payer. CS-42-S has no custodial parent. |
 
+## Oregon vocabulary (OAR 137-050)
+
+| Term | Meaning |
+|---|---|
+| **OAR 137-050** | Oregon's child-support guideline rules (division 50, 137-050-0700 through -0765), published by the Oregon DOJ; the source Oregon estimates mirror. |
+| **Oregon workbook** | The Oregon DOJ's Guidelines Calculator Excel workbook — Oregon's official workbook: the reference implementation Oregon estimates are pinned to. |
+| **Adjusted income** | A parent's income minus union dues, the parent's own health-insurance cost, and spousal support owed, plus spousal support received, minus the non-joint-child deduction. Income shares are computed on it. |
+| **Joint child / Non-joint child** | A joint child is a child of both parents in the calculation. A non-joint child is a parent's other legal child, earning that parent a deduction computed from the scale itself. |
+| **Self-support reserve (Oregon)** | The monthly amount of adjusted income kept back for a parent's own support before any obligation; re-set every July 1 ($1,729 effective 2026-07-01). |
+| **Available income** | Adjusted income minus the self-support reserve; the ceiling a parent's total obligation may not exceed. |
+| **Scale** | Oregon's Obligation Scale: combined adjusted income in $50 brackets to $30,000 × 1–10 children. Between brackets the *lower* row applies — no interpolation; above $30,000 the top row applies, rebuttably. |
+| **Basic support obligation (Oregon)** | The scale amount for the combined adjusted income and number of joint children, divided between the parents by income share. |
+| **Overnight** | The unit of parenting time: an average annual count per parent over two years, with half-day equivalents for schedules without overnights. |
+| **Parenting time credit** | The credit against a parent's obligation that grows continuously with their overnights (a logistic curve — no cliff thresholds), applied only to the minor children's portion. |
+| **Child Attending School (CAS)** | An unmarried joint child aged 18–20 in school at least half time. Counted in the obligation, excluded from the parenting-time-credit base, and paid their share of support directly. |
+| **Medical support** | The health-coverage part of an order: who provides the children's coverage, each parent's share of its cost, or **cash medical support** when neither parent has coverage available. |
+| **Reasonable in cost** | The cap on a parent's medical-support contribution: 4% of that parent's adjusted income, and $0 for a parent earning at or below full-time highest Oregon minimum wage. |
+| **Minimum order (Oregon)** | The rebuttable presumption that an obligor can pay at least $100 a month in total support, with defined $0 exceptions (e.g. incarceration, disability benefits as sole income). |
+| **Rebuttal factor** | One of the OAR 137-050-0760 grounds a court may use to move an order away from the guideline amount. |
+| **Agreed support amount** | A stipulated order within ±15% of the guideline amount, presumed just and appropriate. |
+| **Rule version** | The effective date of the guideline rules an estimate implements (e.g. "OAR 137-050 effective 2026-07-01"). Every Oregon estimate and every Scenario names its rule version. |
+
 ## Access vocabulary
 
 | Term | Meaning |
@@ -45,6 +67,7 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | **User / Admin** | Signed-in accounts — a user signs in with an outside identity provider (or is admin-provisioned); an account is free. A user additionally saves parent profiles; an admin additionally manages accounts. |
 | **Guest work** | A guest's in-progress calculation. It lives only in their browser and is never stored unless they sign in and choose to save it. |
 | **Gated feature** | A capability reserved for users (e.g. saving a profile). The moment a guest reaches one is the invitation to sign in. |
+| **Scenario** | A named, saved snapshot of one worksheet's inputs for a state and form, stamped with the rule version and the result they produced. Never call this a "case" — only a court has cases. |
 
 ## Observability vocabulary
 
