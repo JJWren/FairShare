@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.2.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.1.1...fairshare-v4.2.0) (2026-08-22)
+
+
+### Features
+
+* render a real homepage for anonymous visitors and non-JS crawlers ([#119](https://github.com/JJWren/FairShare/issues/119)) ([7f66803](https://github.com/JJWren/FairShare/commit/7f66803d27fea4f3771b2004fb2fb4dcb08c20f4))
+
 ## [4.1.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.1.0...fairshare-v4.1.1) (2026-08-21)
 
 
