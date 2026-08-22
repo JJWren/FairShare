@@ -1,0 +1,398 @@
+@using FairShare.Contracts.Calculation
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+@* Oregon's Child Support Worksheet (CSF 02 0910) - its own input surface because Oregon's inputs
+   (spousal support both directions, overnights, Children Attending School, medical elections) do
+   not fit the classic two-parents-plus-child-count shape. Calculator.razor hands off to this
+   component for the OR state. *@
+
+<div class="alert alert-warning py-2 small text-center" role="status">
+    <strong>Beta</strong> - the Oregon worksheet matches the state's official calculator in our
+    tests, but has not yet been validated against real Oregon cases. Please compare results with
+    the <a href="https://justice.oregon.gov/guidelines/" target="_blank" rel="noopener">official Oregon calculator</a>.
+</div>
+
+<div class="row g-3 mb-2 justify-content-center">
+    <div class="col-12 col-sm-6 col-lg-3 text-center">
+        <label class="form-label" for="OR_JointMinors">Joint minor children</label>
+        <select id="OR_JointMinors" @bind="jointMinorChildren" class="form-select" aria-describedby="OR_JointMinorsHelp">
+            @for (int n = 0; n <= 10; n++)
+            {
+                <option value="@n">@n</option>
+            }
+        </select>
+        <div id="OR_JointMinorsHelp" class="form-text">
+            Include 18-year-olds attending high school and living with a parent (line 1d).
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3 text-center">
+        <label class="form-label" for="OR_JointCas">Children Attending School (18-20)</label>
+        <select id="OR_JointCas" @bind="jointChildrenAttendingSchool" class="form-select" aria-describedby="OR_JointCasHelp">
+            @for (int n = 0; n <= 10; n++)
+            {
+                <option value="@n">@n</option>
+            }
+        </select>
+        <div id="OR_JointCasHelp" class="form-text">
+            Unmarried 18-to-20-year-olds in school at least half time; Oregon support runs to 21 and
+            is paid directly to them (line 1e).
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4 justify-content-center">
+    <div class="col-12 col-sm-6 col-lg-3 text-center">
+        <label class="form-label" for="OR_CashMedical">Cash medical support</label>
+        <select id="OR_CashMedical" @bind="cashMedical" class="form-select" aria-describedby="OR_CashMedicalHelp">
+            <option value="No">No - coverage is available (or the order explains why not)</option>
+            <option value="Yes">Yes - no appropriate coverage is available</option>
+            <option value="Contingent">Contingent - owed whenever coverage is not provided</option>
+        </select>
+        <div id="OR_CashMedicalHelp" class="form-text">Worksheet line 5a (OAR 137-050-0750).</div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3 text-center">
+        <label class="form-label" for="OR_Coverage">Who provides health coverage?</label>
+        <select id="OR_Coverage" @bind="coverageSelection" class="form-select" aria-describedby="OR_CoverageHelp">
+            <option value="">Choose for me (per the rule)</option>
+            <option value="Plaintiff">Plaintiff</option>
+            <option value="Defendant">Defendant</option>
+            <option value="Both">Both parents</option>
+            <option value="EitherWhenAvailable">Either parent, when available</option>
+        </select>
+        <div id="OR_CoverageHelp" class="form-text">
+            Line 4f. "Choose for me" applies OAR 137-050-0750: the qualifying parent, or with both
+            qualifying, the parent with more parenting time.
+        </div>
+        <div class="form-check mt-2 text-start">
+            <input type="checkbox" class="form-check-input" id="OR_HigherAmount" @bind="orderCoverageAtHigherAmount" />
+            <label class="form-check-label small" for="OR_HigherAmount">
+                Order coverage even above the reasonable-cost amount (line 4e)
+            </label>
+        </div>
+    </div>
+</div>
+
+@if (jointMinorChildren > 0)
+{
+    <div class="text-center small mb-3 @(OvernightsTotal == 365 ? "text-muted" : "text-danger")">
+        Overnights entered: @OvernightsTotal.ToString("0.##") of 365
+    </div>
+}
+
+<div class="row g-4">
+    <OregonParentCard Title="Plaintiff" Prefix="Plaintiff" Data="plaintiff" />
+    <OregonParentCard Title="Defendant" Prefix="Defendant" Data="defendant" />
+</div>
+
+<div class="mt-3 d-flex gap-2">
+    <button class="btn btn-primary" @onclick="CalculateAsync" disabled="@calculating">Calculate</button>
+    <button class="btn btn-outline-danger" @onclick="ResetAsync">Reset</button>
+</div>
+
+@if (errors.Any())
+{
+    <div class="mt-3" role="alert">
+        <ul class="text-danger">
+            @foreach (var error in errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="mt-5">
+    <div class="card shadow-sm fs-results-card">
+        <div class="card-header text-center"><strong>Results</strong></div>
+        <div class="card-body" aria-live="polite">
+            @if (submitted && result is not null && result.Success)
+            {
+                <p class="fw-bold text-center mb-0">@ResultSentence()</p>
+
+                @if (result.Oregon is { } extras)
+                {
+                    <p class="text-center text-muted small mb-0 mt-1">
+                        Health care coverage: @ProviderText(extras.CoverageProvider)
+                        (reasonable cost cap $@extras.ReasonableCostTotal.ToString("N0")/month).
+                    </p>
+                }
+
+                @if (result.Lines.Any())
+                {
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm table-striped mb-0 worksheet-table">
+                            <caption class="visually-hidden">Oregon Child Support Worksheet lines</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Line</th>
+                                    <th scope="col">Item</th>
+                                    <th scope="col" class="text-end">Plaintiff</th>
+                                    <th scope="col" class="text-end">Defendant</th>
+                                    <th scope="col" class="text-end">Combined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in result.Lines)
+                                {
+                                    <tr class="@(line.Number == "9e" ? "fs-row-recommended-order fw-bold" : "")">
+                                        <th scope="row" class="fw-normal text-start">@line.Number</th>
+                                        <td>@line.Label</td>
+                                        <td class="text-end">@FormatCell(line, line.Plaintiff)</td>
+                                        <td class="text-end">@FormatCell(line, line.Defendant)</td>
+                                        <td class="text-end">@FormatCell(line, line.Combined)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+            else if (submitted && result is not null && !result.Success)
+            {
+                <ul class="text-danger mb-0">
+                    @foreach (var e in result.Errors)
+                    {
+                        <li>@e.Code: @e.Message</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+            }
+        </div>
+    </div>
+    <p class="text-muted small text-center mt-2 mb-0">
+        Implements OAR 137-050 effective @(result?.Oregon?.RuleEffectiveDate ?? "2026-07-01") -
+        compare with the <a href="https://justice.oregon.gov/guidelines/" target="_blank" rel="noopener">official Oregon calculator</a>.
+        FairShare provides estimates for informational purposes only - not legal advice.
+        Actual support obligations are determined by the court under your state's guidelines.
+        See the <a href="/terms">terms</a>.
+    </p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string State { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Form { get; set; } = string.Empty;
+
+    private readonly OregonParentDto plaintiff = new();
+    private readonly OregonParentDto defendant = new();
+    private int jointMinorChildren = 1;
+    private int jointChildrenAttendingSchool;
+    private string cashMedical = "No";
+    private string coverageSelection = string.Empty;
+    private bool orderCoverageAtHigherAmount;
+
+    private CalculationResponse? result;
+    private bool submitted;
+    private bool calculating;
+    private readonly List<string> errors = new();
+
+    private const string ApiUnreachableMessage = "The FairShare API could not be reached. Check your connection and try again.";
+
+    private decimal OvernightsTotal => plaintiff.AverageOvernights + defendant.AverageOvernights;
+
+    private async Task CalculateAsync()
+    {
+        if (calculating)
+        {
+            return;
+        }
+
+        errors.Clear();
+
+        if (jointMinorChildren + jointChildrenAttendingSchool < 1)
+        {
+            ClearResult();
+            errors.Add("Enter at least one joint child (minor or Child Attending School).");
+            return;
+        }
+
+        if (jointMinorChildren > 0 && OvernightsTotal != 365m)
+        {
+            ClearResult();
+            errors.Add("The parents' average overnights must total 365.");
+            return;
+        }
+
+        calculating = true;
+
+        try
+        {
+            var request = new CalculationRequest
+            {
+                Oregon = new OregonCalculationRequest
+                {
+                    Plaintiff = plaintiff,
+                    Defendant = defendant,
+                    JointMinorChildren = jointMinorChildren,
+                    JointChildrenAttendingSchool = jointChildrenAttendingSchool,
+                    CashMedical = cashMedical,
+                    CoverageSelection = string.IsNullOrEmpty(coverageSelection) ? null : coverageSelection,
+                    OrderCoverageAtHigherAmount = orderCoverageAtHigherAmount
+                }
+            };
+
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await Http.PostAsJsonAsync($"api/v1/states/{State}/forms/{Form}/calculations", request);
+            }
+            catch (HttpRequestException)
+            {
+                ClearResult();
+                errors.Add(ApiUnreachableMessage);
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // Same rule as the validation stops: no stale answer sits under an error message.
+                ClearResult();
+                errors.Add(response.StatusCode switch
+                {
+                    System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
+                    System.Net.HttpStatusCode.BadRequest => "The submitted inputs were invalid. Check the values and try again.",
+                    System.Net.HttpStatusCode.Unauthorized => "Your session has expired. Please log in again.",
+                    System.Net.HttpStatusCode.Forbidden => "You are not authorized to perform this calculation.",
+                    _ => $"Calculation request failed ({(int)response.StatusCode})."
+                });
+                return;
+            }
+
+            result = await response.Content.ReadFromJsonAsync<CalculationResponse>();
+            submitted = true;
+        }
+        finally
+        {
+            calculating = false;
+        }
+    }
+
+    private async Task ResetAsync()
+    {
+        if (HasEnteredData && !await JS.InvokeAsync<bool>("confirm", "Clear all entered figures and results?"))
+        {
+            return;
+        }
+
+        ClearParent(plaintiff);
+        ClearParent(defendant);
+        jointMinorChildren = 1;
+        jointChildrenAttendingSchool = 0;
+        cashMedical = "No";
+        coverageSelection = string.Empty;
+        orderCoverageAtHigherAmount = false;
+        ClearResult();
+        errors.Clear();
+    }
+
+    private static void ClearParent(OregonParentDto parent)
+    {
+        parent.MonthlyIncome = 0;
+        parent.SpousalSupportReceived = 0;
+        parent.SpousalSupportPaid = 0;
+        parent.UnionDues = 0;
+        parent.OwnHealthInsuranceCost = 0;
+        parent.NonJointChildren = 0;
+        parent.ChildCareCosts = 0;
+        parent.ChildrensHealthCoverageCost = null;
+        parent.AverageOvernights = 0;
+        parent.SocialSecurityVeteransBenefits = 0;
+        parent.MinimumOrderException = false;
+    }
+
+    private bool HasEnteredData =>
+        submitted
+        || jointMinorChildren != 1
+        || jointChildrenAttendingSchool != 0
+        || cashMedical != "No"
+        || !string.IsNullOrEmpty(coverageSelection)
+        || orderCoverageAtHigherAmount
+        || HasFigures(plaintiff)
+        || HasFigures(defendant);
+
+    private static bool HasFigures(OregonParentDto parent) =>
+        parent.MonthlyIncome != 0
+        || parent.SpousalSupportReceived != 0
+        || parent.SpousalSupportPaid != 0
+        || parent.UnionDues != 0
+        || parent.OwnHealthInsuranceCost != 0
+        || parent.NonJointChildren != 0
+        || parent.ChildCareCosts != 0
+        || parent.ChildrensHealthCoverageCost is not null
+        || parent.AverageOvernights != 0
+        || parent.SocialSecurityVeteransBenefits != 0
+        || parent.MinimumOrderException;
+
+    private void ClearResult()
+    {
+        result = null;
+        submitted = false;
+    }
+
+    // Oregon can obligate both parents at once: Children Attending School are paid directly by
+    // each parent, so the sentence covers one payer, both, or neither.
+    private string ResultSentence()
+    {
+        if (result?.Oregon is not { } extras)
+        {
+            return string.Empty;
+        }
+
+        bool plaintiffOwes = extras.PlaintiffTotalSupport > 0;
+        bool defendantOwes = extras.DefendantTotalSupport > 0;
+
+        if (extras.PaysForMinorChildren is { } payer)
+        {
+            decimal payerTotal = payer == "Plaintiff" ? extras.PlaintiffTotalSupport : extras.DefendantTotalSupport;
+            string other = payer == "Plaintiff" ? "Defendant" : "Plaintiff";
+            decimal otherTotal = payer == "Plaintiff" ? extras.DefendantTotalSupport : extras.PlaintiffTotalSupport;
+
+            return otherTotal > 0
+                ? $"{payer} owes ${payerTotal:N0} per month; {other} owes ${otherTotal:N0} directly to the Children Attending School."
+                : $"{payer} owes ${payerTotal:N0} per month.";
+        }
+
+        if (plaintiffOwes || defendantOwes)
+        {
+            return $"Both parents owe support directly to the Children Attending School: Plaintiff ${extras.PlaintiffTotalSupport:N0}, Defendant ${extras.DefendantTotalSupport:N0} per month.";
+        }
+
+        return "No net transfer.";
+    }
+
+    private static string ProviderText(string provider) => provider switch
+    {
+        "Plaintiff" => "provided by the Plaintiff",
+        "Defendant" => "provided by the Defendant",
+        "Both" => "provided by both parents",
+        _ => "either parent, when coverage becomes available",
+    };
+
+    // Oregon computes to the penny and its percentages carry four decimals, so cells show cents
+    // and 2-decimal percents; counts (children, overnights) show as plain numbers.
+    private static string FormatCell(WorksheetLineDto line, decimal? value)
+    {
+        if (value is null)
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(line.Format, "Percent", StringComparison.OrdinalIgnoreCase))
+        {
+            return value.Value.ToString("P2");
+        }
+
+        if (string.Equals(line.Format, "Number", StringComparison.OrdinalIgnoreCase))
+        {
+            return value.Value.ToString("0.##");
+        }
+
+        return value.Value < 0
+            ? $"-${Math.Abs(value.Value):N2}"
+            : $"${value.Value:N2}";
+    }
+}

@@ -1,0 +1,160 @@
+@using FairShare.Contracts.Calculation
+
+@* One parent's column of the Oregon worksheet (CSF 02 0910). Oregon's inputs are richer than the
+   classic ParentCard's five figures and carry cents, so this card is its own component; saved-parent
+   profiles are Alabama-shaped and deliberately absent here until profiles learn Oregon fields. *@
+<div class="col-12 col-lg-6">
+    <div class="card h-100 shadow-sm fs-party-card @PartyClass">
+        <div class="card-header text-center d-flex flex-column gap-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="badge fs-party-badge">@Title</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        @onclick="ClearData"
+                        title="Clear this parent's values">
+                    Clear
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Income")">Monthly income</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Income")" @bind="Data.MonthlyIncome" class="form-control"
+                           aria-describedby="@($"{Prefix}_IncomeHelp")" />
+                </div>
+                <div id="@($"{Prefix}_IncomeHelp")" class="form-text">
+                    Gross monthly income - actual, potential, or presumed (worksheet line 1a).
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_SpousalIn")">Spousal support owed to this parent</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalIn")" @bind="Data.SpousalSupportReceived" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_SpousalOut")">Spousal support this parent owes</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalOut")" @bind="Data.SpousalSupportPaid" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Dues")">Mandatory union dues</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Dues")" @bind="Data.UnionDues" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_OwnHealth")">Cost of this parent's own health insurance</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_OwnHealth")" @bind="Data.OwnHealthInsuranceCost" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_NonJoint")">Non-joint children</label>
+                <input type="number" min="0" max="20" id="@($"{Prefix}_NonJoint")" @bind="Data.NonJointChildren" class="form-control"
+                       aria-describedby="@($"{Prefix}_NonJointHelp")" />
+                <div id="@($"{Prefix}_NonJointHelp")" class="form-text">
+                    This parent's other legal children - minors in the household or under an ongoing support order (line 1c).
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_ChildCare")">Child care costs this parent pays</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_ChildCare")" @bind="Data.ChildCareCosts" class="form-control"
+                           aria-describedby="@($"{Prefix}_ChildCareHelp")" />
+                </div>
+                <div id="@($"{Prefix}_ChildCareHelp")" class="form-text">
+                    For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="@($"{Prefix}_NoCoverage")" @bind="NoCoverage" />
+                    <label class="form-check-label" for="@($"{Prefix}_NoCoverage")">No appropriate health coverage available to this parent</label>
+                </div>
+                @if (!NoCoverage)
+                {
+                    <label class="form-label mt-2" for="@($"{Prefix}_Premium")">Cost to enroll the joint children in this parent's coverage</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" min="0" id="@($"{Prefix}_Premium")" @bind="PremiumValue" class="form-control"
+                               aria-describedby="@($"{Prefix}_PremiumHelp")" />
+                    </div>
+                    <div id="@($"{Prefix}_PremiumHelp")" class="form-text">
+                        The children's share of the premium only; $0 means coverage is available at no cost (line 4a).
+                    </div>
+                }
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Overnights")">Average overnights per year</label>
+                <input type="number" step="0.5" min="0" max="365" id="@($"{Prefix}_Overnights")" @bind="Data.AverageOvernights" class="form-control"
+                       aria-describedby="@($"{Prefix}_OvernightsHelp")" />
+                <div id="@($"{Prefix}_OvernightsHelp")" class="form-text">
+                    Two-year average of overnights with the joint minor children; both parents must total 365 (line 6a).
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="@($"{Prefix}_Ssva")">Social Security / veterans benefits paid to the children</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Ssva")" @bind="Data.SocialSecurityVeteransBenefits" class="form-control"
+                           aria-describedby="@($"{Prefix}_SsvaHelp")" />
+                </div>
+                <div id="@($"{Prefix}_SsvaHelp")" class="form-text">
+                    Benefits paid to the joint children because of this parent's disability or retirement (line 8e).
+                </div>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="@($"{Prefix}_MinException")" @bind="Data.MinimumOrderException" />
+                <label class="form-check-label" for="@($"{Prefix}_MinException")">Exception to the $100 minimum order</label>
+                <div class="form-text">
+                    E.g. incarceration or disability benefits as the sole income (OAR 137-050-0755).
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Prefix { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public OregonParentDto Data { get; set; } = new();
+
+    private string PartyClass => $"fs-party-{Prefix.ToLowerInvariant()}";
+
+    // Line 4a's "none": a null premium means no appropriate coverage is available. The checkbox
+    // owns the null; unchecking restores an editable $0 premium.
+    private bool NoCoverage
+    {
+        get => Data.ChildrensHealthCoverageCost is null;
+        set => Data.ChildrensHealthCoverageCost = value ? null : Data.ChildrensHealthCoverageCost ?? 0m;
+    }
+
+    private decimal PremiumValue
+    {
+        get => Data.ChildrensHealthCoverageCost ?? 0m;
+        set => Data.ChildrensHealthCoverageCost = value;
+    }
+
+    private void ClearData()
+    {
+        Data.MonthlyIncome = 0;
+        Data.SpousalSupportReceived = 0;
+        Data.SpousalSupportPaid = 0;
+        Data.UnionDues = 0;
+        Data.OwnHealthInsuranceCost = 0;
+        Data.NonJointChildren = 0;
+        Data.ChildCareCosts = 0;
+        Data.ChildrensHealthCoverageCost = null;
+        Data.AverageOvernights = 0;
+        Data.SocialSecurityVeteransBenefits = 0;
+        Data.MinimumOrderException = false;
+    }
+}
