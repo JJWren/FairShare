@@ -249,6 +249,8 @@
 
             if (!response.IsSuccessStatusCode)
             {
+                // Same rule as the validation stops: no stale answer sits under an error message.
+                ClearResult();
                 errors.Add(response.StatusCode switch
                 {
                     System.Net.HttpStatusCode.NotFound => "No calculator is registered for this state and form.",
@@ -306,6 +308,9 @@
         submitted
         || jointMinorChildren != 1
         || jointChildrenAttendingSchool != 0
+        || cashMedical != "No"
+        || !string.IsNullOrEmpty(coverageSelection)
+        || orderCoverageAtHigherAmount
         || HasFigures(plaintiff)
         || HasFigures(defendant);
 
