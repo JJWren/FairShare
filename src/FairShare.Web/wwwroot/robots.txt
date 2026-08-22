@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account
+
+Sitemap: https://easychildsupport.fyi/sitemap.xml

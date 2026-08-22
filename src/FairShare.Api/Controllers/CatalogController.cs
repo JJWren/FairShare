@@ -9,7 +9,10 @@ namespace FairShare.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/states")]
-[Authorize]
+// Anonymous by design: the catalog is inert public data (state and form names), and the
+// homepage must render its state picker without any session so Google's OAuth verification
+// never sees a login-gated landing page.
+[AllowAnonymous]
 public class CatalogController(IStateGuidelineCatalog catalog) : ControllerBase
 {
     private readonly IStateGuidelineCatalog _catalog = catalog;
