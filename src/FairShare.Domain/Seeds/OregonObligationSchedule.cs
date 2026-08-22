@@ -17,10 +17,11 @@ namespace FairShare.Domain.Seeds
 
         public int MinChildren => OregonScaleLookup.MinChildren;
 
-        // The scale's column count. Whether the Oregon *form* accepts more than ten joint children
-        // (the rule says >10 use the ten-child figure, and the lookup already clamps) is the
-        // calculator's decision when it arrives - it would widen this bound, not the lookup.
-        public int MaxChildren => OregonScaleLookup.MaxChildren;
+        // The scale has ten columns, but OAR 137-050-0725 prices any larger family with the
+        // ten-child figure (the lookup clamps), so this schedule accepts every child count and
+        // the base calculator's range check never rejects a large family. What range the UI
+        // *offers* is form metadata, not a schedule concern.
+        public int MaxChildren => int.MaxValue;
 
         public int GetBasicObligation(int combinedIncome, int children)
             => OregonScaleLookup.Get(combinedIncome, children);

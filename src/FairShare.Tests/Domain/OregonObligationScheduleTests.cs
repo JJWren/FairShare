@@ -5,10 +5,20 @@ namespace FairShare.Tests.Domain;
 public class OregonObligationScheduleTests
 {
     [Fact]
-    public void Bounds_MatchTheOregonScale()
+    public void Bounds_AcceptAnyFamilySize()
     {
+        // The scale has ten columns, but the rule prices larger families with the ten-child
+        // figure - so the schedule itself imposes no upper bound on the child count.
         Assert.Equal(OregonScaleLookup.MinChildren, OregonObligationSchedule.Instance.MinChildren);
-        Assert.Equal(OregonScaleLookup.MaxChildren, OregonObligationSchedule.Instance.MaxChildren);
+        Assert.Equal(int.MaxValue, OregonObligationSchedule.Instance.MaxChildren);
+    }
+
+    [Fact]
+    public void GetBasicObligation_MoreThanTenChildren_UsesTheTenChildColumn()
+    {
+        Assert.Equal(
+            OregonObligationSchedule.Instance.GetBasicObligation(5000, 10),
+            OregonObligationSchedule.Instance.GetBasicObligation(5000, 13));
     }
 
     [Theory]

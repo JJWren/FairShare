@@ -11,10 +11,14 @@ namespace FairShare.Domain.Interfaces
     /// </summary>
     public interface IObligationSchedule
     {
-        /// <summary>Fewest children the schedule has a column for.</summary>
+        /// <summary>The lowest child count this schedule can price.</summary>
         int MinChildren { get; }
 
-        /// <summary>Most children the schedule has a column for.</summary>
+        /// <summary>
+        /// The highest child count this schedule can price. Alabama's schedule prices exactly its
+        /// six columns; Oregon prices any family size (its rule sends more than ten children to the
+        /// ten-child column), so its bound is unlimited.
+        /// </summary>
         int MaxChildren { get; }
 
         /// <summary>
