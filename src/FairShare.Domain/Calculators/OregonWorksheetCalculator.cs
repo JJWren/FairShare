@@ -16,8 +16,6 @@ namespace FairShare.Domain.Calculators
     /// </summary>
     public sealed class OregonWorksheetCalculator
     {
-        private const decimal MedicalCapRate = 0.04m;
-
         public OregonCalculationOutcome Calculate(OregonWorksheetInput input)
             => Calculate(input, OregonRuleParameters.Current);
 
@@ -88,10 +86,10 @@ namespace FairShare.Domain.Calculators
             // 4c: reasonable cost - lesser of 4% of adjusted income or 4b, to the dollar; $0 for a
             // parent whose income (1a) is at or below full-time highest Oregon minimum wage
             decimal ric1 = p.MonthlyIncome > rules.HighestMinimumWageMonthly
-                ? ExcelMath.Round(Math.Min(adjusted1 * MedicalCapRate, availHcc1), 0)
+                ? ExcelMath.Round(Math.Min(adjusted1 * rules.MedicalCostCapRate, availHcc1), 0)
                 : 0m;
             decimal ric2 = d.MonthlyIncome > rules.HighestMinimumWageMonthly
-                ? ExcelMath.Round(Math.Min(adjusted2 * MedicalCapRate, availHcc2), 0)
+                ? ExcelMath.Round(Math.Min(adjusted2 * rules.MedicalCostCapRate, availHcc2), 0)
                 : 0m;
             decimal ricTotal = ExcelMath.Round(ric1 + ric2, 0);
 
@@ -413,7 +411,8 @@ namespace FairShare.Domain.Calculators
                 {
                     Code = CalcErrorCodes.OvernightsMustTotal365,
                     Message = "The parents' average overnights must total 365 (worksheet line 6a).",
-                    Field = nameof(OregonParentInput.AverageOvernights),
+                    // A cross-field rule - no single dotted field path is actionable here.
+                    Field = null,
                     Severity = ErrorSeverity.Error,
                 });
             }

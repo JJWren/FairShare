@@ -179,7 +179,8 @@ try {
     function Read-Number([string]$address) {
         $v = $ws.Range($address).Value2
         if ($null -eq $v -or $v -isnot [double]) { return $null }
-        return [math]::Round([decimal]$v, 6)
+        # Away-from-zero to match OregonGoldenAssert's comparison rounding exactly.
+        return [math]::Round([decimal]$v, 6, [System.MidpointRounding]::AwayFromZero)
     }
 
     $jsonCases = foreach ($case in $cases) {
