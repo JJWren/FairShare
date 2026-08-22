@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FairShare.Domain.Helpers;
+using FairShare.Domain.Interfaces;
 using FairShare.Domain.Models;
+using FairShare.Domain.Seeds;
 using Microsoft.Extensions.Logging;
 using static FairShare.Domain.Helpers.Enums;
 
@@ -28,6 +30,8 @@ namespace FairShare.Domain.Calculators
         public override string DisplayName => "CS-42-S (Eff. 6/2023)";
         public override string Description => "Shared 50/50 physical custody";
         public override bool IsSharedCustody => true;
+
+        protected override IObligationSchedule Schedule => AlabamaObligationSchedule.Instance;
 
         protected override WorksheetOutcome BuildWorksheet(WorksheetBuilder worksheet, ParentData plaintiff, ParentData defendant, int numberOfChildren)
         {
