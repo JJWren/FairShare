@@ -55,7 +55,10 @@ namespace FairShare.Domain.Helpers
             Currency,
 
             /// <summary>Fractions in the range 0..1 (e.g. 0.57 = 57%).</summary>
-            Percent
+            Percent,
+
+            /// <summary>Plain counts (children, overnights) - no currency symbol.</summary>
+            Number
         }
     }
 }
