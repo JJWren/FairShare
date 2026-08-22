@@ -25,12 +25,12 @@ namespace FairShare.Domain.Helpers
         /// <summary>
         /// Gets or sets the two-letter abbreviation for the state this calculator is designed for.
         /// </summary>
-        public string State { get; set; } = "AL";
+        public string State { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the specific form or guideline this calculator implements within the state.
         /// </summary>
-        public string Form { get; set; } = "CS42S";
+        public string Form { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the number of children shared between both parents in the child support order.

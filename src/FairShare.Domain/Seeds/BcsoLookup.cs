@@ -54,7 +54,9 @@ namespace FairShare.Domain.Seeds
 
             if (key > ScheduleCeiling)
             {
-                throw new IncomeAboveScheduleException(combinedAdjustedGrossIncome);
+                throw new IncomeAboveScheduleException(combinedAdjustedGrossIncome,
+                    $"Combined adjusted gross income of ${combinedAdjustedGrossIncome:N0} is above the top of the Alabama schedule " +
+                    $"(${ScheduleCeiling:N0}); support above the schedule is left to the court's discretion.");
             }
 
             return Table[(key, children)];

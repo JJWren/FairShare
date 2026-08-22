@@ -245,11 +245,10 @@
     // Export follows a successful calculation (and recalculates again right before exporting, see ExportAsync).
     private bool CanExport => submitted && result is { Success: true };
 
-    // Until the catalog answers, fall back to the one form we know needs a custodial parent.
+    // Until the catalog answers we show no custody requirement rather than guessing from a
+    // hardcoded form name — shared UI carries no state or form specifics (ADR 0005).
     private bool RequiresPrimaryCustody =>
-        CurrentForm is { } current
-            ? !current.IsSharedCustody
-            : string.Equals(Form, "CS42", StringComparison.OrdinalIgnoreCase);
+        CurrentForm is { } current && !current.IsSharedCustody;
 
     protected override async Task OnInitializedAsync()
     {

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using FairShare.Domain.Helpers;
 using FairShare.Domain.Interfaces;
 using FairShare.Domain.Models;
-using FairShare.Domain.Seeds;
 using Microsoft.Extensions.Logging;
 using static FairShare.Domain.Helpers.Enums;
 
@@ -28,6 +27,12 @@ namespace FairShare.Domain.Calculators
         public abstract string Description { get; }
 
         /// <summary>
+        /// The state's schedule of basic obligations. Child-count bounds, bracket selection and
+        /// above-ceiling behavior all come from here — the template stays state-agnostic (ADR 0005).
+        /// </summary>
+        protected abstract IObligationSchedule Schedule { get; }
+
+        /// <summary>
         /// Shared custody flag; override in derived calculators that implement shared custody rules.
         /// </summary>
         public virtual bool IsSharedCustody => false;
@@ -36,10 +41,10 @@ namespace FairShare.Domain.Calculators
         {
             CalculationResult result = CreateResultShell(numberOfChildren);
 
-            if (numberOfChildren < BcsoLookup.MinChildren || numberOfChildren > BcsoLookup.MaxChildren)
+            if (numberOfChildren < Schedule.MinChildren || numberOfChildren > Schedule.MaxChildren)
             {
                 AddError(result, CalcErrorCodes.InvalidChildCount,
-                    $"Number of children must be between {BcsoLookup.MinChildren} and {BcsoLookup.MaxChildren}.",
+                    $"Number of children must be between {Schedule.MinChildren} and {Schedule.MaxChildren}.",
                     nameof(numberOfChildren));
                 return result;
             }
@@ -56,10 +61,8 @@ namespace FairShare.Domain.Calculators
             }
             catch (IncomeAboveScheduleException ex)
             {
-                AddError(result, CalcErrorCodes.IncomeAboveSchedule,
-                    $"Combined adjusted gross income of ${ex.CombinedAdjustedGrossIncome:N0} is above the top of the Alabama schedule " +
-                    $"(${BcsoLookup.ScheduleCeiling:N0}); support above the schedule is left to the court's discretion.",
-                    "CombinedAdjustedGrossIncome");
+                // The schedule words this message in its own state's terms (ADR 0005).
+                AddError(result, CalcErrorCodes.IncomeAboveSchedule, ex.Message, "CombinedAdjustedGrossIncome");
                 _logger.LogWarning(ex, "Income above schedule in {Form} calculation.", Form);
             }
             catch (Exception ex)
@@ -141,8 +144,8 @@ namespace FairShare.Domain.Calculators
         /// <summary>
         /// The schedule amount for the combined adjusted gross income (worksheet line 4).
         /// </summary>
-        protected static int GetBasicChildSupportObligation(int numberOfChildren, int combinedAdjustedGrossIncome)
-            => BcsoLookup.Get(combinedAdjustedGrossIncome, numberOfChildren);
+        protected int GetBasicChildSupportObligation(int numberOfChildren, int combinedAdjustedGrossIncome)
+            => Schedule.GetBasicObligation(combinedAdjustedGrossIncome, numberOfChildren);
 
         protected CalculationResult CreateResultShell(int numberOfChildren)
             => new(string.Empty, 0)
