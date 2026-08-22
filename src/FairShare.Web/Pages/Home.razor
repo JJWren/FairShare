@@ -66,8 +66,10 @@
             states = await Http.GetFromJsonAsync<List<StateSummaryDto>>("api/v1/states");
             selectedState = states?.FirstOrDefault()?.State;
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
+            // Deliberately broad: any load failure (network, 401, malformed JSON, timeout)
+            // must degrade to the retry alert, never the global unhandled-error UI.
             loadFailed = true;
         }
     }
