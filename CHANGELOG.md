@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.3.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.2.0...fairshare-v4.3.0) (2026-08-22)
+
+
+### Features
+
+* Oregon obligation scale data and rule parameters ([#134](https://github.com/JJWren/FairShare/issues/134)) ([dd13c0c](https://github.com/JJWren/FairShare/commit/dd13c0c6a84a08dc98b351c2e704e49d191168e2))
+* Oregon worksheet calculation engine (OAR 137-050) with workbook golden cases ([#136](https://github.com/JJWren/FairShare/issues/136)) ([0f59f88](https://github.com/JJWren/FairShare/commit/0f59f880984b4f9e73d9190450498595254982ab))
+* wire the Oregon worksheet into the catalog and calculations API ([#137](https://github.com/JJWren/FairShare/issues/137)) ([34afceb](https://github.com/JJWren/FairShare/commit/34afceb16d8377f37493f19d1905009816b61b93))
+
 ## [4.2.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.1.1...fairshare-v4.2.0) (2026-08-22)
 
 
