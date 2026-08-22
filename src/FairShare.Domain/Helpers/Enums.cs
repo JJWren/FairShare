@@ -34,7 +34,8 @@ namespace FairShare.Domain.Helpers
         /// </summary>
         public enum States
         {
-            AL
+            AL,
+            OR
         }
 
         /// <summary>
@@ -43,7 +44,10 @@ namespace FairShare.Domain.Helpers
         public enum Forms
         {
             CS42,
-            CS42S
+            CS42S,
+
+            /// <summary>Oregon's single Child Support Worksheet (CSF 02 0910).</summary>
+            Worksheet
         }
 
         /// <summary>

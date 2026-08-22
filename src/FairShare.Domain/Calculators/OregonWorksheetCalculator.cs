@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FairShare.Domain.Helpers;
+using FairShare.Domain.Interfaces;
 using FairShare.Domain.Models;
 using FairShare.Domain.Seeds;
 using static FairShare.Domain.Helpers.Enums;
@@ -14,8 +15,14 @@ namespace FairShare.Domain.Calculators
     /// rounds (to 2 or 4 places, or to the dollar) and where it deliberately does not.
     /// The caretaker/state-care variant is not modeled (both-parents cases only).
     /// </summary>
-    public sealed class OregonWorksheetCalculator
+    public sealed class OregonWorksheetCalculator : IWorksheetForm
     {
+        public string State => States.OR.ToString();
+        public string Form => Forms.Worksheet.ToString();
+        public string DisplayName => "Child Support Worksheet (CSF 02 0910)";
+        public string Description => "All custody arrangements; support to age 21 for Children Attending School";
+        public bool IsSharedCustody => false;
+
         public OregonCalculationOutcome Calculate(OregonWorksheetInput input)
             => Calculate(input, OregonRuleParameters.Current);
 
