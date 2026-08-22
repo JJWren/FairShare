@@ -97,8 +97,9 @@ public class OregonWorkbookOracleTests
 
         foreach (WorksheetLine line in outcome.Lines)
         {
-            LineCells cells = Lines[line.Number];
-            AssertCell(golden.Name, line.Number, "plaintiff", sheet, cells.Plaintiff, line.Plaintiff);
+            Assert.True(Lines.TryGetValue(line.Number, out LineCells? cells),
+                $"{golden.Name}: calculator produced line {line.Number} but the cell map has no entry for it");
+            AssertCell(golden.Name, line.Number, "plaintiff", sheet, cells!.Plaintiff, line.Plaintiff);
             AssertCell(golden.Name, line.Number, "defendant", sheet, cells.Defendant, line.Defendant);
             AssertCell(golden.Name, line.Number, "combined", sheet, cells.Combined, line.Combined);
         }
