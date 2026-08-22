@@ -1,5 +1,4 @@
 @page "/"
-@attribute [Authorize]
 @using FairShare.Contracts.Catalog
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -17,7 +16,13 @@
     </p>
     <h2 class="h5 mb-4 text-center">Choose your state</h2>
 
-    @if (states is null)
+    @if (loadFailed)
+    {
+        <div class="alert alert-warning mx-auto" style="max-width: 640px;" role="alert">
+            Couldn't load the state list. <a href="/" class="alert-link">Reload the page</a> to try again.
+        </div>
+    }
+    else if (states is null)
     {
         <p class="text-center">Loading states...</p>
     }
@@ -49,11 +54,22 @@
 @code {
     private List<StateSummaryDto>? states;
     private string? selectedState;
+    private bool loadFailed;
 
     protected override async Task OnInitializedAsync()
     {
-        states = await Http.GetFromJsonAsync<List<StateSummaryDto>>("api/v1/states");
-        selectedState = states?.FirstOrDefault()?.State;
+        // This page is deliberately anonymous (no [Authorize]) - Google's OAuth verification
+        // rejects a homepage that can collapse into a login redirect, so the landing must
+        // render even when guest bootstrap or the API is unavailable.
+        try
+        {
+            states = await Http.GetFromJsonAsync<List<StateSummaryDto>>("api/v1/states");
+            selectedState = states?.FirstOrDefault()?.State;
+        }
+        catch (HttpRequestException)
+        {
+            loadFailed = true;
+        }
     }
 
     private void Continue()

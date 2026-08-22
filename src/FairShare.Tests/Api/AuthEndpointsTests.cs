@@ -67,11 +67,13 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
-    public async Task States_WithoutToken_ReturnsUnauthorized()
+    public async Task States_WithoutToken_ReturnsOk()
     {
+        // The catalog is deliberately anonymous so the homepage's state picker renders
+        // without a session (Google OAuth verification: no login-gated landing page).
         HttpResponseMessage response = await _client.GetAsync("api/v1/states");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]

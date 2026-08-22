@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FairShare is a free child-support calculator: transparent, line-by-line estimates under your state's official guidelines, matching the court's own worksheets." />
     <title>FairShare</title>
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -16,7 +17,20 @@
 
 <body>
     <div id="app">
-        <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <!-- Real content, not just a spinner: crawlers and reviewers that don't run
+             JavaScript (Google's OAuth verification among them) must still see the app
+             name, its purpose, and a privacy-policy link. Blazor replaces this on boot. -->
+        <div class="container my-5 text-center">
+            <h1 class="h3 mb-2">FairShare</h1>
+            <p class="lead mx-auto mb-3" style="max-width: 640px;">
+                A free child-support calculator: transparent, line-by-line estimates under your
+                state's official guidelines, matching the court's own worksheets.
+            </p>
+            <p class="mb-4">
+                <a href="/privacy">Privacy Policy</a> &middot;
+                <a href="/terms">Terms of Use</a> &middot;
+                <a href="/support">Support</a>
+            </p>
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
