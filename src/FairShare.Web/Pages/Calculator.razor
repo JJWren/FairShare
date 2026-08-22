@@ -45,6 +45,14 @@
         }
     }
 
+    @if (IsOregonState)
+    {
+        @* Oregon's inputs don't fit the classic two-parents-plus-child-count surface below; the
+           state's whole form lives in its own component. *@
+        <OregonWorksheet State="@State" Form="@(Form ?? string.Empty)" />
+    }
+    else
+    {
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-12 col-sm-5 col-lg-3 text-center">
             <label class="form-label" for="NumberOfChildren">Number of Children</label>
@@ -203,6 +211,7 @@
             guidelines. See the <a href="/terms">terms</a>.
         </p>
     </div>
+    }
 
     <div class="mt-4">
         <a href="/" class="btn btn-link">&larr; Back to States</a>
@@ -235,6 +244,7 @@
     private List<FormSummaryDto>? forms;
     private string? formsLoadedForState;
     private string? activeForm;
+    private string? activeState;
 
     private const string ApiUnreachableMessage = "The FairShare API could not be reached. Check your connection and try again.";
     private const string StaleClientMessage = "Your browser is running an older version of FairShare - reload the page (Ctrl+F5) and try again.";
@@ -249,6 +259,9 @@
     // hardcoded form name — shared UI carries no state or form specifics (ADR 0005).
     private bool RequiresPrimaryCustody =>
         CurrentForm is { } current && !current.IsSharedCustody;
+
+    // The one place the shared page names a state: routing to that state's own input component.
+    private bool IsOregonState => State.Equals("OR", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -377,8 +390,20 @@
             return;
         }
 
+        bool stateChanged = activeState is not null && !string.Equals(activeState, State, StringComparison.OrdinalIgnoreCase);
+        activeState = State;
+
         bool switched = activeForm is not null && !string.Equals(activeForm, Form, StringComparison.OrdinalIgnoreCase);
         activeForm = Form;
+
+        if (stateChanged)
+        {
+            // A different state means a different input shape - never carry one state's result
+            // (or fire its request) across; the new state starts clean.
+            errors.Clear();
+            ClearResult();
+            return;
+        }
 
         if (switched)
         {
