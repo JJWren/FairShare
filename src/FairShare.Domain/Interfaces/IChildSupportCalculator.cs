@@ -8,33 +8,12 @@ using FairShare.Domain.Models;
 
 namespace FairShare.Domain.Interfaces
 {
-    public interface IChildSupportCalculator
+    /// <summary>
+    /// A form whose inputs fit the classic two-parents-plus-child-count shape (both Alabama
+    /// worksheets). Forms with richer inputs (Oregon) implement only <see cref="IWorksheetForm"/>.
+    /// </summary>
+    public interface IChildSupportCalculator : IWorksheetForm
     {
-        /// <summary>
-        /// The two-letter abbreviation for the state this calculator is designed for.
-        /// </summary>
-        string State { get; }
-
-        /// <summary>
-        /// The specific form or guideline this calculator implements within the state.
-        /// </summary>
-        string Form { get; }
-
-        /// <summary>
-        /// Human-readable form name including its revision, e.g. "CS-42 (Rev. 5/2022)".
-        /// </summary>
-        string DisplayName { get; }
-
-        /// <summary>
-        /// One-line description of when the form applies, e.g. "Standard custody".
-        /// </summary>
-        string Description { get; }
-
-        /// <summary>
-        /// Indicates whether this calculator implements a shared custody guideline variant.
-        /// </summary>
-        bool IsSharedCustody { get; }
-
         /// <summary>
         /// Calculates the final child support obligation for both parents and determines which parent is the payer based on the
         /// <see cref="ParentData"/> provided for each parent and the number of children.

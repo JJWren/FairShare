@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -234,9 +234,11 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>
     options.KnownProxies.Clear();
 });
 
-// Domain services
-builder.Services.AddScoped<IChildSupportCalculator, CS42Calculator>();
-builder.Services.AddScoped<IChildSupportCalculator, CS42SCalculator>();
+// Domain services - every worksheet form registers as IWorksheetForm; the catalog narrows the
+// classic two-parent forms back to IChildSupportCalculator itself.
+builder.Services.AddScoped<IWorksheetForm, CS42Calculator>();
+builder.Services.AddScoped<IWorksheetForm, CS42SCalculator>();
+builder.Services.AddScoped<IWorksheetForm, OregonWorksheetCalculator>();
 builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IWorksheetExporter, ClosedXmlWorksheetExporter>();

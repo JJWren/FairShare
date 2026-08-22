@@ -10,20 +10,20 @@ namespace FairShare.Domain.Services
 {
     public class StateGuidelineCatalog : IStateGuidelineCatalog
     {
-        private readonly Dictionary<string, List<IChildSupportCalculator>> _byState =
+        private readonly Dictionary<string, List<IWorksheetForm>> _byState =
             new(StringComparer.OrdinalIgnoreCase);
 
-        public StateGuidelineCatalog(IEnumerable<IChildSupportCalculator> calculators)
+        public StateGuidelineCatalog(IEnumerable<IWorksheetForm> forms)
         {
-            foreach (IChildSupportCalculator calc in calculators)
+            foreach (IWorksheetForm form in forms)
             {
-                if (!_byState.TryGetValue(calc.State, out List<IChildSupportCalculator>? list))
+                if (!_byState.TryGetValue(form.State, out List<IWorksheetForm>? list))
                 {
-                    list = new List<IChildSupportCalculator>();
-                    _byState[calc.State] = list;
+                    list = new List<IWorksheetForm>();
+                    _byState[form.State] = list;
                 }
 
-                list.Add(calc);
+                list.Add(form);
             }
         }
 
@@ -34,16 +34,19 @@ namespace FairShare.Domain.Services
 
         // Ordered by form key so the first entry is stable (the SPA lands on it when no form is given).
         public IReadOnlyCollection<FormInfo> GetFormsForState(string state)
-            => _byState.TryGetValue(state, out List<IChildSupportCalculator>? list)
+            => _byState.TryGetValue(state, out List<IWorksheetForm>? list)
                 ? list
-                    .OrderBy(c => c.Form, StringComparer.Ordinal)
-                    .Select(c => new FormInfo(c.Form, c.DisplayName, c.Description, c.IsSharedCustody))
+                    .OrderBy(f => f.Form, StringComparer.Ordinal)
+                    .Select(f => new FormInfo(f.Form, f.DisplayName, f.Description, f.IsSharedCustody))
                     .ToArray()
                 : Array.Empty<FormInfo>();
 
-        public IChildSupportCalculator? GetCalculator(string state, string form)
-            => _byState.TryGetValue(state, out List<IChildSupportCalculator>? list)
-                ? list.FirstOrDefault(c => c.Form.Equals(form, StringComparison.OrdinalIgnoreCase))
+        public IWorksheetForm? GetForm(string state, string form)
+            => _byState.TryGetValue(state, out List<IWorksheetForm>? list)
+                ? list.FirstOrDefault(f => f.Form.Equals(form, StringComparison.OrdinalIgnoreCase))
                 : null;
+
+        public IChildSupportCalculator? GetCalculator(string state, string form)
+            => GetForm(state, form) as IChildSupportCalculator;
     }
 }
