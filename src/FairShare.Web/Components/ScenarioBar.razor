@@ -16,7 +16,7 @@
                 <select id="ScenarioPicker" class="form-select form-select-sm"
                         value="@(selectedId ?? string.Empty)"
                         @onchange="OnPickedAsync"
-                        disabled="@IsGuest"
+                        disabled="@ControlsDisabled"
                         aria-describedby="@(IsGuest ? "ScenarioGuestHint" : null)">
                     <option value="">-- Load a saved scenario --</option>
                     @foreach (var s in MatchingScenarios)
@@ -28,12 +28,12 @@
             <div class="col-12 col-md-5">
                 <label class="form-label small mb-1" for="ScenarioName">Save current figures as</label>
                 <input id="ScenarioName" class="form-control form-control-sm" @bind="saveName"
-                       maxlength="100" placeholder="e.g. Current schedule" disabled="@IsGuest" />
+                       maxlength="100" placeholder="e.g. Current schedule" disabled="@ControlsDisabled" />
             </div>
             <div class="col-12 col-md-2 d-grid">
                 <button type="button" class="btn btn-outline-primary btn-sm"
                         @onclick="SaveAsync"
-                        disabled="@(IsGuest || saving || string.IsNullOrWhiteSpace(saveName))">
+                        disabled="@(ControlsDisabled || saving || string.IsNullOrWhiteSpace(saveName))">
                     @(saving ? "Saving..." : "Save scenario")
                 </button>
             </div>
@@ -87,6 +87,10 @@
     private string? error;
 
     private string SignInHref => $"/login?returnUrl={Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery)}";
+
+    // A blank form happens transiently on /States/{State} before the redirect to the state's
+    // first form lands; saving or loading against it would hit invalid endpoints.
+    private bool ControlsDisabled => IsGuest || string.IsNullOrEmpty(State) || string.IsNullOrEmpty(Form);
 
     private IEnumerable<ScenarioSummaryDto> MatchingScenarios =>
         scenarios.Where(s => s.State.Equals(State, StringComparison.OrdinalIgnoreCase)

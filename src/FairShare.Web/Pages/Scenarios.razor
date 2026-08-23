@@ -123,15 +123,22 @@
             return;
         }
 
-        using HttpResponseMessage response = await Http.DeleteAsync($"api/v1/scenarios/{s.Id}");
+        try
+        {
+            using HttpResponseMessage response = await Http.DeleteAsync($"api/v1/scenarios/{s.Id}");
 
-        if (response.IsSuccessStatusCode)
-        {
-            scenarios?.RemoveAll(x => x.Id == s.Id);
+            if (response.IsSuccessStatusCode)
+            {
+                scenarios?.RemoveAll(x => x.Id == s.Id);
+            }
+            else
+            {
+                error = $"Delete failed ({(int)response.StatusCode}).";
+            }
         }
-        else
+        catch (HttpRequestException)
         {
-            error = $"Delete failed ({(int)response.StatusCode}).";
+            error = "The FairShare API could not be reached. Check your connection and try again.";
         }
     }
 }
