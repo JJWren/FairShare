@@ -176,6 +176,16 @@
             return;
         }
 
+        // A hand-edited ?scenario= can point at another state or form; applying those inputs
+        // here would be nonsense, so send the user to the scenario's own calculator instead.
+        // (The picker can't mismatch - it lists only this state+form's scenarios.)
+        if (!detail.State.Equals(State, StringComparison.OrdinalIgnoreCase)
+            || !detail.Form.Equals(Form, StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo($"/States/{detail.State}/{detail.Form}?scenario={detail.Id}");
+            return;
+        }
+
         selectedId = detail.Id.ToString();
         saveName = detail.Name;
 
