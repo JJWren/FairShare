@@ -59,7 +59,7 @@
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="OR_Holiday">Additional overnights per year</label>
-                    <input type="number" min="-100" max="100" id="OR_Holiday" @bind="holidayAdjustment" class="form-control"
+                    <input type="number" step="0.5" min="-100" max="100" id="OR_Holiday" @bind="holidayAdjustment" class="form-control"
                            aria-describedby="OR_HolidayHelp" disabled="@(pattern == "fifty-fifty")" />
                     <div id="OR_HolidayHelp" class="form-text">
                         Holidays, school breaks, or half-day equivalents (a 4-12 hour block counts as half a day
@@ -90,7 +90,10 @@
     private string pattern = "eow";
     private bool weekendsIncludeSunday;
     private int summerOvernights;
-    private int holidayAdjustment;
+
+    // Decimal so half-day equivalents (OAR 137-050-0730: a 4-12 hour block is half a day) can be
+    // entered directly, as the field's help text promises.
+    private decimal holidayAdjustment;
 
     private decimal ComputedAverage => ComputeTwoYearAverage();
 
@@ -117,7 +120,7 @@
 
         if (pattern == "none" && summerOvernights == 0)
         {
-            return Math.Clamp(holidayAdjustment, 0, 365);
+            return Math.Clamp(holidayAdjustment, 0m, 365m);
         }
 
         int nights = 0;
