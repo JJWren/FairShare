@@ -176,6 +176,11 @@
             }
         </div>
     </div>
+
+    @if (submitted && result is { Success: true })
+    {
+        <OregonCourtPrep Result="result" />
+    }
     <p class="text-muted small text-center mt-2 mb-0">
         Implements OAR 137-050 effective @(result?.Oregon?.RuleEffectiveDate ?? "2026-07-01") -
         compare with the <a href="https://justice.oregon.gov/guidelines/" target="_blank" rel="noopener">official Oregon calculator</a>.
