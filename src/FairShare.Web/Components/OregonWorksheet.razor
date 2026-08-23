@@ -85,6 +85,9 @@
     </div>
 }
 
+<ScenarioBar State="@State" Form="@Form" IsGuest="@IsGuest"
+             GetInputs="BuildRequest" OnLoaded="ApplyScenarioAsync" />
+
 @if (jointMinorChildren > 0)
 {
     <OregonOvernightsHelper OnApply="ApplyOvernights" />
@@ -185,6 +188,7 @@
 @code {
     [Parameter, EditorRequired] public string State { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string Form { get; set; } = string.Empty;
+    [Parameter] public bool IsGuest { get; set; }
 
     private readonly OregonParentDto plaintiff = new();
     private readonly OregonParentDto defendant = new();
@@ -207,6 +211,53 @@
     {
         plaintiff.AverageOvernights = overnights.Plaintiff;
         defendant.AverageOvernights = overnights.Defendant;
+    }
+
+    private CalculationRequest BuildRequest() => new()
+    {
+        Oregon = new OregonCalculationRequest
+        {
+            Plaintiff = plaintiff,
+            Defendant = defendant,
+            JointMinorChildren = jointMinorChildren,
+            JointChildrenAttendingSchool = jointChildrenAttendingSchool,
+            CashMedical = cashMedical,
+            CoverageSelection = string.IsNullOrEmpty(coverageSelection) ? null : coverageSelection,
+            OrderCoverageAtHigherAmount = orderCoverageAtHigherAmount
+        }
+    };
+
+    private async Task ApplyScenarioAsync(FairShare.Contracts.Scenarios.ScenarioDetailDto detail)
+    {
+        if (detail.Inputs.Oregon is not { } oregon)
+        {
+            return;
+        }
+
+        CopyParent(oregon.Plaintiff, plaintiff);
+        CopyParent(oregon.Defendant, defendant);
+        jointMinorChildren = oregon.JointMinorChildren;
+        jointChildrenAttendingSchool = oregon.JointChildrenAttendingSchool;
+        cashMedical = oregon.CashMedical;
+        coverageSelection = oregon.CoverageSelection ?? string.Empty;
+        orderCoverageAtHigherAmount = oregon.OrderCoverageAtHigherAmount;
+
+        await CalculateAsync();
+    }
+
+    private static void CopyParent(OregonParentDto from, OregonParentDto into)
+    {
+        into.MonthlyIncome = from.MonthlyIncome;
+        into.SpousalSupportReceived = from.SpousalSupportReceived;
+        into.SpousalSupportPaid = from.SpousalSupportPaid;
+        into.UnionDues = from.UnionDues;
+        into.OwnHealthInsuranceCost = from.OwnHealthInsuranceCost;
+        into.NonJointChildren = from.NonJointChildren;
+        into.ChildCareCosts = from.ChildCareCosts;
+        into.ChildrensHealthCoverageCost = from.ChildrensHealthCoverageCost;
+        into.AverageOvernights = from.AverageOvernights;
+        into.SocialSecurityVeteransBenefits = from.SocialSecurityVeteransBenefits;
+        into.MinimumOrderException = from.MinimumOrderException;
     }
 
     private async Task CalculateAsync()
@@ -236,19 +287,7 @@
 
         try
         {
-            var request = new CalculationRequest
-            {
-                Oregon = new OregonCalculationRequest
-                {
-                    Plaintiff = plaintiff,
-                    Defendant = defendant,
-                    JointMinorChildren = jointMinorChildren,
-                    JointChildrenAttendingSchool = jointChildrenAttendingSchool,
-                    CashMedical = cashMedical,
-                    CoverageSelection = string.IsNullOrEmpty(coverageSelection) ? null : coverageSelection,
-                    OrderCoverageAtHigherAmount = orderCoverageAtHigherAmount
-                }
-            };
+            CalculationRequest request = BuildRequest();
 
             HttpResponseMessage response;
 
