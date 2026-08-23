@@ -1,0 +1,269 @@
+@using FairShare.Contracts.Calculation
+@using FairShare.Contracts.Scenarios
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@* Saved Scenarios (ADR 0006): the save/load bar both state pages embed. A Scenario is a named
+   snapshot of the whole worksheet's inputs; reopening recomputes under today's rules and this bar
+   surfaces the "rules changed since you saved" notice the server reports. Gated: guests see the
+   controls disabled with a sign-in hint, mirroring the saved-parents picker. *@
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label small mb-1" for="ScenarioPicker">Saved scenarios</label>
+                <select id="ScenarioPicker" class="form-select form-select-sm"
+                        value="@(selectedId ?? string.Empty)"
+                        @onchange="OnPickedAsync"
+                        disabled="@ControlsDisabled"
+                        aria-describedby="@(IsGuest ? "ScenarioGuestHint" : null)">
+                    <option value="">-- Load a saved scenario --</option>
+                    @foreach (var s in MatchingScenarios)
+                    {
+                        <option value="@s.Id">@s.Name (@Headline(s))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-5">
+                <label class="form-label small mb-1" for="ScenarioName">Save current figures as</label>
+                <input id="ScenarioName" class="form-control form-control-sm" @bind="saveName"
+                       maxlength="100" placeholder="e.g. Current schedule" disabled="@ControlsDisabled" />
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                        @onclick="SaveAsync"
+                        disabled="@(ControlsDisabled || saving || string.IsNullOrWhiteSpace(saveName))">
+                    @(saving ? "Saving..." : "Save scenario")
+                </button>
+            </div>
+        </div>
+
+        @if (IsGuest)
+        {
+            <div id="ScenarioGuestHint" class="form-text mb-0">
+                <a href="@SignInHref">Sign in</a> to save scenarios and plan what-if comparisons.
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(status))
+        {
+            <div class="form-text mb-0">@status</div>
+        }
+
+        @if (changedNotice is not null)
+        {
+            @* The ADR 0006 moment: a saved number is never silently changed and never silently
+               stale - when today's rules move it, both figures are shown side by side. *@
+            <div class="alert alert-warning py-2 small mt-2 mb-0" role="alert">@changedNotice</div>
+        }
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger py-2 small mt-2 mb-0" role="alert">@error</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string State { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Form { get; set; } = string.Empty;
+    [Parameter] public bool IsGuest { get; set; }
+
+    /// <summary>Builds the page's current inputs for saving.</summary>
+    [Parameter, EditorRequired] public Func<CalculationRequest> GetInputs { get; set; } = () => new();
+
+    /// <summary>Called with the reopened scenario so the page can fill its inputs and recalculate.</summary>
+    [Parameter, EditorRequired] public EventCallback<ScenarioDetailDto> OnLoaded { get; set; }
+
+    private List<ScenarioSummaryDto> scenarios = [];
+    private string? selectedId;
+    private string? saveName;
+    private bool saving;
+    private bool listLoaded;
+    private bool autoLoadDone;
+    private string? status;
+    private string? changedNotice;
+    private string? error;
+
+    private string SignInHref => $"/login?returnUrl={Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery)}";
+
+    // A blank form happens transiently on /States/{State} before the redirect to the state's
+    // first form lands; saving or loading against it would hit invalid endpoints.
+    private bool ControlsDisabled => IsGuest || string.IsNullOrEmpty(State) || string.IsNullOrEmpty(Form);
+
+    private IEnumerable<ScenarioSummaryDto> MatchingScenarios =>
+        scenarios.Where(s => s.State.Equals(State, StringComparison.OrdinalIgnoreCase)
+                          && s.Form.Equals(Form, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsGuest || listLoaded)
+        {
+            return;
+        }
+
+        listLoaded = true;
+        await RefreshListAsync();
+
+        // /scenarios links here with ?scenario={id}; load it once on arrival.
+        if (!autoLoadDone && QueryScenarioId() is { } fromQuery)
+        {
+            autoLoadDone = true;
+            await LoadAsync(fromQuery);
+        }
+    }
+
+    private string? QueryScenarioId()
+    {
+        var uri = new Uri(Navigation.Uri);
+        foreach (string pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] parts = pair.Split('=', 2);
+            if (parts.Length == 2 && parts[0] == "scenario")
+            {
+                return Uri.UnescapeDataString(parts[1]);
+            }
+        }
+
+        return null;
+    }
+
+    private async Task RefreshListAsync()
+    {
+        try
+        {
+            scenarios = await Http.GetFromJsonAsync<List<ScenarioSummaryDto>>("api/v1/scenarios") ?? [];
+        }
+        catch
+        {
+            // An unreachable list only costs the picker; the calculator must keep working.
+            scenarios = [];
+        }
+    }
+
+    private async Task OnPickedAsync(ChangeEventArgs e)
+    {
+        selectedId = e.Value?.ToString();
+
+        if (!string.IsNullOrEmpty(selectedId))
+        {
+            await LoadAsync(selectedId);
+        }
+    }
+
+    private async Task LoadAsync(string id)
+    {
+        error = null;
+        status = null;
+        changedNotice = null;
+
+        ScenarioDetailDto? detail;
+
+        try
+        {
+            detail = await Http.GetFromJsonAsync<ScenarioDetailDto>($"api/v1/scenarios/{id}");
+        }
+        catch
+        {
+            error = "Could not load that scenario.";
+            return;
+        }
+
+        if (detail is null)
+        {
+            error = "Could not load that scenario.";
+            return;
+        }
+
+        // A hand-edited ?scenario= can point at another state or form; applying those inputs
+        // here would be nonsense, so send the user to the scenario's own calculator instead.
+        // (The picker can't mismatch - it lists only this state+form's scenarios.)
+        if (!detail.State.Equals(State, StringComparison.OrdinalIgnoreCase)
+            || !detail.Form.Equals(Form, StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo($"/States/{detail.State}/{detail.Form}?scenario={detail.Id}");
+            return;
+        }
+
+        selectedId = detail.Id.ToString();
+        saveName = detail.Name;
+
+        if (detail.ResultChanged && detail.Current is not null)
+        {
+            string was = HeadlineText(detail.Snapshot.Payer, detail.Snapshot.FinalAmount);
+            string now = HeadlineText(detail.Current.Payer, detail.Current.FinalAmount);
+            string vintage = detail.RuleEffectiveDate is null ? "" : $" (saved under rules effective {detail.RuleEffectiveDate})";
+
+            changedNotice = $"The rules moved this scenario's result{vintage}: it was {was} when you saved it, and computes as {now} today.";
+        }
+        else
+        {
+            status = $"Loaded \"{detail.Name}\".";
+        }
+
+        await OnLoaded.InvokeAsync(detail);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (saving || string.IsNullOrWhiteSpace(saveName))
+        {
+            return;
+        }
+
+        saving = true;
+        error = null;
+        status = null;
+        changedNotice = null;
+
+        try
+        {
+            ScenarioSaveRequest request = new()
+            {
+                Name = saveName.Trim(),
+                State = State,
+                Form = Form,
+                Inputs = GetInputs()
+            };
+
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await Http.PostAsJsonAsync("api/v1/scenarios", request);
+            }
+            catch (HttpRequestException)
+            {
+                error = "The FairShare API could not be reached. Check your connection and try again.";
+                return;
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
+            {
+                error = "These inputs don't produce a result yet - calculate successfully first, then save.";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                error = $"Saving failed ({(int)response.StatusCode}).";
+                return;
+            }
+
+            ScenarioSummaryDto? saved = await response.Content.ReadFromJsonAsync<ScenarioSummaryDto>();
+            status = $"Saved \"{saved?.Name}\".";
+            await RefreshListAsync();
+            selectedId = saved?.Id.ToString();
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private static string Headline(ScenarioSummaryDto s) => HeadlineText(s.Payer, s.FinalAmount);
+
+    private static string HeadlineText(string payer, int amount)
+        => string.IsNullOrEmpty(payer) ? "no net transfer" : $"{payer} ${amount:N0}/mo";
+}

@@ -49,7 +49,7 @@
     {
         @* Oregon's inputs don't fit the classic two-parents-plus-child-count surface below; the
            state's whole form lives in its own component. *@
-        <OregonWorksheet State="@State" Form="@(Form ?? string.Empty)" />
+        <OregonWorksheet State="@State" Form="@(Form ?? string.Empty)" IsGuest="isGuest" />
     }
     else
     {
@@ -89,6 +89,12 @@
                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => showImportPrompt = false">Not now</button>
             </span>
         </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Form))
+    {
+        <ScenarioBar State="@State" Form="@Form" IsGuest="isGuest"
+                     GetInputs="BuildScenarioInputs" OnLoaded="ApplyScenarioAsync" />
     }
 
     <div class="row g-4">
@@ -590,6 +596,21 @@
         {
             exporting = false;
         }
+    }
+
+    private CalculationRequest BuildScenarioInputs() => new()
+    {
+        NumberOfChildren = numberOfChildren,
+        Plaintiff = plaintiff,
+        Defendant = defendant
+    };
+
+    private async Task ApplyScenarioAsync(FairShare.Contracts.Scenarios.ScenarioDetailDto detail)
+    {
+        numberOfChildren = detail.Inputs.NumberOfChildren is >= 1 and <= 6 ? detail.Inputs.NumberOfChildren : 1;
+        plaintiff.ApplyFrom(detail.Inputs.Plaintiff);
+        defendant.ApplyFrom(detail.Inputs.Defendant);
+        await CalculateAsync(persistParents: false);
     }
 
     // A flipped Primary Custody switch mirrors onto the other parent (on -> other off, off -> other on).

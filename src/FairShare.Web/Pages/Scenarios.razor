@@ -1,0 +1,144 @@
+@page "/scenarios"
+@attribute [Authorize]
+@using FairShare.Contracts.Scenarios
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>FairShare - Scenarios</PageTitle>
+
+<div class="container my-4">
+    <h1 class="h4 mb-4">Scenarios</h1>
+
+    @if (scenarios is null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!scenarios.Any())
+    {
+        @if (string.IsNullOrEmpty(error))
+        {
+            @if (isGuest)
+            {
+                @* "Save one from the calculator" would be false advice for a guest, who cannot save. *@
+                <div class="alert alert-info">
+                    Scenarios are available with an account.
+                    <a href="/login?returnUrl=%2Fscenarios">Sign in</a> to save a worksheet's figures and plan what-if comparisons.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">No saved scenarios yet. Save one from a calculator page.</div>
+            }
+        }
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>State</th>
+                        <th>Result when saved</th>
+                        <th>Rules</th>
+                        <th>Saved</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in scenarios)
+                    {
+                        <tr>
+                            <td>@s.Name</td>
+                            <td>@s.State</td>
+                            <td>@(string.IsNullOrEmpty(s.Payer) ? "No net transfer" : $"{s.Payer} owes ${s.FinalAmount:N0}/mo")</td>
+                            <td>@(s.RuleEffectiveDate ?? "-")</td>
+                            <td>@((s.UpdatedUtc ?? s.CreatedUtc).ToLocalTime().ToString("yyyy-MM-dd"))</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        @onclick="() => Open(s)">Open</button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => DeleteAsync(s)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    private List<ScenarioSummaryDto>? scenarios;
+    private bool isGuest;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            AuthenticationState authState = await AuthStateTask;
+            isGuest = authState.User.HasClaim(c => c.Type == "guest" && c.Value == "true");
+        }
+
+        if (isGuest)
+        {
+            scenarios = [];
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            scenarios = await Http.GetFromJsonAsync<List<ScenarioSummaryDto>>("api/v1/scenarios") ?? [];
+        }
+        catch
+        {
+            scenarios = [];
+            error = "Could not load your scenarios. Check your connection and try again.";
+        }
+    }
+
+    // Opening lands on the scenario's own calculator page; the ScenarioBar there reads the
+    // query parameter and loads it (recomputing under current rules per ADR 0006).
+    private void Open(ScenarioSummaryDto s)
+        => Navigation.NavigateTo($"/States/{s.State}/{s.Form}?scenario={s.Id}");
+
+    private async Task DeleteAsync(ScenarioSummaryDto s)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"Delete the scenario \"{s.Name}\"?"))
+        {
+            return;
+        }
+
+        try
+        {
+            using HttpResponseMessage response = await Http.DeleteAsync($"api/v1/scenarios/{s.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                scenarios?.RemoveAll(x => x.Id == s.Id);
+            }
+            else
+            {
+                error = $"Delete failed ({(int)response.StatusCode}).";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            error = "The FairShare API could not be reached. Check your connection and try again.";
+        }
+    }
+}
