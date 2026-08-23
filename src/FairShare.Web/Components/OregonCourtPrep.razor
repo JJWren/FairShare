@@ -1,0 +1,98 @@
+@using FairShare.Contracts.Calculation
+
+@* The court-prep surface (design decision Q13): informational only, no rebuttal math. Judges ask
+   about things the worksheet never shows - the OAR 137-050-0760 rebuttal factors - and parents can
+   agree within a band the worksheet only implies (OAR 137-050-0765). Both are shown against a
+   successful result so a parent walks in knowing the number's negotiable range and the questions
+   that can move it. Copy follows the /terms discipline: literally true against the rules cited. *@
+
+<div class="card mt-3">
+    <div class="card-header text-center"><strong>Preparing for court or mediation</strong></div>
+    <div class="card-body">
+        @if (AgreedBand is { } band)
+        {
+            <p class="mb-1">
+                <strong>The number is negotiable within &plusmn;15%.</strong>
+                Parents may agree to a support amount up to 15% above or below the guideline
+                (OAR 137-050-0765), and the agreed amount is presumed just and appropriate.
+            </p>
+            <p class="mb-3">
+                For @band.Who's total of $@band.Total.ToString("N0")/month, that band is roughly
+                <strong>$@band.Low.ToString("N0") to $@band.High.ToString("N0") per month</strong>.
+            </p>
+        }
+
+        <p class="mb-1">
+            <strong>The judge may ask about things the worksheet doesn't show.</strong>
+            The guideline amount is presumed correct, but a court can adjust it for the rebuttal
+            factors in OAR 137-050-0760 - be ready to speak to any that apply to you:
+        </p>
+        <button type="button" class="btn btn-link btn-sm px-0"
+                @onclick="() => factorsExpanded = !factorsExpanded"
+                aria-expanded="@factorsExpanded"
+                aria-controls="OR_RebuttalFactors">
+            @(factorsExpanded ? "Hide the factors" : "Show all 17 factors")
+        </button>
+        @if (factorsExpanded)
+        {
+            <ul id="OR_RebuttalFactors" class="small mb-0">
+                <li>Other financial resources available to a parent</li>
+                <li>The reasonable necessities of a parent</li>
+                <li>A parent's net income after mandatory withholdings or conditions of employment</li>
+                <li>A parent's ability to borrow</li>
+                <li>The number and needs of a parent's other dependents</li>
+                <li>Special hardships - medical circumstances, travel costs to exercise parenting time, or compliance with a reunification plan</li>
+                <li>Whether it makes sense for the custodial parent to stay home or work part time</li>
+                <li>Tax consequences of spousal support, dependency exemptions, and child-related credits</li>
+                <li>Financial advantage from a spouse's or domestic partner's income or resources</li>
+                <li>Employment benefits not counted as income - housing, food, or coverage an employer provides</li>
+                <li>Evidence that a child does not actually live with either parent</li>
+                <li>Prior findings that a judgment, agreement, or settlement offset property or other financial arrangements</li>
+                <li>Payments on obligations the parents took on together</li>
+                <li>A tax advantage or adverse tax effect of the support amount</li>
+                <li>Extraordinary or diminished needs of the child (extracurricular activities don't count)</li>
+                <li>Return of capital</li>
+                <li>The costs of a Child Attending School, scholarships and aid, and the parents' ability to pay them</li>
+            </ul>
+        }
+
+        <p class="text-muted small mt-3 mb-0">
+            This is preparation guidance, not a prediction - whether any factor changes the amount
+            is the court's call. FairShare does not compute rebuttal adjustments.
+        </p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CalculationResponse? Result { get; set; }
+
+    private bool factorsExpanded;
+
+    /// <summary>
+    /// The ±15% agreed-amount band around the paying parent's total (or the larger total when
+    /// both parents owe, e.g. Children Attending School cases). Null when nobody owes anything -
+    /// ±15% of zero is not a useful range.
+    /// </summary>
+    private (string Who, decimal Total, decimal Low, decimal High)? AgreedBand
+    {
+        get
+        {
+            if (Result?.Oregon is not { } extras)
+            {
+                return null;
+            }
+
+            (string who, decimal total) = extras.PlaintiffTotalSupport >= extras.DefendantTotalSupport
+                ? ("Plaintiff", extras.PlaintiffTotalSupport)
+                : ("Defendant", extras.DefendantTotalSupport);
+
+            if (total <= 0)
+            {
+                return null;
+            }
+
+            return (who, total, Math.Round(total * 0.85m, 0, MidpointRounding.AwayFromZero),
+                Math.Round(total * 1.15m, 0, MidpointRounding.AwayFromZero));
+        }
+    }
+}
