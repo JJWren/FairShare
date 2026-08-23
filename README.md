@@ -2,9 +2,9 @@
 
 # FairShare
 
-*Lightweight child-support “what-if” calculator (currently Alabama). A standalone **Blazor WebAssembly SPA** backed by a decoupled **REST API** (JWT auth, ASP.NET Core, SQLite).*
+*Lightweight child-support “what-if” calculator (currently Alabama and Oregon). A standalone **Blazor WebAssembly SPA** backed by a decoupled **REST API** (JWT auth, ASP.NET Core, SQLite).*
 
-FairShare gives a quick, transparent estimate of who pays child support and how much under a state's guidelines — currently Alabama's CS-42 / CS-42-S — with line-by-line parity against the official worksheets.
+FairShare gives a quick, transparent estimate of who pays child support and how much under a state's guidelines — currently Alabama's CS-42 / CS-42-S and Oregon's Child Support Worksheet (OAR 137-050) — with line-by-line parity against the official worksheets.
 
 > ⚠️ Disclaimer: Informational/educational only. Not legal advice. Not a substitute for an attorney or court-approved worksheets.
 
@@ -23,6 +23,12 @@ See [`CHANGELOG.md`](CHANGELOG.md) — maintained automatically by release-pleas
   - Line-by-line parity with the official AOC Excel worksheets — every numbered line comes back with the result (see `CONTEXT.md` and `docs/adr/`).
   - Switch between the two forms on the calculator page without re-entering figures; the full worksheet renders under the result.
   - Export the completed **official AOC Excel workbook** for the form you are viewing (inputs typed into its cells, formulas left live).
+- **State Support (Oregon, beta)**:
+  - The single Child Support Worksheet (CSF 02 0910, OAR 137-050-0700 to -0765): all custody arrangements via the overnights-based parenting time credit, Children Attending School (support to 21, paid directly to the child — both parents can owe at once), the medical-support block with rule-based coverage selection, the $100 minimum order, and the SS/VA offset.
+  - Line-by-line parity with the official DOJ Guidelines Calculator workbook, pinned by golden cases read back from the workbook and ClosedXML oracle tests that evaluate the state's own formulas.
+  - An overnights pattern-builder (preset schedules counted on a simulated two-year calendar), a plain-language guide at `/guides/oregon-worksheet`, and a court-prep card (the 17 OAR 137-050-0760 rebuttal factors and the ±15% agreed-amount band).
+  - Every estimate names the rule vintage it implements ("Implements OAR 137-050 effective 2026-07-01") and links the official state calculator. Excel export for Oregon is not available yet.
+- **Scenarios**: Save a worksheet's complete figures as a named Scenario and reload it later — reopening recomputes under the current rules and says so when the number moved ([ADR 0006](docs/adr/0006-scenario-recompute-with-notice.md)).
 - **Guest-first**: Visitors land on the state picker as guests — no account needed to calculate or export. Saving is the gated feature that invites sign-in ([ADR 0002](docs/adr/0002-guest-first-landing.md)).
 - **Accounts via Google sign-in**: Free public accounts use Google OAuth only — FairShare never holds a password for them ([ADR 0004](docs/adr/0004-external-oauth-only-public-accounts.md)). Opt-in "remember this device", guest work carried over on sign-in (saved only on an explicit yes), and self-service **hard delete** from the Account page.
 - **Data Persistence**: Save and manage Parent Profiles (Plaintiff vs Defendant). Within your saved parents the display name is the natural key: re-saving an existing name (even with adjusted figures) updates that record in place instead of creating a same-named duplicate.
