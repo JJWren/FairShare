@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.3.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.2.0...fairshare-v4.3.0) (2026-08-23)
+
+
+### Features
+
+* court-prep surface on Oregon results - rebuttal factors and the +-15% band ([#144](https://github.com/JJWren/FairShare/issues/144)) ([5686910](https://github.com/JJWren/FairShare/commit/5686910064d7fce1a405b2e6ba9544f9837956c6)), closes [#131](https://github.com/JJWren/FairShare/issues/131)
+* Oregon obligation scale data and rule parameters ([#134](https://github.com/JJWren/FairShare/issues/134)) ([dd13c0c](https://github.com/JJWren/FairShare/commit/dd13c0c6a84a08dc98b351c2e704e49d191168e2))
+* Oregon worksheet calculation engine (OAR 137-050) with workbook golden cases ([#136](https://github.com/JJWren/FairShare/issues/136)) ([0f59f88](https://github.com/JJWren/FairShare/commit/0f59f880984b4f9e73d9190450498595254982ab))
+* Oregon worksheet page - state-specific input form, dual-payer results, beta badge ([#139](https://github.com/JJWren/FairShare/issues/139)) ([d286311](https://github.com/JJWren/FairShare/commit/d2863115137624135f16a4600454ed30380e80dc))
+* overnights pattern-builder and the Oregon worksheet guide ([#140](https://github.com/JJWren/FairShare/issues/140)) ([ab56d0d](https://github.com/JJWren/FairShare/commit/ab56d0dc13b483f5dc4166e6852a4224bfc473e9))
+* saved Scenarios - schema, API, and recompute-with-notice semantics (ADR 0006) ([#142](https://github.com/JJWren/FairShare/issues/142)) ([d6290b9](https://github.com/JJWren/FairShare/commit/d6290b902569a827305e8cd41a6b63a04b0987b3))
+* Scenario save/load on both calculator pages, list page, nav ([#143](https://github.com/JJWren/FairShare/issues/143)) ([3a15617](https://github.com/JJWren/FairShare/commit/3a1561774600fb2c43a08382a7c9957c4960a24c))
+* wire the Oregon worksheet into the catalog and calculations API ([#137](https://github.com/JJWren/FairShare/issues/137)) ([34afceb](https://github.com/JJWren/FairShare/commit/34afceb16d8377f37493f19d1905009816b61b93))
+
+
+### Bug Fixes
+
+* **deps:** batch the August dependabot bumps with the Swashbuckle 10 port ([#141](https://github.com/JJWren/FairShare/issues/141)) ([e6b9dbe](https://github.com/JJWren/FairShare/commit/e6b9dbe410a3b2cf95720695f904176a2345e764)), closes [#121](https://github.com/JJWren/FairShare/issues/121) [#122](https://github.com/JJWren/FairShare/issues/122) [#123](https://github.com/JJWren/FairShare/issues/123) [#124](https://github.com/JJWren/FairShare/issues/124)
+* state-agnostic copy on Privacy and Support ([#145](https://github.com/JJWren/FairShare/issues/145)) ([cd4e98c](https://github.com/JJWren/FairShare/commit/cd4e98c626ff42c1ec4dae274b5e91a1d0bc84fe))
+
 ## [4.2.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.1.1...fairshare-v4.2.0) (2026-08-22)
 
 
