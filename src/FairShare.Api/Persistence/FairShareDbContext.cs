@@ -16,6 +16,7 @@ public class FairShareDbContext : IdentityDbContext<ApplicationUser, IdentityRol
     public FairShareDbContext(DbContextOptions<FairShareDbContext> options) : base(options) { }
 
     public DbSet<ParentProfile> ParentProfiles => Set<ParentProfile>();
+    public DbSet<SavedScenario> Scenarios => Set<SavedScenario>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<LogEntry> Logs => Set<LogEntry>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
@@ -66,6 +67,24 @@ public class FairShareDbContext : IdentityDbContext<ApplicationUser, IdentityRol
              .WithMany()
              .HasForeignKey(p => p.OwnerUserId)
              .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<SavedScenario>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.RowVersion).IsRowVersion();
+            b.Property(s => s.CreatedUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // The name is the natural key within one user's scenarios (the service matches
+            // case-insensitively; this index backstops exact duplicates under concurrency).
+            b.HasIndex(s => new { s.OwnerUserId, s.Name }).IsUnique();
+
+            // Scenarios are strictly owned and die with the account (unlike ParentProfiles,
+            // whose nullable owner predates accounts).
+            b.HasOne<ApplicationUser>()
+             .WithMany()
+             .HasForeignKey(s => s.OwnerUserId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<LogEntry>(b =>

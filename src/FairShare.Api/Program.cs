@@ -233,6 +233,8 @@ builder.Services.AddScoped<IWorksheetForm, CS42Calculator>();
 builder.Services.AddScoped<IWorksheetForm, CS42SCalculator>();
 builder.Services.AddScoped<IWorksheetForm, OregonWorksheetCalculator>();
 builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
+builder.Services.AddScoped<ICalculationRunner, CalculationRunner>();
+builder.Services.AddScoped<IScenarioService, ScenarioService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IWorksheetExporter, ClosedXmlWorksheetExporter>();
 builder.Services.AddScoped<IParentProfileService, ParentProfileService>();
