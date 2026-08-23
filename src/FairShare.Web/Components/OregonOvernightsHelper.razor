@@ -1,0 +1,192 @@
+@* "Help me count overnights" (worksheet line 6a): builds a parenting schedule from presets and
+   counts the overnights on a real simulated two-year calendar - the same two-year-average idea as
+   Oregon's parenting time calculator, without its per-date editing. The computed number is a
+   starting point the parent can always override in the card; exotic schedules belong in the
+   state's own calendar tool (linked below). *@
+
+<div class="card mb-4">
+    <div class="card-header p-0">
+        <button type="button"
+                class="btn btn-link w-100 text-start text-decoration-none px-3 py-2"
+                @onclick="() => expanded = !expanded"
+                aria-expanded="@expanded"
+                aria-controls="OR_OvernightsHelper">
+            @(expanded ? "▾" : "▸") Help me count overnights
+        </button>
+    </div>
+    @if (expanded)
+    {
+        <div class="card-body" id="OR_OvernightsHelper">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="OR_PatternParent">Which parent has the visiting schedule?</label>
+                    <select id="OR_PatternParent" @bind="patternParent" class="form-select" aria-describedby="OR_PatternParentHelp">
+                        <option value="Plaintiff">Plaintiff</option>
+                        <option value="Defendant">Defendant</option>
+                    </select>
+                    <div id="OR_PatternParentHelp" class="form-text">
+                        The other parent gets the remaining nights (365 total).
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="OR_Pattern">Schedule</label>
+                    <select id="OR_Pattern" @bind="pattern" class="form-select">
+                        <option value="none">No overnights</option>
+                        <option value="eow">Every other weekend</option>
+                        <option value="eow-midweek">Every other weekend + one weeknight each week</option>
+                        <option value="first-third">1st and 3rd weekends of the month</option>
+                        <option value="second-fourth">2nd and 4th weekends of the month</option>
+                        <option value="every-weekend">Every weekend</option>
+                        <option value="fifty-fifty">Equal time (2-2-3, alternating weeks, ...)</option>
+                    </select>
+                </div>
+            </div>
+            @if (pattern is not "none" and not "fifty-fifty")
+            {
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="OR_SundayNight" @bind="weekendsIncludeSunday" />
+                    <label class="form-check-label" for="OR_SundayNight">Weekends include Sunday night</label>
+                </div>
+            }
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="OR_Summer">Consecutive summer overnights</label>
+                    <input type="number" min="0" max="59" id="OR_Summer" @bind="summerOvernights" class="form-control"
+                           aria-describedby="OR_SummerHelp" disabled="@(pattern == "fifty-fifty")" />
+                    <div id="OR_SummerHelp" class="form-text">
+                        A summer block with the visiting parent (starting July 1), like the state tool's 4-59 summer nights.
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="OR_Holiday">Additional overnights per year</label>
+                    <input type="number" step="0.5" min="-100" max="100" id="OR_Holiday" @bind="holidayAdjustment" class="form-control"
+                           aria-describedby="OR_HolidayHelp" disabled="@(pattern == "fifty-fifty")" />
+                    <div id="OR_HolidayHelp" class="form-text">
+                        Holidays, school breaks, or half-day equivalents (a 4-12 hour block counts as half a day
+                        under OAR 137-050-0730). Use a negative number for nights the schedule loses.
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+                <button type="button" class="btn btn-outline-primary" @onclick="Apply">
+                    Use @ComputedAverage.ToString("0.##") overnights
+                </button>
+                <span class="text-muted small">
+                    Counted on a simulated two-year calendar and averaged, the way Oregon's own
+                    <a href="https://justice.oregon.gov/calculator/parenting_time/" target="_blank" rel="noopener">parenting time calculator</a>
+                    works; use that tool for schedules these presets can't express, then type its number into the cards.
+                </span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Called with (plaintiffOvernights, defendantOvernights) when the parent applies the computed number.</summary>
+    [Parameter, EditorRequired] public EventCallback<(decimal Plaintiff, decimal Defendant)> OnApply { get; set; }
+
+    private bool expanded;
+    private string patternParent = "Defendant";
+    private string pattern = "eow";
+    private bool weekendsIncludeSunday;
+    private int summerOvernights;
+
+    // Decimal so half-day equivalents (OAR 137-050-0730: a 4-12 hour block is half a day) can be
+    // entered directly, as the field's help text promises.
+    private decimal holidayAdjustment;
+
+    private decimal ComputedAverage => ComputeTwoYearAverage();
+
+    private async Task Apply()
+    {
+        decimal visiting = Math.Clamp(ComputedAverage, 0m, 365m);
+        decimal remaining = 365m - visiting;
+
+        (decimal p, decimal d) = patternParent == "Plaintiff" ? (visiting, remaining) : (remaining, visiting);
+        await OnApply.InvokeAsync((p, d));
+    }
+
+    /// <summary>
+    /// Counts the visiting parent's overnights over 2026-2027 (730 nights) and averages. The
+    /// summer block simply grants the visiting parent every night in its window, so pattern
+    /// nights inside the block are never double counted.
+    /// </summary>
+    private decimal ComputeTwoYearAverage()
+    {
+        if (pattern == "fifty-fifty")
+        {
+            return 182.5m;
+        }
+
+        if (pattern == "none" && summerOvernights == 0)
+        {
+            return Math.Clamp(holidayAdjustment, 0m, 365m);
+        }
+
+        int nights = 0;
+        DateOnly start = new(2026, 1, 1);
+
+        for (int offset = 0; offset < 730; offset++)
+        {
+            DateOnly date = start.AddDays(offset);
+
+            if (InSummerBlock(date) || IsPatternNight(date))
+            {
+                nights++;
+            }
+        }
+
+        decimal average = nights / 2m + holidayAdjustment;
+        return Math.Clamp(average, 0m, 365m);
+    }
+
+    private bool InSummerBlock(DateOnly date)
+    {
+        if (summerOvernights <= 0)
+        {
+            return false;
+        }
+
+        DateOnly blockStart = new(date.Year, 7, 1);
+        int daysFromStart = date.DayNumber - blockStart.DayNumber;
+        return daysFromStart >= 0 && daysFromStart < summerOvernights;
+    }
+
+    private bool IsPatternNight(DateOnly date)
+    {
+        bool weekendNight = date.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday
+            || (weekendsIncludeSunday && date.DayOfWeek is DayOfWeek.Sunday);
+
+        return pattern switch
+        {
+            "eow" => weekendNight && IsAlternatingWeekendOn(date),
+            "eow-midweek" => (weekendNight && IsAlternatingWeekendOn(date)) || date.DayOfWeek is DayOfWeek.Wednesday,
+            "first-third" => weekendNight && WeekendOrdinal(date) is 1 or 3,
+            "second-fourth" => weekendNight && WeekendOrdinal(date) is 2 or 4,
+            "every-weekend" => weekendNight,
+            _ => false,
+        };
+    }
+
+    // Alternating weekends anchor on the first Friday of 2026 (Jan 2) and flip every 7 days.
+    private static bool IsAlternatingWeekendOn(DateOnly date)
+    {
+        DateOnly anchor = new(2026, 1, 2);
+        int weeks = (date.DayNumber - anchor.DayNumber) / 7;
+        return ((weeks % 2) + 2) % 2 == 0;
+    }
+
+    // Which weekend of the month a night belongs to: the ordinal of its Friday within the
+    // Friday's month (a Saturday/Sunday night that crosses into a new month stays with its Friday).
+    private static int WeekendOrdinal(DateOnly date)
+    {
+        DateOnly friday = date.DayOfWeek switch
+        {
+            DayOfWeek.Saturday => date.AddDays(-1),
+            DayOfWeek.Sunday => date.AddDays(-2),
+            _ => date,
+        };
+
+        return (friday.Day - 1) / 7 + 1;
+    }
+}

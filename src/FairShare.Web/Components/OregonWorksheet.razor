@@ -13,6 +13,11 @@
     the <a href="https://justice.oregon.gov/guidelines/" target="_blank" rel="noopener">official Oregon calculator</a>.
 </div>
 
+<p class="text-center small mb-3">
+    New to the Oregon guideline? Read
+    <a href="/guides/oregon-worksheet">Understanding the Oregon worksheet</a>.
+</p>
+
 <div class="row g-3 mb-2 justify-content-center">
     <div class="col-12 col-sm-6 col-lg-3 text-center">
         <label class="form-label" for="OR_JointMinors">Joint minor children</label>
@@ -78,6 +83,11 @@
     <div class="text-center small mb-3 @(OvernightsTotal == 365 ? "text-muted" : "text-danger")">
         Overnights entered: @OvernightsTotal.ToString("0.##") of 365
     </div>
+}
+
+@if (jointMinorChildren > 0)
+{
+    <OregonOvernightsHelper OnApply="ApplyOvernights" />
 }
 
 <div class="row g-4">
@@ -192,6 +202,12 @@
     private const string ApiUnreachableMessage = "The FairShare API could not be reached. Check your connection and try again.";
 
     private decimal OvernightsTotal => plaintiff.AverageOvernights + defendant.AverageOvernights;
+
+    private void ApplyOvernights((decimal Plaintiff, decimal Defendant) overnights)
+    {
+        plaintiff.AverageOvernights = overnights.Plaintiff;
+        defendant.AverageOvernights = overnights.Defendant;
+    }
 
     private async Task CalculateAsync()
     {
