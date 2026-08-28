@@ -13,6 +13,11 @@ using System.Security.Claims;
 
 namespace FairShare.Api.Controllers;
 
+/// <summary>
+/// Saved parent profiles. Strictly owner-scoped, mirroring scenarios: there is no admin
+/// cross-access to other people's saved income figures, and owner mismatches read as
+/// 404, never 403, so existence is not disclosed.
+/// </summary>
 [Authorize]
 [Route("api/v1/parents")]
 [ApiController]
@@ -24,7 +29,6 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     private Guid? CurrentUserId =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var g) ? g : null;
 
-    private bool IsAdmin => User.IsInRole("Admin");
     private bool IsGuest => User.HasClaim(c => c.Type == "guest" && c.Value == "true");
 
     private static ParentProfileDto ToDto(ParentProfile p) => new()
@@ -45,37 +49,30 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] string? q, CancellationToken ct)
     {
-        IReadOnlyList<ParentProfile> all = await _service.ListAsync(q, ct);
-
-        if (!IsAdmin)
+        // Guests see an empty list (the disabled picker advertises the account feature);
+        // so does a token with no usable user id.
+        if (IsGuest || CurrentUserId is not Guid uid)
         {
-            Guid? uid = CurrentUserId;
-            if (uid is null || IsGuest)
-            {
-                return Ok(Array.Empty<ParentProfileDto>());
-            }
-
-            all = all.Where(p => p.OwnerUserId == uid).ToList();
+            return Ok(Array.Empty<ParentProfileDto>());
         }
 
-        return Ok(all.Select(ToDto));
+        IReadOnlyList<ParentProfile> owned = await _service.ListAsync(uid, q, ct);
+        return Ok(owned.Select(ToDto));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken ct)
     {
-        ParentProfile? p = await _service.GetAsync(id, ct);
-
-        if (p is null)
+        if (IsGuest || CurrentUserId is not Guid uid)
         {
             return NotFound();
         }
 
-        if (!IsAdmin)
+        ParentProfile? p = await _service.GetAsync(id, ct);
+
+        if (p is null || p.OwnerUserId != uid)
         {
-            if (IsGuest) return NotFound();
-            Guid? uid = CurrentUserId;
-            if (p.OwnerUserId != uid) return NotFound();
+            return NotFound();
         }
 
         return Ok(ToDto(p));
@@ -85,9 +82,8 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Create([FromBody] ParentProfileCreateRequest request, CancellationToken ct)
     {
-        Guid? uid = CurrentUserId;
-
-        if (!IsAdmin && uid is null)
+        // Every new profile gets an owner; the ownerless shape exists only as legacy data.
+        if (CurrentUserId is not Guid uid)
         {
             return Forbid();
         }
@@ -121,21 +117,16 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Update(Guid id, [FromBody] ParentProfileUpdateRequest request, CancellationToken ct)
     {
-        ParentProfile? existing = await _service.GetAsync(id, ct);
-
-        if (existing is null)
+        if (CurrentUserId is not Guid uid)
         {
             return NotFound();
         }
 
-        if (!IsAdmin)
-        {
-            Guid? uid = CurrentUserId;
+        ParentProfile? existing = await _service.GetAsync(id, ct);
 
-            if (IsGuest || existing.OwnerUserId != uid)
-            {
-                return NotFound();
-            }
+        if (existing is null || existing.OwnerUserId != uid)
+        {
+            return NotFound();
         }
 
         byte[]? expectedRowVersion = null;
@@ -175,21 +166,16 @@ public class ParentsController(IParentProfileService service, ILogger<ParentsCon
     [Authorize(Policy = "NotGuest")]
     public async Task<IActionResult> Archive(Guid id, CancellationToken ct)
     {
-        ParentProfile? existing = await _service.GetAsync(id, ct);
-
-        if (existing is null)
+        if (CurrentUserId is not Guid uid)
         {
             return NotFound();
         }
 
-        if (!IsAdmin)
-        {
-            Guid? uid = CurrentUserId;
+        ParentProfile? existing = await _service.GetAsync(id, ct);
 
-            if (IsGuest || existing.OwnerUserId != uid)
-            {
-                return NotFound();
-            }
+        if (existing is null || existing.OwnerUserId != uid)
+        {
+            return NotFound();
         }
 
         bool ok = await _service.ArchiveAsync(id, ct);
