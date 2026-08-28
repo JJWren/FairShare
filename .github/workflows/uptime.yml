@@ -2,7 +2,9 @@
 # host and the API's /healthz from outside the home network, so an outage the box
 # can't see (dead tunnel, DNS, proxy) still alerts. Alerting is a GitHub issue labeled
 # "uptime": opened on failure (with per-probe detail), auto-closed on recovery -
-# GitHub's own notifications deliver it. The schedule is best-effort (~10 min).
+# GitHub's own notifications deliver it. GitHub's cron is best-effort - */5 is
+# the platform minimum and real firing often drifts, so a short blip between probes can
+# be missed; the deterministic alert-path check is the simulate_failure input below.
 #
 # Alert-path test without touching prod: run workflow_dispatch with
 # simulate_failure=true - it probes a known-404 path, the issue opens; run again
@@ -11,7 +13,7 @@ name: Uptime check
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       simulate_failure:
