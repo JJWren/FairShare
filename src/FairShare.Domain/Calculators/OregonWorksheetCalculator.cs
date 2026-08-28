@@ -28,7 +28,9 @@ namespace FairShare.Domain.Calculators
         public bool IsSharedCustody => false;
 
         public OregonCalculationOutcome Calculate(OregonWorksheetInput input)
-            => Calculate(input, OregonRuleParameters.Current);
+            => Calculate(input, input.AsOfDate is { } asOf
+                ? OregonRuleParameters.ForDate(asOf)
+                : OregonRuleParameters.Current);
 
         public OregonCalculationOutcome Calculate(OregonWorksheetInput input, OregonRuleParameters rules)
         {

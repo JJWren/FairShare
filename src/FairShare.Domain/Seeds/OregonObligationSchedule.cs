@@ -15,6 +15,10 @@ namespace FairShare.Domain.Seeds
         {
         }
 
+        // Oregon results cite the dated rule vintage (OregonRuleParameters.EffectiveDate)
+        // rather than this label; the scale appendix itself revises rarely.
+        public string Vintage => "OAR 137-050-0725 Obligation Scale";
+
         public int MinChildren => OregonScaleLookup.MinChildren;
 
         // The scale has ten columns, but OAR 137-050-0725 prices any larger family with the

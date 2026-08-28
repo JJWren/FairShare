@@ -15,6 +15,10 @@ namespace FairShare.Domain.Seeds
         {
         }
 
+        // The workbook's own label for this table revision. A future revision APPENDS a new
+        // schedule/vintage rather than editing this in place - old results cite this string.
+        public string Vintage => "AL Realigned Sept 2021";
+
         public int MinChildren => BcsoLookup.MinChildren;
 
         public int MaxChildren => BcsoLookup.MaxChildren;

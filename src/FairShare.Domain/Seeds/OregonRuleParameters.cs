@@ -4,11 +4,14 @@ namespace FairShare.Domain.Seeds
 {
     /// <summary>
     /// Oregon guideline parameters that move on their own statutory schedules, keyed by the
-    /// effective date of the rules that set them. <see cref="Current"/> is what calculators use, and
-    /// estimates display its <see cref="EffectiveDate"/> ("Implements OAR 137-050 effective ...").
+    /// effective date of the rules that set them. <see cref="Current"/> is the newest vintage;
+    /// <see cref="ForDate(DateOnly)"/> selects the vintage in force on a given date (scenario
+    /// reopen "as originally computed", court-prep for a past filing date). Estimates display
+    /// the selected <see cref="EffectiveDate"/> ("Implements OAR 137-050 effective ...").
     /// The self-support reserve is re-set every July 1 (federal poverty guideline × 1.30, OAR
-    /// 137-050-0745) — expect a new record here each year; when a second vintage exists, grow this
-    /// into an effective-date-keyed history rather than editing values in place.
+    /// 137-050-0745) — the yearly refresh (the June reminder issue) APPENDS the new official
+    /// values to <see cref="Vintages"/>; never edit an existing vintage in place, because old
+    /// scenarios and printed estimates cite it.
     /// </summary>
     public sealed record OregonRuleParameters
     {
@@ -26,6 +29,46 @@ namespace FairShare.Domain.Seeds
             MetroChildCareCaps = new ChildCareCaps(1705, 1705, 1400, 1100),
             NonMetroChildCareCaps = new ChildCareCaps(1190, 1083, 860, 629),
         };
+
+        /// <summary>
+        /// Every vintage this build carries, oldest to newest. One entry today: only values
+        /// verified against an official source belong here, so prior years appear when their
+        /// official figures are fetched (the schedule-refresh checklist), never reconstructed.
+        /// </summary>
+        private static readonly OregonRuleParameters[] Vintages = [Current];
+
+        /// <summary>The vintage in force on <paramref name="date"/> from this build's history.</summary>
+        public static OregonRuleParameters ForDate(DateOnly date) => ForDate(date, Vintages);
+
+        /// <summary>
+        /// The newest vintage whose effective date is on or before <paramref name="date"/>.
+        /// <paramref name="vintages"/> must be sorted oldest to newest. A date before the earliest
+        /// vintage gets the earliest — this build simply has no older rules to offer, and the
+        /// outcome names the vintage actually used, so the substitution is always visible.
+        /// </summary>
+        public static OregonRuleParameters ForDate(DateOnly date, System.Collections.Generic.IReadOnlyList<OregonRuleParameters> vintages)
+        {
+            if (vintages.Count == 0)
+            {
+                throw new ArgumentException("At least one vintage is required.", nameof(vintages));
+            }
+
+            OregonRuleParameters selected = vintages[0];
+
+            foreach (OregonRuleParameters vintage in vintages)
+            {
+                if (vintage.EffectiveDate <= date)
+                {
+                    selected = vintage;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return selected;
+        }
 
         /// <summary>The date the rule set producing these values took effect.</summary>
         public required DateOnly EffectiveDate { get; init; }
