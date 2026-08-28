@@ -121,20 +121,13 @@
     <div class="card shadow-sm fs-results-card">
         <div class="card-header text-center"><strong>Results</strong></div>
         <div class="card-body">
-            @* Scoped live region: announce the outcome and the coverage note, never the
-               ~45-row worksheet. The table below is keyboard-scrollable instead. *@
+            @* Scoped live region: announce ONE sentence per Calculate (or the failure
+               list), never the ~45-row worksheet. The coverage note and the table sit
+               outside; the table is keyboard-scrollable instead. *@
             <div aria-live="polite">
                 @if (submitted && result is not null && result.Success)
                 {
                     <p class="fw-bold text-center mb-0">@ResultSentence()</p>
-
-                    @if (result.Oregon is { } extras)
-                    {
-                        <p class="text-center text-muted small mb-0 mt-1">
-                            Health care coverage: @ProviderText(extras.CoverageProvider)
-                            (reasonable cost cap $@extras.ReasonableCostTotal.ToString("N0")/month).
-                        </p>
-                    }
                 }
                 else if (submitted && result is not null && !result.Success)
                 {
@@ -150,6 +143,13 @@
                     <p class="text-muted mb-0">Enter inputs and Calculate.</p>
                 }
             </div>
+            @if (submitted && result is { Success: true, Oregon: { } extras })
+            {
+                <p class="text-center text-muted small mb-0 mt-1">
+                    Health care coverage: @ProviderText(extras.CoverageProvider)
+                    (reasonable cost cap $@extras.ReasonableCostTotal.ToString("N0")/month).
+                </p>
+            }
             @if (submitted && result is { Success: true } && result.Lines.Any())
             {
                 <div class="table-responsive mt-3" tabindex="0" role="region" aria-label="Worksheet lines">
