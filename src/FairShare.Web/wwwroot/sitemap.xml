@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- lastmod reflects the release that last changed that page's content; update alongside
+     user-visible changes to the page (the guide and calculators move most often). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://easychildsupport.fyi/</loc></url>
-  <url><loc>https://easychildsupport.fyi/States/AL</loc></url>
-  <url><loc>https://easychildsupport.fyi/privacy</loc></url>
-  <url><loc>https://easychildsupport.fyi/terms</loc></url>
-  <url><loc>https://easychildsupport.fyi/support</loc></url>
+  <url><loc>https://easychildsupport.fyi/</loc><lastmod>2026-08-28</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/States/AL</loc><lastmod>2026-08-28</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/States/OR</loc><lastmod>2026-08-28</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/guides/oregon-worksheet</loc><lastmod>2026-08-23</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/privacy</loc><lastmod>2026-08-28</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/terms</loc><lastmod>2026-08-28</lastmod></url>
+  <url><loc>https://easychildsupport.fyi/support</loc><lastmod>2026-08-21</lastmod></url>
 </urlset>

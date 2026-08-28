@@ -102,7 +102,10 @@
 </div>
 
 <div class="mt-3 d-flex gap-2">
-    <button class="btn btn-primary" @onclick="CalculateAsync" disabled="@calculating">Calculate</button>
+    <button class="btn btn-primary" @onclick="CalculateAsync" disabled="@calculating">
+        @* Same busy pattern as the AL page and its Export button. *@
+        @(calculating ? "Calculating..." : "Calculate")
+    </button>
     <button class="btn btn-outline-danger" @onclick="ResetAsync">Reset</button>
 </div>
 
