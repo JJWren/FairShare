@@ -5,6 +5,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FairShare is a free child-support calculator: transparent, line-by-line estimates under your state's official guidelines, matching the court's own worksheets." />
+    <!-- Share cards: og:url is the canonical origin, not the requested path, because this
+         same shell serves every route. og:description is the same string as the
+         description meta above - one string, edited in both places or not at all.
+         Image URLs must be absolute (scrapers resolve nothing); og-card.png is generated
+         at 1200x630, the standard large-card size. -->
+    <meta property="og:site_name" content="FairShare" />
+    <meta property="og:title" content="FairShare - free child-support calculator" />
+    <meta property="og:description" content="FairShare is a free child-support calculator: transparent, line-by-line estimates under your state's official guidelines, matching the court's own worksheets." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://easychildsupport.fyi/" />
+    <meta property="og:image" content="https://easychildsupport.fyi/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="FairShare - free child-support calculator, line-by-line estimates matching the court's own worksheets" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://easychildsupport.fyi/og-card.png" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#212529" media="(prefers-color-scheme: dark)" />
     <title>FairShare</title>
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
