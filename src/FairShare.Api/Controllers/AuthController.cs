@@ -348,15 +348,24 @@ public class AuthController(
         await _audit.WriteAsync(AuditActions.AccountDeleted, target: user.UserName, ct: ct);
         await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.AccountDeleted, target: null, ct);
 
+        // One transaction: the owned rows and the account go together or not at all - a
+        // failure mid-way must not leave deleted profiles under a live login, or a dead
+        // login with income data still stored.
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
         await _db.ParentProfiles.Where(p => p.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
+        await _db.Scenarios.Where(s => s.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
         await _db.RefreshTokens.Where(t => t.UserId == user.Id).ExecuteDeleteAsync(ct);
 
         IdentityResult deleted = await _userManager.DeleteAsync(user);
 
         if (!deleted.Succeeded)
         {
+            await tx.RollbackAsync(ct);
             return IdentityValidationProblem(deleted);
         }
+
+        await tx.CommitAsync(ct);
 
         ClearRefreshCookie();
         return NoContent();
