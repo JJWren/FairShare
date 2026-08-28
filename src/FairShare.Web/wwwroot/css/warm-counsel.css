@@ -1,0 +1,251 @@
+/* Warm Counsel, applied (#184): bridges the locked design tokens
+   (css/warm-counsel-tokens.css - a byte-identical copy of
+   design-system/src/styles/tokens.css, enforced by a test) onto Bootstrap's variable
+   system and the app's existing fs-* classes. Loaded LAST so it wins the cascade.
+   Theme: theme-init.js/site.js mirror data-bs-theme onto data-fs-theme, so the token
+   file's dark block and Bootstrap's dark variables always switch together. */
+
+/* ---- Base surfaces + type ------------------------------------------------------- */
+
+html, body {
+    background-color: var(--fs-page);
+    color: var(--fs-ink);
+    font-family: var(--fs-font-body);
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--fs-font-display);
+    font-weight: 600;
+}
+
+/* ---- Bootstrap variable bridge (both themes resolve through the fs tokens) ------- */
+
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--fs-page);
+    --bs-body-color: var(--fs-ink);
+    --bs-secondary-color: var(--fs-muted);
+    --bs-tertiary-bg: var(--fs-card-alt);
+    --bs-secondary-bg: var(--fs-card-alt);
+    --bs-border-color: var(--fs-border-soft);
+    --bs-link-color: var(--fs-accent);
+    --bs-link-hover-color: var(--fs-accent);
+    --bs-emphasis-color: var(--fs-ink);
+    --bs-heading-color: var(--fs-ink);
+}
+
+/* Direct rule, not just the --bs-link-color bridge: Bootstrap paints anchors from the
+   --bs-link-color-rgb CHANNELS, which a hex token can't feed. Utility link classes
+   (.link-secondary in the footer) keep their own quieter colors. */
+a:not([class*="link-"]):not(.btn):not(.nav-link):not(.navbar-brand) {
+    color: var(--fs-accent);
+}
+
+a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+/* ---- Cards ----------------------------------------------------------------------- */
+
+.card {
+    --bs-card-bg: var(--fs-card);
+    --bs-card-border-color: var(--fs-border-soft);
+    --bs-card-border-radius: var(--fs-radius-card);
+    --bs-card-inner-border-radius: calc(var(--fs-radius-card) - 1px);
+    --bs-card-cap-bg: var(--fs-card-alt);
+    box-shadow: var(--fs-shadow);
+}
+
+/* ---- Buttons: terracotta pills --------------------------------------------------- */
+
+.btn {
+    --bs-btn-border-radius: var(--fs-radius-pill);
+    font-weight: 600;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--fs-btn-bg);
+    --bs-btn-border-color: var(--fs-btn-bg);
+    --bs-btn-color: var(--fs-btn-ink);
+    --bs-btn-hover-bg: var(--fs-accent);
+    --bs-btn-hover-border-color: var(--fs-accent);
+    --bs-btn-hover-color: var(--fs-btn-ink);
+    --bs-btn-active-bg: var(--fs-accent);
+    --bs-btn-active-border-color: var(--fs-accent);
+    --bs-btn-active-color: var(--fs-btn-ink);
+    --bs-btn-disabled-bg: var(--fs-btn-bg);
+    --bs-btn-disabled-border-color: var(--fs-btn-bg);
+    --bs-btn-disabled-color: var(--fs-btn-ink);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--fs-danger);
+    --bs-btn-border-color: var(--fs-danger);
+    --bs-btn-hover-bg: var(--fs-danger);
+    --bs-btn-hover-border-color: var(--fs-danger);
+    --bs-btn-active-bg: var(--fs-danger);
+    --bs-btn-active-border-color: var(--fs-danger);
+}
+
+/* Export rides the accent-outline look from the design's Button variants (the old
+   green fought the warm palette). */
+.btn-outline-success {
+    --bs-btn-color: var(--fs-accent);
+    --bs-btn-border-color: var(--fs-accent);
+    --bs-btn-hover-bg: var(--fs-accent);
+    --bs-btn-hover-border-color: var(--fs-accent);
+    --bs-btn-hover-color: var(--fs-btn-ink);
+    --bs-btn-active-bg: var(--fs-accent);
+    --bs-btn-active-border-color: var(--fs-accent);
+    --bs-btn-active-color: var(--fs-btn-ink);
+    --bs-btn-disabled-color: var(--fs-muted);
+    --bs-btn-disabled-border-color: var(--fs-border-strong);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--fs-muted);
+    --bs-btn-border-color: var(--fs-border-strong);
+    --bs-btn-hover-bg: var(--fs-card-alt);
+    --bs-btn-hover-border-color: var(--fs-border-strong);
+    --bs-btn-hover-color: var(--fs-ink);
+    --bs-btn-active-bg: var(--fs-card-alt);
+    --bs-btn-active-border-color: var(--fs-border-strong);
+    --bs-btn-active-color: var(--fs-ink);
+}
+
+/* The theme toggle's active segment is the app's one btn-secondary; it rides the same
+   contrast-verified button pair as btn-primary so the active segment reads terracotta
+   in both themes instead of Bootstrap grey. */
+.btn-secondary {
+    --bs-btn-bg: var(--fs-btn-bg);
+    --bs-btn-border-color: var(--fs-btn-bg);
+    --bs-btn-color: var(--fs-btn-ink);
+    --bs-btn-hover-bg: var(--fs-accent);
+    --bs-btn-hover-border-color: var(--fs-accent);
+    --bs-btn-hover-color: var(--fs-btn-ink);
+    --bs-btn-active-bg: var(--fs-accent);
+    --bs-btn-active-border-color: var(--fs-accent);
+    --bs-btn-active-color: var(--fs-btn-ink);
+}
+
+/* Same accent-outline mapping as btn-outline-success (login's Sign in, admin forms) -
+   without it Bootstrap's blue leaks through. Filled semantic variants (btn-danger,
+   btn-warning, btn-success) deliberately keep Bootstrap's theme-aware colors: they're
+   rare confirm/admin surfaces where the semantic hue is the message. */
+.btn-outline-primary {
+    --bs-btn-color: var(--fs-accent);
+    --bs-btn-border-color: var(--fs-accent);
+    --bs-btn-hover-bg: var(--fs-accent);
+    --bs-btn-hover-border-color: var(--fs-accent);
+    --bs-btn-hover-color: var(--fs-btn-ink);
+    --bs-btn-active-bg: var(--fs-accent);
+    --bs-btn-active-border-color: var(--fs-accent);
+    --bs-btn-active-color: var(--fs-btn-ink);
+    --bs-btn-disabled-color: var(--fs-muted);
+    --bs-btn-disabled-border-color: var(--fs-border-strong);
+}
+
+/* ---- Forms ------------------------------------------------------------------------ */
+
+.form-control,
+.form-select,
+.input-group-text {
+    background-color: var(--fs-input-bg);
+    border-color: var(--fs-border-strong);
+    border-radius: var(--fs-radius-control);
+    color: var(--fs-ink);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--fs-input-bg);
+    border-color: var(--fs-accent);
+    box-shadow: 0 0 0 0.25rem var(--fs-accent-bg);
+    color: var(--fs-ink);
+}
+
+.form-control::placeholder {
+    color: var(--fs-faint);
+    opacity: 1;
+}
+
+.form-check-input:checked {
+    background-color: var(--fs-toggle);
+    border-color: var(--fs-toggle);
+}
+
+.form-check-input:focus {
+    border-color: var(--fs-accent);
+    box-shadow: 0 0 0 0.25rem var(--fs-accent-bg);
+}
+
+/* ---- Navbar + pills --------------------------------------------------------------- */
+
+.navbar {
+    background-color: var(--fs-card) !important;
+    border-bottom-color: var(--fs-border-soft) !important;
+}
+
+.navbar-brand {
+    font-family: var(--fs-font-display);
+    font-weight: 600;
+}
+
+.nav-pills {
+    --bs-nav-pills-border-radius: var(--fs-radius-pill);
+    --bs-nav-pills-link-active-bg: var(--fs-accent);
+    --bs-nav-pills-link-active-color: var(--fs-btn-ink);
+    --bs-nav-link-color: var(--fs-muted);
+    --bs-nav-link-hover-color: var(--fs-accent);
+}
+
+.navbar .nav-link {
+    color: var(--fs-muted);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+    color: var(--fs-accent);
+}
+
+/* ---- Party + results aliases (single source: the locked tokens) ------------------- */
+/* app.css's fs-party/results classes read the app-era names; alias them onto the
+   design tokens so the hand-tuned pairs live in exactly one file. The results-card
+   BORDER has no token of its own (the mocks draw the gold header on a soft border);
+   #997404 reads on both gold backgrounds and stays as the one literal. */
+
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+    --fs-plaintiff-border: var(--fs-plaintiff-edge);
+    --fs-plaintiff-bg-subtle: var(--fs-plaintiff-bg);
+    --fs-plaintiff-emphasis: var(--fs-plaintiff-ink);
+    --fs-defendant-border: var(--fs-defendant-edge);
+    --fs-defendant-bg-subtle: var(--fs-defendant-bg);
+    --fs-defendant-emphasis: var(--fs-defendant-ink);
+    --fs-results-border: #997404;
+    --fs-results-bg-subtle: var(--fs-gold-bg);
+    --fs-results-emphasis: var(--fs-gold-ink);
+}
+
+/* ---- Boot progress picks up the accent ------------------------------------------- */
+
+.fs-boot-progress .loading-progress circle {
+    stroke: var(--fs-border-soft);
+}
+
+.fs-boot-progress .loading-progress circle:last-child {
+    stroke: var(--fs-accent);
+}
+
+/* ---- Alerts: keep Bootstrap's semantics, soften the shape ------------------------- */
+
+.alert {
+    border-radius: var(--fs-radius-control);
+}
+
+.badge {
+    border-radius: var(--fs-radius-pill);
+}

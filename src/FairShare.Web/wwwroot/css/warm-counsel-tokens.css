@@ -1,0 +1,80 @@
+/* Warm Counsel tokens - the single source of truth for FairShare's visual identity.
+   Locked 2026-08-28 (issue #183). test/contrast.test.mjs asserts WCAG AA, in both
+   themes, for the curated foreground/background PAIRS the components actually compose
+   (not every token combination) - change a color here and the affected pairs fail the
+   build. The Blazor app consumes this same file (#184). Fonts load separately
+   (fonts.css or self-hosted) - no network fetch here, so the app's
+   default-src 'self' CSP can consume this file untouched. */
+
+:root,
+.fs-root {
+  /* Type */
+  --fs-font-display: "Lora", Georgia, serif;
+  --fs-font-body: "Karla", "Segoe UI", Arial, sans-serif;
+
+  /* Neutrals (light: cream) */
+  --fs-page: #faf7f2;
+  --fs-card: #ffffff;
+  --fs-card-alt: #f7f3ec;
+  --fs-ink: #33302b;
+  --fs-muted: #6d6558;
+  --fs-faint: #6d6558;
+  --fs-border-soft: #e5ddd1;
+  --fs-border-strong: #8d8062;
+  --fs-input-bg: #fdfcfa;
+
+  /* Accent (terracotta) */
+  --fs-accent: #a05442;
+  --fs-accent-bg: #f6ebe4;
+  --fs-btn-bg: #a05442;
+  --fs-btn-ink: #ffffff;
+  --fs-danger: #9d3535;
+  --fs-toggle: #087990;
+
+  /* Party palette - the app's hand-tuned pairs, kept verbatim */
+  --fs-plaintiff-ink: #0a5866;
+  --fs-plaintiff-bg: #d2f4f8;
+  --fs-plaintiff-edge: #0aa2c0;
+  --fs-defendant-ink: #4c2889;
+  --fs-defendant-bg: #e8dcfd;
+  --fs-defendant-edge: #8540f5;
+  --fs-gold-ink: #664d03;
+  --fs-gold-bg: #fff3cd;
+
+  /* Shape + depth */
+  --fs-radius-card: 16px;
+  --fs-radius-control: 12px;
+  --fs-radius-pill: 999px;
+  --fs-shadow: 0 2px 12px rgba(51, 48, 43, 0.07);
+}
+
+/* Espresso dark - warm coffee-browns, never cool slate. */
+[data-fs-theme="dark"] {
+  --fs-page: #201c17;
+  --fs-card: #2a251f;
+  --fs-card-alt: #26231e;
+  --fs-ink: #ede7dd;
+  --fs-muted: #a99e8d;
+  --fs-faint: #9a8d75;
+  --fs-border-soft: #3d362d;
+  --fs-border-strong: #847860;
+  --fs-input-bg: #241f19;
+
+  --fs-accent: #d98d77;
+  --fs-accent-bg: #3a2a24;
+  --fs-btn-bg: #a24e3e;
+  --fs-btn-ink: #fff8f4;
+  --fs-danger: #e58b8b;
+  --fs-toggle: #0aa2c0;
+
+  --fs-plaintiff-ink: #7ae1f5;
+  --fs-plaintiff-bg: #04333c;
+  --fs-plaintiff-edge: #0a9cba;
+  --fs-defendant-ink: #c5a1fc;
+  --fs-defendant-bg: #2c1a52;
+  --fs-defendant-edge: #8f5cf7;
+  --fs-gold-ink: #ffda6a;
+  --fs-gold-bg: #332701;
+
+  --fs-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}

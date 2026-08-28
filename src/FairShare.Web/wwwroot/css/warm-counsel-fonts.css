@@ -1,0 +1,18 @@
+/* Self-hosted Warm Counsel typefaces (the CSP is default-src 'self', so no Google
+   Fonts fetch - see design-system/README.md). Both are Google's variable fonts, one
+   latin file per family covering every weight the tokens use; SIL OFL 1.1 (NOTICE). */
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/lora-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url('../fonts/karla-latin.woff2') format('woff2');
+}

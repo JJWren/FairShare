@@ -12,3 +12,9 @@ Embedded public forms:
 - src/FairShare.Api/Templates/AL/*.xlsx are the State of Alabama Administrative Office of Courts' child-support
   worksheet workbooks (Form CS-42 Rev. 5/2022, Form CS-42-S Eff. 6/2023), published at eforms.alacourt.gov.
   They are included unmodified; FairShare only fills in their input cells.
+
+Embedded fonts:
+- src/FairShare.Web/wwwroot/fonts/lora-latin.woff2 (Lora, Cyreal) and karla-latin.woff2
+  (Karla, Jonny Pinhorn / Indian Type Foundry) are variable fonts obtained from Google
+  Fonts and self-hosted unmodified. Both are licensed under the SIL Open Font License 1.1
+  (https://openfontlicense.org).
