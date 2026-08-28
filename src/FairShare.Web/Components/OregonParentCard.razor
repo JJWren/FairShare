@@ -95,18 +95,19 @@
                    refresh checks both. Always rendered (hidden when collapsed) so the
                    toggle's aria-controls target exists in every state. *@
                 <div id="@($"{Prefix}_ChildCareCaps")" class="form-text mt-1" hidden="@(!showChildCareCaps)">
-                    Enter the allowable amount, as on the official calculator: up to the
-                    OAR 137-050-0735 Table 1 maximum (per child, monthly) for the age of the
-                    child in care - or more, only when the higher cost qualifies under the
-                    rule's section (4) exception:
+                    Enter the allowable amount, as on the official calculator: for each child in
+                    care, up to the OAR 137-050-0735 Table 1 maximum (per child, monthly) for that
+                    child's age - or more, only when the higher cost qualifies under the rule's
+                    section (4) exception:
                     <ul class="mb-1 ps-3">
                         <li>Under 1 year: $1,705 metro / $1,190 elsewhere</li>
                         <li>1 to 3 years: $1,705 metro / $1,083 elsewhere</li>
                         <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
                         <li>6 and older: $1,100 metro / $629 elsewhere</li>
                     </ul>
-                    Metro means the Portland, Bend, Eugene, Corvallis, Springfield, Monmouth,
-                    and Ashland metro areas.
+                    With more than one child in care, enter the sum of each child's allowable
+                    amount. Metro means the Portland, Bend, Eugene, Corvallis, Springfield,
+                    Monmouth, and Ashland metro areas.
                 </div>
             </div>
             <div class="mb-3">
