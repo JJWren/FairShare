@@ -42,3 +42,23 @@ window.fairshareTheme = {
         return localStorage.getItem(this.THEME_KEY) || 'auto';
     }
 };
+
+// Structured data for crawlers. Injected from this external file instead of an inline
+// <script type="application/ld+json"> so the CSP's script-src 'self' is unambiguously
+// satisfied; every crawler that matters here renders JS anyway (the whole site is a SPA).
+(function () {
+    var data = {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "FairShare",
+        "url": "https://easychildsupport.fyi/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "description": "FairShare is a free child-support calculator: transparent, line-by-line estimates under your state's official guidelines, matching the court's own worksheets.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    };
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+})();

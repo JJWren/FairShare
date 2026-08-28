@@ -9,6 +9,48 @@ body {
   margin-bottom: 60px;
 }
 
+/* Blazor boot progress: blazor.webassembly.js updates --blazor-load-percentage(-text)
+   on :root while assemblies download. Stock template formula for the arc; colors ride
+   Bootstrap's theme variables so dark mode needs nothing extra. */
+.fs-boot-progress {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+}
+
+.fs-boot-progress .loading-progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fs-boot-progress .loading-progress circle {
+  fill: none;
+  stroke: var(--bs-secondary-bg, #e0e0e0);
+  stroke-width: 0.6rem;
+  transform-origin: 50% 50%;
+  transform: rotate(-90deg);
+}
+
+.fs-boot-progress .loading-progress circle:last-child {
+  stroke: var(--bs-primary, #0d6efd);
+  stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+  transition: stroke-dasharray 0.05s ease-in-out;
+}
+
+.fs-boot-progress .loading-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.fs-boot-progress .loading-progress-text:after {
+  content: var(--blazor-load-percentage-text, "Loading");
+}
+
 /* Worksheet table under the calculator result: keep the line number narrow and the item text readable. */
 .worksheet-table td:first-child,
 .worksheet-table th:first-child {
