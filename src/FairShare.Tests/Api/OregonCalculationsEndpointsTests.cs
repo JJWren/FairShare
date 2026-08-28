@@ -49,6 +49,8 @@ public class OregonCalculationsEndpointsTests : IClassFixture<FairShareApiFactor
         Assert.Equal(2, body.NumberOfChildren);
         Assert.Equal("Plaintiff", body.Payer);
         Assert.Equal(506, body.FinalAmount);
+        // Every estimate names the rule data it implements (#171).
+        Assert.Equal("OAR 137-050 effective 2026-07-01", body.RuleVintage);
 
         Assert.NotNull(body.Oregon);
         Assert.Equal(506, body.Oregon!.PlaintiffTotalSupport);

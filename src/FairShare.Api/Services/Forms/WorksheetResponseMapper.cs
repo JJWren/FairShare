@@ -17,6 +17,7 @@ internal static class WorksheetResponseMapper
             NumberOfChildren = result.NumberOfChildren,
             Payer = result.Payer,
             FinalAmount = result.FinalAmount,
+            RuleVintage = result.RuleVintage,
             Errors = result.Errors.Select(e => new CalcErrorDto
             {
                 Code = e.Code,

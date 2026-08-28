@@ -34,6 +34,8 @@ public class CalculationsEndpointsTests : IClassFixture<FairShareApiFactory>
         Assert.True(body.Success);
         Assert.Equal("Defendant", body.Payer);
         Assert.Equal(50, body.FinalAmount);
+        // Every estimate names the rule data it implements (#171).
+        Assert.Equal("AL Realigned Sept 2021", body.RuleVintage);
         Assert.Equal(15, body.Lines.Count);
         Assert.Equal("Percent", body.Lines.Single(l => l.Number == "3").Format);
 
