@@ -58,13 +58,19 @@ jobs:
           # like a browser does.
           check_config() {
             local url="https://easychildsupport.fyi/appsettings.json"
-            local body
-            body=$(curl -sS --compressed --max-time 15 --retry 2 --retry-delay 5 "$url") || body=""
-            if printf '%s' "$body" | grep -q '"BaseUrl"'; then
-              echo "Config: ok ($url)"
+            local body code base
+            body=$(curl -sS --compressed --max-time 15 --retry 2 --retry-delay 5 \
+              -w '\n%{http_code}' "$url") || body=$'\n000'
+            code=${body##*$'\n'}
+            body=${body%$'\n'*}
+            # Real JSON with a non-empty https Api.BaseUrl - a 200 HTML error page or a
+            # stale config without the key both fail here (jq ships on ubuntu runners).
+            base=$(printf '%s' "$body" | jq -er '.Api.BaseUrl | select(type=="string" and startswith("https://"))' 2>/dev/null) || base=""
+            if [ "$code" = "200" ] && [ -n "$base" ]; then
+              echo "Config: ok ($base)"
             else
-              failures="${failures}- **Config** \`$url\` is missing Api.BaseUrl (stale or unwritten runtime config)"$'\n'
-              echo "Config: STALE/MISSING ($url)"
+              failures="${failures}- **Config** \`$url\` returned \`$code\` without a valid https Api.BaseUrl (stale or unwritten runtime config)"$'\n'
+              echo "Config: BAD (code=$code base='$base')"
             fi
           }
 
