@@ -68,6 +68,17 @@
     }
     else
     {
+    @* Parity affordance (#162): the Oregon page links its plain-language guide in this
+       spot, so the absence of an Alabama one must read as "not built yet", not broken.
+       Gated to AL explicitly - this else branch hosts every classic-shaped state, and a
+       future one must not inherit an Alabama-specific message. *@
+    @if (IsAlabamaState)
+    {
+        <p class="text-center small text-muted mb-3">
+            A plain-language Alabama guide isn't available yet.
+        </p>
+    }
+
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-12 col-sm-5 col-lg-3 text-center">
             <label class="form-label" for="NumberOfChildren">Number of Children</label>
@@ -241,6 +252,13 @@
                 Implements @result!.RuleVintage.
             </p>
         }
+        @* Parity affordance (#162): the Oregon page renders its court-prep card here. *@
+        @if (IsAlabamaState && submitted && result is { Success: true })
+        {
+            <p class="text-muted text-center small mt-2 mb-0">
+                Court-preparation view isn't available for Alabama yet.
+            </p>
+        }
         @* Body size on purpose: the most legally load-bearing sentence on the page
            must not be the least readable one. *@
         <p class="text-muted text-center mt-2 mb-0">
@@ -300,6 +318,10 @@
 
     // The one place the shared page names a state: routing to that state's own input component.
     private bool IsOregonState => State.Equals("OR", StringComparison.OrdinalIgnoreCase);
+
+    // Gates the AL-specific parity affordances (#162); a future classic-shaped state
+    // rides the same else branch and must not inherit Alabama's messages.
+    private bool IsAlabamaState => State.Equals("AL", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {

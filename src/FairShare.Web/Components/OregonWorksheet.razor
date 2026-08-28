@@ -101,12 +101,14 @@
     <OregonParentCard Title="Defendant" Prefix="Defendant" Data="defendant" />
 </div>
 
-<div class="mt-3 d-flex gap-2">
+<div class="mt-3 d-flex gap-2 align-items-center flex-wrap">
     <button class="btn btn-primary" @onclick="CalculateAsync" disabled="@calculating">
         @* Same busy pattern as the AL page and its Export button. *@
         @(calculating ? "Calculating..." : "Calculate")
     </button>
     <button class="btn btn-outline-danger" @onclick="ResetAsync">Reset</button>
+    @* Parity affordance (#162): the AL page's Excel export button sits in this spot. *@
+    <span class="text-muted small ms-auto">Excel export isn't available for Oregon yet.</span>
 </div>
 
 @if (errors.Any())
