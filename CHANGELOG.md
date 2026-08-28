@@ -7,6 +7,20 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.6.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.5.0...fairshare-v4.6.0) (2026-08-28)
+
+
+### Features
+
+* **web:** Guides + Admin nav dropdowns, Alabama CS-42 guide ([#227](https://github.com/JJWren/FairShare/issues/227)) ([a8618c1](https://github.com/JJWren/FairShare/commit/a8618c16ab27d9dbef9285b848d73896a6eecabd))
+* **web:** Oregon child-care Table 1 guidance; official-calculator parity test ([#222](https://github.com/JJWren/FairShare/issues/222)) ([b0cb7c0](https://github.com/JJWren/FairShare/commit/b0cb7c0f1af4c5f4470006732f90db9367f67b33))
+* **web:** serve prerendered SEO snapshots for public routes ([#224](https://github.com/JJWren/FairShare/issues/224)) ([0570b37](https://github.com/JJWren/FairShare/commit/0570b37964efa82f02dd38a5427d06c8317199e2))
+
+
+### Bug Fixes
+
+* **web:** Oregon money inputs render empty like Alabama's ([#218](https://github.com/JJWren/FairShare/issues/218)) ([#220](https://github.com/JJWren/FairShare/issues/220)) ([4858bd6](https://github.com/JJWren/FairShare/commit/4858bd673ebab02ea3d2ed2267e1331e9b68d8b8))
+
 ## [4.5.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.4.0...fairshare-v4.5.0) (2026-08-28)
 
 
