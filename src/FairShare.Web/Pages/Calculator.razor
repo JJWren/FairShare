@@ -11,6 +11,14 @@
 
 <PageTitle>FairShare - @State - @(CurrentForm?.DisplayName ?? Form) Calculator</PageTitle>
 
+@if (!string.IsNullOrEmpty(Form))
+{
+    @* Canonical is the clean route (no query string), uppercase state, catalog-cased form. *@
+    <HeadContent>
+        <link rel="canonical" href="@FairShare.Web.PublicSite.Canonical($"/States/{State.ToUpperInvariant()}/{CurrentForm?.Form ?? Form}")" />
+    </HeadContent>
+}
+
 <div class="container my-4">
     <h1 class="h4 mb-3 text-center">@State - @(CurrentForm?.DisplayName ?? Form) Calculator</h1>
 

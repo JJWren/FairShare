@@ -23,23 +23,10 @@
     <meta name="twitter:image" content="https://easychildsupport.fyi/og-card.png" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#212529" media="(prefers-color-scheme: dark)" />
-    <!-- One canonical for the shell (the same HTML serves every route); per-route
-         canonicals arrive with the build-time SEO snapshots (#173). -->
-    <link rel="canonical" href="https://easychildsupport.fyi/" />
-    <!-- JSON-LD is data, not executable script: CSP's script-src doesn't block it and
-         crawlers read it from the raw HTML. Description matches the meta description. -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "FairShare",
-        "url": "https://easychildsupport.fyi/",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "Web",
-        "description": "FairShare is a free child-support calculator: transparent, line-by-line estimates under your state's official guidelines, matching the court's own worksheets.",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-    }
-    </script>
+    <!-- No static canonical here on purpose: this shell serves EVERY route, so one
+         canonical would mark /privacy, /guides/... as duplicates of the home page.
+         Each public page emits its own via Blazor HeadContent, and js/site.js injects
+         the JSON-LD (external script - no inline-script CSP question to argue about). -->
     <title>FairShare</title>
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
