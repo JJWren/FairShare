@@ -71,6 +71,7 @@ Settings read by `FairShare.Api` (compose maps the `.env` variables above onto t
 | `AdminSeed:Password` | *(random)* | Password for the initial admin (logged on first run if empty). |
 | `AdminSeed:LogGeneratedPassword` | `true` | Whether a generated admin password is printed to the log. |
 | `RateLimiting:Enabled` | `true` | Kill-switch for rate limiting (values are fixed: 100 req/min per IP globally, 10 req/min per IP on the auth endpoints). |
+| `ForwardedHeaders:KnownNetworks` | `[]` | CIDR list of trusted proxy source networks (e.g. `ForwardedHeaders__KnownNetworks__0=172.16.0.0/12` for Docker bridge networks). When set, `X-Forwarded-For` from those peers becomes the client address, so rate-limit buckets are per real client instead of one bucket for the whole proxy. Unset = forwarded addresses ignored (spoof-safe default). |
 | `DataProtection:KeysPath` | *(unset)* | Directory for ASP.NET DataProtection keys (Identity tokens). Set it to a volume path (the compose stacks use `/data/keys`) so keys survive container recreates; unset = framework default inside the container. |
 | `HttpsRedirection:HttpsPort` / `HTTPS_PORT` / `ASPNETCORE_HTTPS_PORT` | *(unset)* | Only needed when Kestrel itself serves TLS (any of the three keys, a valid port number). Behind a TLS-terminating proxy leave it unset: the API then skips `UseHttpsRedirection` (the proxy forces HTTPS) instead of logging "Failed to determine the https port for redirect" on every start. |
 
@@ -119,7 +120,7 @@ Optional, and off by default. Set `DONATE_URL` to the absolute `https` URL of yo
 
 Terminate TLS at your proxy and forward `X-Forwarded-Proto` (the API honors it for cookie security attributes). Set `WEB_ORIGIN` to the web app's public URL (CORS) and `API_BASE_URL` to the API's public URL — `API_BASE_URL` must always be the *browser-visible* API URL, never the compose-internal service name.
 
-Rate limiting keys on the direct peer IP: behind a reverse proxy every client collapses into the proxy's bucket. That is deliberate — trusting `X-Forwarded-For` without pinning the proxy in `KnownProxies` would let clients spoof their way out of throttling — so pin your proxy before switching the limiter to forwarded addresses.
+Rate limiting keys on `Connection.RemoteIpAddress`. By default that is the direct peer, so behind a reverse proxy every client collapses into the proxy's one bucket; `X-Forwarded-For` is never trusted blind, because a spoofed header would let clients throttle-dodge (or throttle someone else). To get per-client buckets, pin the proxy's source network in `ForwardedHeaders:KnownNetworks` (section 3) — forwarded addresses are then honored from those peers only. In a compose stack where the proxy reaches the API over a Docker bridge network, `172.16.0.0/12` is the usual pin.
 
 Leave the `HttpsRedirection` keys unset when the proxy terminates TLS (section 3).
 

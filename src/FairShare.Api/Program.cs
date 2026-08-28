@@ -165,9 +165,10 @@ builder.Services.AddCors(options =>
 
 // Abuse throttling. Values are deliberately hardcoded (small self-hosted app); the only
 // knob is the RateLimiting:Enabled kill-switch checked at UseRateLimiter below. Keys are
-// the direct peer IP on purpose: only X-Forwarded-Proto is trusted from proxies (see the
-// ForwardedHeaders comment), so X-Forwarded-For must not drive partitioning - behind a
-// reverse proxy all clients share the proxy's bucket until KnownProxies is pinned.
+// Connection.RemoteIpAddress: the direct peer by default, or the real client when the
+// operator pins the proxy's source network in ForwardedHeaders:KnownNetworks (the
+// forwarded-headers middleware then rewrites RemoteIpAddress from X-Forwarded-For).
+// Without that pin, behind a reverse proxy all clients share the proxy's one bucket.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -217,15 +218,35 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 
 // Behind a TLS-terminating reverse proxy (the eventual VPS setup), the app sees plain
 // HTTP; honoring X-Forwarded-Proto keeps Request.IsHttps - and everything derived from
-// it, like the refresh cookie's Secure/SameSite attributes - correct. The proxy address
-// isn't known ahead of time for a self-hosted app, so no KnownProxies restriction; a
-// client spoofing the header only affects its own cookie attributes.
+// it, like the refresh cookie's Secure/SameSite attributes - correct. X-Forwarded-Proto
+// stays trusted from anywhere (a client spoofing it only affects its own cookie
+// attributes), but X-Forwarded-For is honored ONLY when the operator pins the proxy's
+// source network(s) in ForwardedHeaders:KnownNetworks (CIDR list, e.g. 172.16.0.0/12
+// for Docker bridge networks). With the pin, RemoteIpAddress becomes the real client
+// and the rate limiter's buckets are per-client instead of one bucket for the whole
+// proxy; without it, a spoofed X-Forwarded-For from an untrusted peer stays ignored.
 builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+
+    string[] knownNetworks =
+        builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [];
+    if (knownNetworks.Length > 0)
+    {
+        options.ForwardedHeaders |= Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor;
+        foreach (string cidr in knownNetworks)
+        {
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+        }
+    }
 });
+
+// Match the web origin's deliberately conservative HSTS start (raise both together
+// after burn-in). Emitted by UseHsts below only outside Development and only when the
+// (forwarded) scheme is https.
+builder.Services.AddHsts(options => options.MaxAge = TimeSpan.FromDays(1));
 
 // Domain services - every worksheet form registers as IWorksheetForm; the catalog narrows the
 // classic two-parent forms back to IChildSupportCalculator itself.
@@ -351,13 +372,30 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
+// First in the pipeline: everything scheme- or address-dependent downstream (HSTS's
+// IsHttps check, the rate limiter's per-IP buckets, cookie attributes) must see the
+// forwarded values. UseHsts used to sit BEFORE this, so behind the proxy IsHttps was
+// still false when it checked - the header never reached a single response.
+app.UseForwardedHeaders();
+
+// API responses get browser hardening headers too (the SPA's nginx sets its own; these
+// cover direct API responses like errors and exports). OnStarting rather than a plain
+// header write so the exception handler's response reset can't drop it.
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.OnStarting(static state =>
+    {
+        ((HttpContext)state).Response.Headers.XContentTypeOptions = "nosniff";
+        return Task.CompletedTask;
+    }, ctx);
+    await next();
+});
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler();
     app.UseHsts();
 }
-
-app.UseForwardedHeaders();
 
 // The app itself only serves TLS in Development (dotnet run's https profile). Behind the
 // reverse proxy it listens on plain HTTP and UseHttpsRedirection has no HTTPS port to
