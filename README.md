@@ -23,7 +23,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) — maintained automatically by release-pleas
   - Line-by-line parity with the official AOC Excel worksheets — every numbered line comes back with the result (see `CONTEXT.md` and `docs/adr/`).
   - Switch between the two forms on the calculator page without re-entering figures; the full worksheet renders under the result.
   - Export the completed **official AOC Excel workbook** for the form you are viewing (inputs typed into its cells, formulas left live).
-- **State Support (Oregon, beta)**:
+- **State Support (Oregon)**:
   - The single Child Support Worksheet (CSF 02 0910, OAR 137-050-0700 to -0765): all custody arrangements via the overnights-based parenting time credit, Children Attending School (support to 21, paid directly to the child — both parents can owe at once), the medical-support block with rule-based coverage selection, the $100 minimum order, and the SS/VA offset.
   - Line-by-line parity with the official DOJ Guidelines Calculator workbook, pinned by golden cases read back from the workbook and ClosedXML oracle tests that evaluate the state's own formulas.
   - An overnights pattern-builder (preset schedules counted on a simulated two-year calendar), a plain-language guide at `/guides/oregon-worksheet`, and a court-prep card (the 17 OAR 137-050-0760 rebuttal factors and the ±15% agreed-amount band).
