@@ -22,6 +22,8 @@ jobs:
       contents: read
       security-events: write
       actions: read
+      # PR-triggered analysis reads PR metadata to associate results with the PR.
+      pull-requests: read
     strategy:
       fail-fast: false
       matrix:
