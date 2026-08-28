@@ -90,7 +90,9 @@ public class AnalyticsService(
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Analytics event recording failed for {EventName}.", name);
+            // Event names can arrive via the client beacon; stripping line breaks keeps a
+            // crafted name from forging extra lines in the admin-readable log store.
+            _logger.LogWarning(ex, "Analytics event recording failed for {EventName}.", name.ReplaceLineEndings(" "));
         }
     }
 

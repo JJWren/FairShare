@@ -43,10 +43,9 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         if (profile.OwnerUserId is null)
         {
             _logger.LogWarning(
-                "Creating ParentProfile {ProfileId} with DisplayName '{DisplayName}' without an OwnerUserId. " +
+                "Creating ParentProfile {ProfileId} without an OwnerUserId. " +
                 "This is allowed for backward compatibility but should be avoided in new code.",
-                profile.Id,
-                profile.DisplayName);
+                profile.Id);
         }
 
         if (profile.CreatedUtc == default)
@@ -157,10 +156,12 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
             return (await UpdateInPlaceAsync(winner, data, ownerUserId, ct), false);
         }
 
+        // Display names are user input and the SQLite log store is admin-readable:
+        // keeping them out of log messages closes a log-forging vector (CRLF in a
+        // name) and stores less PII - the id is enough to find the row.
         _logger.LogInformation(
-            "Created new ParentProfile {ProfileId} ('{DisplayName}') for user {UserId}",
+            "Created new ParentProfile {ProfileId} for user {UserId}",
             profile.Id,
-            profile.DisplayName,
             ownerUserId);
 
         return (profile, true);
@@ -202,9 +203,8 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
         }
 
         _logger.LogInformation(
-            "Updated ParentProfile {ProfileId} ('{DisplayName}') in place for user {UserId}",
+            "Updated ParentProfile {ProfileId} in place for user {UserId}",
             existing.Id,
-            existing.DisplayName,
             ownerUserId);
 
         return existing;
