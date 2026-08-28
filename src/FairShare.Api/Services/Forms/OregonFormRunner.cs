@@ -61,6 +61,9 @@ public sealed class OregonFormRunner(OregonWorksheetCalculator calculator) : IFo
             Form = Form,
             NumberOfChildren = request.JointMinorChildren + request.JointChildrenAttendingSchool,
             Lines = outcome.Lines,
+            // The outcome names the vintage it actually used - which may differ from Current
+            // when the request pinned an AsOfDate.
+            RuleVintage = $"OAR 137-050 effective {outcome.RuleEffectiveDate:yyyy-MM-dd}",
         };
 
     private static OregonResultDto ToOregonDto(OregonCalculationOutcome outcome)
@@ -98,6 +101,10 @@ public sealed class OregonFormRunner(OregonWorksheetCalculator calculator) : IFo
 
         input = new OregonWorksheetInput
         {
+            // Rule-vintage pin (null = current rules). Flows through scenario save/reopen
+            // unchanged, so a scenario saved with a pinned date recomputes under that
+            // vintage through this same path.
+            AsOfDate = dto.AsOfDate,
             Plaintiff = ToOregonParent(dto.Plaintiff),
             Defendant = ToOregonParent(dto.Defendant),
             JointMinorChildren = dto.JointMinorChildren,

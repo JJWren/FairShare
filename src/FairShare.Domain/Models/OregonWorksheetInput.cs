@@ -87,6 +87,14 @@ namespace FairShare.Domain.Models
     /// </summary>
     public sealed record OregonWorksheetInput
     {
+        /// <summary>
+        /// Rule-vintage selector: compute under the rules in force on this date
+        /// (<see cref="Seeds.OregonRuleParameters.ForDate(System.DateOnly)"/>) instead of
+        /// today's. Null - the default and the normal calculator path - means current rules.
+        /// The outcome always names the vintage actually used.
+        /// </summary>
+        public System.DateOnly? AsOfDate { get; init; }
+
         public required OregonParentInput Plaintiff { get; init; }
 
         public required OregonParentInput Defendant { get; init; }

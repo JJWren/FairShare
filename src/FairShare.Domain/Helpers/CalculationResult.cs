@@ -52,5 +52,12 @@ namespace FairShare.Domain.Helpers
         /// Empty when the calculation did not succeed.
         /// </summary>
         public IReadOnlyList<WorksheetLine> Lines { get; set; } = [];
+
+        /// <summary>
+        /// The official revision identifier of the rule data this result implements - Alabama's
+        /// schedule label ("AL Realigned Sept 2021"), Oregon's dated OAR vintage. Every estimate
+        /// names its rules so a saved or printed number can always be traced to a revision.
+        /// </summary>
+        public string RuleVintage { get; set; } = string.Empty;
     }
 }

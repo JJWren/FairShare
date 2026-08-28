@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -97,6 +98,13 @@ public class OregonParentDto
 /// <summary>The Oregon worksheet's case-level inputs plus both parents' columns.</summary>
 public class OregonCalculationRequest
 {
+    /// <summary>
+    /// Optional rule-vintage selector: compute under the rules in force on this date instead of
+    /// today's (this build's oldest vintage backstops earlier dates). Null = current rules — the
+    /// calculator pages always send null; the response's vintage names what was actually used.
+    /// </summary>
+    public DateOnly? AsOfDate { get; set; }
+
     [Required]
     public OregonParentDto Plaintiff { get; set; } = new();
 
@@ -165,6 +173,13 @@ public class CalculationResponse
     public int NumberOfChildren { get; set; }
     public string Payer { get; set; } = string.Empty;
     public int FinalAmount { get; set; }
+
+    /// <summary>
+    /// The official revision identifier of the rule data this result implements — Alabama's
+    /// schedule label ("AL Realigned Sept 2021"), Oregon's dated OAR vintage. Empty from
+    /// servers that predate the field.
+    /// </summary>
+    public string RuleVintage { get; set; } = string.Empty;
 
     /// <summary>
     /// Every worksheet line in form order; empty when <see cref="Success"/> is false.

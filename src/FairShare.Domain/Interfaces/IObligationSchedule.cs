@@ -11,6 +11,13 @@ namespace FairShare.Domain.Interfaces
     /// </summary>
     public interface IObligationSchedule
     {
+        /// <summary>
+        /// The official revision identifier of the table data ("AL Realigned Sept 2021") -
+        /// surfaced on every result so an estimate always names the rules it implements
+        /// (finding O13: vintages were invisible in the UI).
+        /// </summary>
+        string Vintage { get; }
+
         /// <summary>The lowest child count this schedule can price.</summary>
         int MinChildren { get; }
 

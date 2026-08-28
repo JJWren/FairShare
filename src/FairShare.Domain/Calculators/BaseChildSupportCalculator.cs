@@ -154,6 +154,9 @@ namespace FairShare.Domain.Calculators
                 State = State,
                 Form = Form,
                 NumberOfChildren = numberOfChildren,
+                // Every estimate names the rule data it implements (the UI shows it) -
+                // error shells included, so a failed run still says which vintage rejected it.
+                RuleVintage = Schedule.Vintage,
             };
 
         private static void AddError(CalculationResult result, string code, string message, string? field)
