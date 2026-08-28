@@ -93,7 +93,17 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         {
             // Creation is all-or-nothing: a user without their intended role is a
             // misconfigured account, so undo the create rather than report success.
-            await _userManager.DeleteAsync(user);
+            IdentityResult cleanup = await _userManager.DeleteAsync(user);
+
+            if (!cleanup.Succeeded)
+            {
+                // Both halves failed - surface the stuck state rather than a plain 400
+                // that implies nothing was created.
+                return Problem(
+                    statusCode: 500,
+                    title: $"User '{user.UserName}' was created but role assignment failed, and cleanup also failed; delete the user manually.");
+            }
+
             return BadRequest(roleResult.Errors);
         }
 

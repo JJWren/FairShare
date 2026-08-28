@@ -88,7 +88,10 @@ public class AdminUserHardeningTests : IClassFixture<FairShareApiFactory>
             Password = "Adm!n-Test-12345"
         });
 
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         AuthTokenResponse tokens = (await response.Content.ReadFromJsonAsync<AuthTokenResponse>())!;
+        Assert.False(string.IsNullOrWhiteSpace(tokens.AccessToken));
         return tokens.AccessToken;
     }
 }
@@ -112,8 +115,10 @@ public class GeneratedPasswordSeedingTests : IClassFixture<GeneratedPasswordSeed
     public void GeneratedPassword_GoesToStderrOnly_NeverTheLoggingPipeline()
     {
         TextWriter originalError = Console.Error;
-        using StringWriter stderr = new();
-        Console.SetError(stderr);
+        using StringWriter stderrBuffer = new();
+        // Synchronized wrapper: the host and seeder may write from other threads while
+        // the fixture boots, and StringWriter itself is not thread-safe.
+        Console.SetError(TextWriter.Synchronized(stderrBuffer));
 
         try
         {
@@ -128,7 +133,7 @@ public class GeneratedPasswordSeedingTests : IClassFixture<GeneratedPasswordSeed
             Console.SetError(originalError);
         }
 
-        Assert.Contains("generated password:", stderr.ToString());
+        Assert.Contains("generated password:", stderrBuffer.ToString());
 
         Assert.DoesNotContain(_factory.Capture.Messages,
             m => m.Contains("generated password:", StringComparison.OrdinalIgnoreCase));
