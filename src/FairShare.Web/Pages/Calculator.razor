@@ -231,6 +231,14 @@
                 }
             </div>
         </div>
+        @* The Oregon page has always named its rule vintage; Alabama's schedule revision
+           was invisible until the API started sending RuleVintage (finding O13). *@
+        @if (submitted && result?.RuleVintage is { Length: > 0 } vintage)
+        {
+            <p class="text-muted text-center small mt-2 mb-0">
+                Implements the official schedule "@vintage".
+            </p>
+        }
         @* Body size on purpose: the most legally load-bearing sentence on the page
            must not be the least readable one. *@
         <p class="text-muted text-center mt-2 mb-0">
