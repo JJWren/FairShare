@@ -16,6 +16,7 @@ public class ScenariosEndpointsTests : IClassFixture<FairShareApiFactory>
         {
             BaseAddress = new Uri("https://localhost")
         });
+        _client.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
     }
 
     // The CS-42 workbook sample case: defendant pays $50.

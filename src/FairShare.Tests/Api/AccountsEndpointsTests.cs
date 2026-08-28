@@ -25,6 +25,7 @@ public class AccountsEndpointsTests : IClassFixture<FairShareApiFactory>
         {
             BaseAddress = new Uri("https://localhost")
         });
+        _client.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
     }
 
     // ---- Google gating --------------------------------------------------------------

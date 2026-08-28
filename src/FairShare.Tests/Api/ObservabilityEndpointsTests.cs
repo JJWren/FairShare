@@ -28,6 +28,7 @@ public class ObservabilityEndpointsTests : IClassFixture<FairShareApiFactory>
         });
         // The bot filter treats a missing UA as a bot; tests impersonate a real browser.
         _client.DefaultRequestHeaders.UserAgent.ParseAdd(BrowserUa);
+        _client.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
     }
 
     // ---- Beacon: page views -------------------------------------------------------

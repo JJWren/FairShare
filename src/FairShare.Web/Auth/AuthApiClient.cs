@@ -10,6 +10,12 @@ namespace FairShare.Web.Auth;
 
 public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthenticationStateProvider authStateProvider)
 {
+    /// <summary>
+    /// The API's CSRF-guard header on the cookie-acting auth endpoints (guest/refresh/
+    /// logout) - aliased from the shared contract so client and API cannot drift.
+    /// </summary>
+    public const string CsrfHeaderName = AuthHeaders.CsrfHeaderName;
+
     private readonly HttpClient _http = http;
     private readonly ITokenStore _tokenStore = tokenStore;
     private readonly JwtAuthenticationStateProvider _authStateProvider = authStateProvider;
@@ -150,6 +156,7 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
     {
         using HttpRequestMessage request = new(HttpMethod.Post, "api/v1/auth/logout");
         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        request.Headers.Add(CsrfHeaderName, "1");
 
         using HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -166,6 +173,7 @@ public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthentic
             Content = body is not null ? JsonContent.Create(body) : null
         };
         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        request.Headers.Add(CsrfHeaderName, "1");
 
         using HttpResponseMessage response = await _http.SendAsync(request);
 
