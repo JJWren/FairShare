@@ -71,23 +71,29 @@ jobs:
           script: |
             const failures = (process.env.FAILURES ?? "").trim();
             const title = "uptime: production probe failing";
+            const marker = "<!-- fairshare-uptime-monitor -->";
             const { data: open } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
               labels: "uptime",
+              // The monitor's own issues are authored by the Actions token identity;
+              // a human-filed issue with the same label/title never matches this.
+              creator: "github-actions[bot]",
               sort: "created",
               direction: "asc",
               per_page: 100,
             });
-            // Exactly the monitor's own issue: the label alone could also match a labeled
-            // PR or a human-filed issue, which must never be auto-closed as "recovered".
-            const existing = open.find((issue) => !issue.pull_request && issue.title === title);
+            // Belt and suspenders on top of the creator filter: not a PR, the exact
+            // title, and the monitor's body marker - only the monitor's issue is ever
+            // commented on or auto-closed as "recovered".
+            const existing = open.find((issue) =>
+              !issue.pull_request && issue.title === title && (issue.body ?? "").includes(marker));
             const stamp = new Date().toISOString();
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
             if (failures) {
-              const body = `Probes failing as of ${stamp} ([run](${runUrl})):\n\n${failures}`;
+              const body = `${marker}\nProbes failing as of ${stamp} ([run](${runUrl})):\n\n${failures}`;
               if (existing) {
                 await github.rest.issues.createComment({
                   owner: context.repo.owner, repo: context.repo.repo,
