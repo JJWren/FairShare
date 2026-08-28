@@ -21,7 +21,6 @@ name: fairshare-prod
 services:
   api:
     image: ghcr.io/jjwren/fairshare-api:${FAIRSHARE_VERSION:?Set FAIRSHARE_VERSION in .env, e.g. 4.3.1}
-    container_name: fairshare-api
     ports:
       - "${API_PORT:-5859}:8080"
     environment:
@@ -63,7 +62,6 @@ services:
 
   web:
     image: ghcr.io/jjwren/fairshare-web:${FAIRSHARE_VERSION:?Set FAIRSHARE_VERSION in .env, e.g. 4.3.1}
-    container_name: fairshare-web
     ports:
       - "${WEB_PORT:-5858}:80"
     environment:
