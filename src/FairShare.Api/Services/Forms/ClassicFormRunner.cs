@@ -17,7 +17,7 @@ public sealed class ClassicFormRunner(IChildSupportCalculator calculator) : IFor
     public string State => _calculator.State;
     public string Form => _calculator.Form;
 
-    public FormRunResult Run(CalculationRequest request)
+    public FormRunResult Run(CalculationRequest request, string requestedState, string requestedForm)
     {
         CalculationResult result = _calculator.Calculate(
             ToParentData(request.Plaintiff), ToParentData(request.Defendant), request.NumberOfChildren);

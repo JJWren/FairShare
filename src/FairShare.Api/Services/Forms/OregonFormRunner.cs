@@ -9,9 +9,9 @@ namespace FairShare.Api.Services.Forms;
 
 /// <summary>
 /// Runner for Oregon's Child Support Worksheet: validates and maps the request's Oregon
-/// inputs (the form's shape doesn't fit <see cref="Models.ParentData"/>), runs the
-/// calculator, and folds the Oregon outcome into the shared response with the Oregon
-/// extras attached.
+/// inputs (the form's shape doesn't fit <see cref="FairShare.Domain.Models.ParentData"/>),
+/// runs the calculator, and folds the Oregon outcome into the shared response with the
+/// Oregon extras attached.
 /// </summary>
 public sealed class OregonFormRunner(OregonWorksheetCalculator calculator) : IFormRunner
 {
@@ -20,11 +20,12 @@ public sealed class OregonFormRunner(OregonWorksheetCalculator calculator) : IFo
     public string State => _calculator.State;
     public string Form => _calculator.Form;
 
-    public FormRunResult Run(CalculationRequest request)
+    public FormRunResult Run(CalculationRequest request, string requestedState, string requestedForm)
     {
         if (request.Oregon is null)
         {
-            return new FormRunResult($"{State}/{Form} requires the request's 'oregon' inputs.", null);
+            // The caller's own casing, exactly as the pre-runner dispatch interpolated it.
+            return new FormRunResult($"{requestedState}/{requestedForm} requires the request's 'oregon' inputs.", null);
         }
 
         if (!TryMapInput(request.Oregon, out OregonWorksheetInput? input, out string? mappingError))

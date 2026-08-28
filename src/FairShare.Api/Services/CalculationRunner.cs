@@ -28,22 +28,38 @@ public interface ICalculationRunner
 /// concern (which inputs the form needs, how its outcome maps back to the wire) lives in that
 /// form's runner, so adding a state never touches this class.
 /// </summary>
-public sealed class CalculationRunner(IEnumerable<IFormRunner> forms) : ICalculationRunner
+public sealed class CalculationRunner : ICalculationRunner
 {
-    private readonly IReadOnlyList<IFormRunner> _forms = forms.ToList();
+    // Pre-indexed once per scope: O(1) dispatch, and a duplicate (state, form)
+    // registration fails loudly here instead of silently shadowing a form.
+    private readonly Dictionary<string, IFormRunner> _forms;
+
+    public CalculationRunner(IEnumerable<IFormRunner> forms)
+    {
+        _forms = new Dictionary<string, IFormRunner>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (IFormRunner runner in forms)
+        {
+            string key = FormKey(runner.State, runner.Form);
+
+            if (!_forms.TryAdd(key, runner))
+            {
+                throw new InvalidOperationException($"Duplicate form runner registered for {key}.");
+            }
+        }
+    }
 
     public CalculationRun Run(string state, string form, CalculationRequest request)
     {
-        IFormRunner? runner = _forms.FirstOrDefault(f =>
-            f.State.Equals(state, StringComparison.OrdinalIgnoreCase)
-            && f.Form.Equals(form, StringComparison.OrdinalIgnoreCase));
-
-        if (runner is null)
+        if (!_forms.TryGetValue(FormKey(state, form), out IFormRunner? runner))
         {
             return new CalculationRun(false, null, null);
         }
 
-        FormRunResult result = runner.Run(request);
+        FormRunResult result = runner.Run(request, state, form);
         return new CalculationRun(true, result.InputError, result.Response);
     }
+
+    // State codes never contain '/', so the joined key is collision-free.
+    private static string FormKey(string state, string form) => $"{state}/{form}";
 }
