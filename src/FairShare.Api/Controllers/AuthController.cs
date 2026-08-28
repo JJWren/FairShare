@@ -344,19 +344,31 @@ public class AuthController(
             return Unauthorized();
         }
 
-        // Audit before the delete so the actor identity is still resolvable.
-        await _audit.WriteAsync(AuditActions.AccountDeleted, target: user.UserName, ct: ct);
-        await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.AccountDeleted, target: null, ct);
+        // One transaction: the owned rows and the account go together or not at all - a
+        // failure mid-way must not leave deleted profiles under a live login, or a dead
+        // login with income data still stored.
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
         await _db.ParentProfiles.Where(p => p.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
+        await _db.Scenarios.Where(s => s.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
         await _db.RefreshTokens.Where(t => t.UserId == user.Id).ExecuteDeleteAsync(ct);
 
         IdentityResult deleted = await _userManager.DeleteAsync(user);
 
         if (!deleted.Succeeded)
         {
+            await tx.RollbackAsync(ct);
             return IdentityValidationProblem(deleted);
         }
+
+        await tx.CommitAsync(ct);
+
+        // Audit and analytics only after the commit: their sinks live outside this
+        // transaction, so writing earlier would leave an "account deleted" record for
+        // an account a rollback kept alive. The actor's name and id come from the
+        // request's claims, so deletion doesn't affect resolution.
+        await _audit.WriteAsync(AuditActions.AccountDeleted, target: user.UserName, ct: ct);
+        await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.AccountDeleted, target: null, ct);
 
         ClearRefreshCookie();
         return NoContent();

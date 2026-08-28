@@ -10,7 +10,12 @@ namespace FairShare.Api.Services;
 
 public interface IParentProfileService
 {
-    Task<IReadOnlyList<ParentProfile>> ListAsync(string? search = null, CancellationToken ct = default);
+    /// <summary>
+    /// The owner's active profiles, name-ordered. Ownership is part of the query itself
+    /// so no other user's rows are ever read, and the page limit applies to the caller's
+    /// own profiles rather than the whole table.
+    /// </summary>
+    Task<IReadOnlyList<ParentProfile>> ListAsync(Guid ownerUserId, string? search = null, CancellationToken ct = default);
     Task<ParentProfile?> GetAsync(Guid id, CancellationToken ct = default);
     Task<ParentProfile> CreateAsync(ParentProfile profile, CancellationToken ct = default);
     /// <param name="expectedRowVersion">

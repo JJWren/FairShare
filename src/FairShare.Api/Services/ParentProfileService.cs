@@ -17,9 +17,12 @@ public class ParentProfileService(FairShareDbContext db, ILogger<ParentProfileSe
     private readonly FairShareDbContext _db = db;
     private readonly ILogger<ParentProfileService> _logger = logger;
 
-    public async Task<IReadOnlyList<ParentProfile>> ListAsync(string? search = null, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ParentProfile>> ListAsync(Guid ownerUserId, string? search = null, CancellationToken ct = default)
     {
-        IQueryable<ParentProfile> q = _db.ParentProfiles.Where(p => !p.IsArchived);
+        // Ownership must stay inside the SQL predicate, ahead of the ordering and the
+        // page limit: it keeps other users' income rows out of process memory entirely,
+        // and legacy ownerless rows (OwnerUserId is null) match no caller.
+        IQueryable<ParentProfile> q = _db.ParentProfiles.Where(p => !p.IsArchived && p.OwnerUserId == ownerUserId);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
