@@ -15,7 +15,7 @@ services:
       AdminSeed__Enabled: "${ADMIN_SEED_ENABLED:-true}"
       AdminSeed__User: "${ADMIN_USER:-admin}"
       AdminSeed__Password: "${ADMIN_PASSWORD:-}"
-      AdminSeed__LogGeneratedPassword: "${ADMIN_SEED_LOG_GENERATED_PASSWORD:-true}"
+      AdminSeed__LogGeneratedPassword: "${ADMIN_SEED_LOG_GENERATED_PASSWORD:-false}"
       # Google sign-in (ADR 0004): leave unset to run without public sign-up.
       Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
       Authentication__Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"

@@ -87,7 +87,16 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         IdentityResult result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        await _userManager.AddToRoleAsync(user, model.Role);
+        IdentityResult roleResult = await _userManager.AddToRoleAsync(user, model.Role);
+
+        if (!roleResult.Succeeded)
+        {
+            // Creation is all-or-nothing: a user without their intended role is a
+            // misconfigured account, so undo the create rather than report success.
+            await _userManager.DeleteAsync(user);
+            return BadRequest(roleResult.Errors);
+        }
+
         await _audit.WriteAsync(AuditActions.UserCreated, target: user.UserName, detail: $"role {model.Role}");
 
         // A DTO, never the Identity entity: serializing ApplicationUser leaks

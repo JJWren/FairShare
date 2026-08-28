@@ -44,9 +44,9 @@ Every variable in [`.env.example`](../.env.example), what it does, and — the p
 |---|---|---|---|
 | `JWT_SIGNING_KEY` | **Yes** | — | HMAC-SHA256 key signing access tokens; 32+ random bytes (`openssl rand -base64 48`). The API will not run meaningfully without it. Rotating it invalidates outstanding access tokens (≤30 min); sessions recover silently via the refresh cookie. |
 | `ADMIN_USER` | No | `admin` | Username of the admin account seeded on first run. |
-| `ADMIN_PASSWORD` | No | *(random)* | Password for the seeded admin. Left empty, a generated one is printed once in `docker compose logs api` — treat it as burned (Docker persists logs) and change it after first login. |
+| `ADMIN_PASSWORD` | No | *(random)* | Password for the seeded admin. Left empty, a random one is generated and — only if `ADMIN_SEED_LOG_GENERATED_PASSWORD` is enabled — printed once to stderr (`docker compose logs api`); treat a printed password as burned (Docker persists logs) and change it after first login. Simplest: just set a password here. |
 | `ADMIN_SEED_ENABLED` | No | `true` | Set to `false` after the first successful boot — the seeder only matters once. |
-| `ADMIN_SEED_LOG_GENERATED_PASSWORD` | No | `true` | Whether a generated admin password is printed to the api container log. |
+| `ADMIN_SEED_LOG_GENERATED_PASSWORD` | No | `false` | Whether a generated admin password is printed (stderr only — never the durable in-app log store). Enable for the first boot if you left `ADMIN_PASSWORD` empty, then turn it back off. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | *(empty)* | Google OAuth client for public sign-in (section 4). **Absent, the deployment has no public sign-up path at all**: the Google button is hidden, `/api/v1/auth/google/start` returns 404, and accounts exist only if an admin creates them. |
 | `DONATE_URL` | No | *(empty)* | The `https` URL of your Buy Me a Coffee (or similar) page (section 5). Absent (or not an absolute `https` URL), the donate button is hidden and `/go/donate` returns 404; the `/support` page still explains the project. |
 | `WEB_PORT` / `API_PORT` | No | `5858` / `5859` | Host ports (browser-visible). |
