@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.3.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.3.0...fairshare-v4.3.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **api:** CSRF header guard on cookie-acting auth endpoints ([#193](https://github.com/JJWren/FairShare/issues/193)) ([03a857c](https://github.com/JJWren/FairShare/commit/03a857cbc73eedf26da70223875afc6792a0bc37))
+* **api:** enforce per-user ownership of parent profiles at the query level ([#186](https://github.com/JJWren/FairShare/issues/186)) ([9eca341](https://github.com/JJWren/FairShare/commit/9eca3416f92bc507d0d7626e1da1886e6a18c85b))
+* **api:** fail fast on migration failure; online-backup pre-migration snapshot ([#152](https://github.com/JJWren/FairShare/issues/152)) ([#191](https://github.com/JJWren/FairShare/issues/191)) ([b2196d2](https://github.com/JJWren/FairShare/commit/b2196d2e8cb4a603c810abbefd888ec2e3e47f13))
+* **api:** harden admin seeding and user-creation responses ([#187](https://github.com/JJWren/FairShare/issues/187)) ([571531e](https://github.com/JJWren/FairShare/commit/571531e743ccc1d0b7f9abe272038889681ba6e0))
+* **api:** user deletion removes owned rows in one transaction ([#188](https://github.com/JJWren/FairShare/issues/188)) ([cf7d950](https://github.com/JJWren/FairShare/commit/cf7d95070d45958637a4b66bdd9da59db0c94e2e))
+* **domain:** Oregon exception envelope + bounded money inputs ([#153](https://github.com/JJWren/FairShare/issues/153)) ([#189](https://github.com/JJWren/FairShare/issues/189)) ([5631981](https://github.com/JJWren/FairShare/commit/563198136e0c90c75e4756add83403e3de8b065c))
+* **web:** privacy policy covers Scenarios, retention, contact, last-updated ([#192](https://github.com/JJWren/FairShare/issues/192)) ([de74db9](https://github.com/JJWren/FairShare/commit/de74db9af95e0dc9b82a6087ed36d4bf1983f426))
+
 ## [4.3.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.2.0...fairshare-v4.3.0) (2026-08-23)
 
 
