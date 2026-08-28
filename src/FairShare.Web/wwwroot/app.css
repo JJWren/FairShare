@@ -2,11 +2,8 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
-}
+/* No .btn-primary override: the old #1b6ec2 fill fought Bootstrap's #0d6efd links
+   and #0b5ed7 hover, so primary showed three blues. Bootstrap's own set is one. */
 
 .content {
     padding-top: 1.1rem;

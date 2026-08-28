@@ -1,13 +1,5 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
+/* No sub-16px root font: form text below 16px makes iOS Safari auto-zoom on focus,
+   and a 14px root shrinks every control under the 44px/24px touch-target floors. */
 html {
   position: relative;
   min-height: 100%;
