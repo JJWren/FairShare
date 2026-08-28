@@ -18,6 +18,7 @@ using FairShare.Api.Persistence;
 using FairShare.Api.Models;
 using FairShare.Api.Services;
 using FairShare.Api.Services.Export;
+using FairShare.Api.Services.Forms;
 using FairShare.Api.Options;
 using FairShare.Api.Middleware;
 using FairShare.Api.Observability;
@@ -264,11 +265,21 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>
 // (forwarded) scheme is https.
 builder.Services.AddHsts(options => options.MaxAge = TimeSpan.FromDays(1));
 
-// Domain services - every worksheet form registers as IWorksheetForm; the catalog narrows the
-// classic two-parent forms back to IChildSupportCalculator itself.
-builder.Services.AddScoped<IWorksheetForm, CS42Calculator>();
-builder.Services.AddScoped<IWorksheetForm, CS42SCalculator>();
-builder.Services.AddScoped<IWorksheetForm, OregonWorksheetCalculator>();
+// Domain services - each worksheet form registers once as its concrete calculator, then
+// forwards twice: as IWorksheetForm (the catalog's /states listing and the exporter's
+// IChildSupportCalculator narrowing) and as an API-side IFormRunner (the wire mapping
+// CalculationRunner dispatches on - no concrete-type is-chain). Adding a state adds its
+// calculator, a runner (ClassicFormRunner covers the two-parent shape with zero new
+// code), and these registration lines - no existing calculator or the runner changes.
+builder.Services.AddScoped<CS42Calculator>();
+builder.Services.AddScoped<CS42SCalculator>();
+builder.Services.AddScoped<OregonWorksheetCalculator>();
+builder.Services.AddScoped<IWorksheetForm>(sp => sp.GetRequiredService<CS42Calculator>());
+builder.Services.AddScoped<IWorksheetForm>(sp => sp.GetRequiredService<CS42SCalculator>());
+builder.Services.AddScoped<IWorksheetForm>(sp => sp.GetRequiredService<OregonWorksheetCalculator>());
+builder.Services.AddScoped<IFormRunner>(sp => new ClassicFormRunner(sp.GetRequiredService<CS42Calculator>()));
+builder.Services.AddScoped<IFormRunner>(sp => new ClassicFormRunner(sp.GetRequiredService<CS42SCalculator>()));
+builder.Services.AddScoped<IFormRunner, OregonFormRunner>();
 builder.Services.AddScoped<IStateGuidelineCatalog, StateGuidelineCatalog>();
 builder.Services.AddScoped<ICalculationRunner, CalculationRunner>();
 builder.Services.AddScoped<IScenarioService, ScenarioService>();
