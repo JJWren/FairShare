@@ -106,11 +106,17 @@ namespace FairShare.Domain.Seeds
 
         /// <summary>
         /// OAR 137-050-0735 Table 1 (eff. 7/7/2023) for the listed metro areas (Portland, Bend,
-        /// Eugene, Corvallis, Springfield, Monmouth, Ashland).
+        /// Eugene, Corvallis, Springfield, Monmouth, Ashland). DELIBERATELY NOT applied by the
+        /// calculator: the official DOJ calculator (v3.6.13) has no age/location inputs and
+        /// takes the entered child-care figure as-is - Table 1 is guidance the FILER applies -
+        /// and an over-cap case run through it on 2026-08-28 matched FairShare to the penny
+        /// only because neither tool caps (see OregonWorksheetCalculatorTests). These values
+        /// power the same guidance surface FairShare shows at the child-care input.
         /// </summary>
         public required ChildCareCaps MetroChildCareCaps { get; init; }
 
-        /// <summary>OAR 137-050-0735 Table 1 (eff. 7/7/2023) for all other locations.</summary>
+        /// <summary>OAR 137-050-0735 Table 1 (eff. 7/7/2023) for all other locations; see
+        /// <see cref="MetroChildCareCaps"/> for why these are guidance, never auto-applied.</summary>
         public required ChildCareCaps NonMetroChildCareCaps { get; init; }
     }
 

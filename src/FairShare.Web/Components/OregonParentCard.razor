@@ -75,7 +75,37 @@
                 </div>
                 <div id="@($"{Prefix}_ChildCareHelp")" class="form-text">
                     For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                    <a role="button" class="text-decoration-underline" tabindex="0"
+                       @onclick="() => showChildCareCaps = !showChildCareCaps"
+                       @onkeydown="@(e => { if (e.Key is "Enter" or " ") showChildCareCaps = !showChildCareCaps; })"
+                       aria-expanded="@showChildCareCaps.ToString().ToLowerInvariant()"
+                       aria-controls="@($"{Prefix}_ChildCareCaps")">
+                        @(showChildCareCaps ? "Hide" : "View") maximum allowed amounts
+                    </a>
                 </div>
+                @if (showChildCareCaps)
+                {
+                    @* Same guidance surface as the official calculator: Table 1 is a maximum
+                       the FILER applies before entering the figure (the official tool takes
+                       the entered amount as-is and so does FairShare - penny parity, verified
+                       against calculator v3.6.13 on 2026-08-28 with an over-cap case).
+                       Amounts are OAR 137-050-0735 Table 1 (eff. 7/7/2023) and mirror
+                       Domain's OregonRuleParameters child-care caps - the July schedule
+                       refresh checks both. *@
+                    <div id="@($"{Prefix}_ChildCareCaps")" class="form-text mt-1">
+                        Costs may not exceed OAR 137-050-0735 Table 1 (per child, monthly), by the
+                        age of the child in care:
+                        <ul class="mb-1 ps-3">
+                            <li>Under 1 year: $1,705 metro / $1,190 elsewhere</li>
+                            <li>1 to 3 years: $1,705 metro / $1,083 elsewhere</li>
+                            <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
+                            <li>6 and older: $1,100 metro / $629 elsewhere</li>
+                        </ul>
+                        Metro = Portland, Bend, Eugene, Corvallis, Springfield, Monmouth, Ashland.
+                        Higher actual costs can qualify under OAR 137-050-0735(4) - enter the
+                        allowable amount here, as on the official calculator.
+                    </div>
+                }
             </div>
             <div class="mb-3">
                 <div class="form-check">
@@ -131,6 +161,10 @@
     [Parameter, EditorRequired] public OregonParentDto Data { get; set; } = new();
 
     private string PartyClass => $"fs-party-{Prefix.ToLowerInvariant()}";
+
+    // Table 1 guidance disclosure (line 3a) - collapsed by default like the official
+    // calculator's "more" link.
+    private bool showChildCareCaps;
 
     // Line 4a's "none": a null premium means no appropriate coverage is available. The checkbox
     // owns the null; unchecking restores an editable $0 premium.
