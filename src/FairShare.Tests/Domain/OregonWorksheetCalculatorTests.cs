@@ -150,8 +150,12 @@ public class OregonWorksheetCalculatorTests
         // "helpful" auto-cap would break this penny parity - that is what this test
         // guards. Evidence screenshots archived in the operator wiki
         // (assets/fairshare-or-childcare-caps/), run recorded on issue #172.
+        // AsOfDate pins the vintage the official run was made against, so appending a
+        // future vintage (which may move SSR-dependent figures) can't drift this test
+        // away from what was actually verified.
         OregonWorksheetInput input = new()
         {
+            AsOfDate = new DateOnly(2026, 7, 1),
             Plaintiff = new OregonParentInput { MonthlyIncome = 4500, AverageOvernights = 91 },
             Defendant = new OregonParentInput { MonthlyIncome = 3200, AverageOvernights = 274, ChildCareCosts = 3000 },
             JointMinorChildren = 1,
@@ -160,6 +164,7 @@ public class OregonWorksheetCalculatorTests
 
         OregonCalculationOutcome outcome = Calculator.Calculate(input);
 
+        Assert.Equal(new DateOnly(2026, 7, 1), outcome.RuleEffectiveDate);
         Assert.True(outcome.Success);
         Assert.Equal(ParentType.Plaintiff, outcome.PaysForMinorChildren);
         Assert.Equal(2360m, outcome.PlaintiffTotalSupport);
