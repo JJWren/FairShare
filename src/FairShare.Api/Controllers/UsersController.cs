@@ -90,9 +90,40 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         IdentityResult result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        await _userManager.AddToRoleAsync(user, model.Role);
+        IdentityResult roleResult = await _userManager.AddToRoleAsync(user, model.Role);
+
+        if (!roleResult.Succeeded)
+        {
+            // Creation is all-or-nothing: a user without their intended role is a
+            // misconfigured account, so undo the create rather than report success.
+            IdentityResult cleanup = await _userManager.DeleteAsync(user);
+
+            if (!cleanup.Succeeded)
+            {
+                // Both halves failed - surface the stuck state rather than a plain 400
+                // that implies nothing was created.
+                return Problem(
+                    statusCode: 500,
+                    title: $"User '{user.UserName}' was created but role assignment failed, and cleanup also failed; delete the user manually.");
+            }
+
+            return BadRequest(roleResult.Errors);
+        }
+
         await _audit.WriteAsync(AuditActions.UserCreated, target: user.UserName, detail: $"role {model.Role}");
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+
+        // A DTO, never the Identity entity: serializing ApplicationUser leaks
+        // PasswordHash, SecurityStamp, and ConcurrencyStamp into the response body.
+        UserListItem created = new()
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            IsDisabled = user.IsDisabled,
+            CreatedUtc = user.CreatedUtc,
+            Role = model.Role
+        };
+
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, created);
     }
 
     [HttpPut("{id}")]

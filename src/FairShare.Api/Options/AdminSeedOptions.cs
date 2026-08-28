@@ -16,8 +16,9 @@ public sealed class AdminSeedOptions
     // If null/empty a random password is generated
     public string? Password { get; set; }
 
-    // If a random password is generated, should it be logged? (Avoid in prod logs)
-    public bool LogGeneratedPassword { get; set; } = true;
+    // If a random password is generated, should it be printed? Off by default; when
+    // enabled it goes to stderr only, never the durable log store.
+    public bool LogGeneratedPassword { get; set; }
 }
 
 
