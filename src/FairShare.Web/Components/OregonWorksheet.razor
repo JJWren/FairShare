@@ -1,4 +1,5 @@
 @using FairShare.Contracts.Calculation
+@implements IDisposable
 @inject HttpClient Http
 @inject IJSRuntime JS
 
@@ -269,6 +270,94 @@
         into.SocialSecurityVeteransBenefits = from.SocialSecurityVeteransBenefits;
         into.MinimumOrderException = from.MinimumOrderException;
     }
+
+    // ---- Sign-in stash (ADR 0004), Oregon edition -----------------------------------
+    // Calculator.razor's stash serializes only its own AL fields, so an Oregon guest
+    // used to lose every entered figure on the round-trip through /login. Same
+    // mechanism, this component's own key: Dispose writes the in-progress figures to
+    // sessionStorage whenever the visitor leaves this page (heading to the login page,
+    // and from there possibly through the Google redirect); the next visit restores
+    // them. The stash never leaves the browser.
+
+    private const string StashKey = "fairshare-signin-stash-or";
+
+    protected override async Task OnInitializedAsync() => await RestoreStashAsync();
+
+    public void Dispose()
+    {
+        if (!HasEnteredData || JS is not IJSInProcessRuntime syncJs)
+        {
+            return;
+        }
+
+        try
+        {
+            syncJs.InvokeVoid("sessionStorage.setItem", StashKey,
+                System.Text.Json.JsonSerializer.Serialize(BuildRequest().Oregon));
+        }
+        catch (Exception)
+        {
+            // Losing the stash only costs convenience; leaving the page must never fail.
+        }
+    }
+
+    private async Task RestoreStashAsync()
+    {
+        try
+        {
+            string? json = await JS.InvokeAsync<string?>("sessionStorage.getItem", StashKey);
+
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            await JS.InvokeVoidAsync("sessionStorage.removeItem", StashKey);
+
+            OregonCalculationRequest? stash =
+                System.Text.Json.JsonSerializer.Deserialize<OregonCalculationRequest>(json);
+
+            if (stash is null)
+            {
+                return;
+            }
+
+            CopyParent(stash.Plaintiff, plaintiff);
+            CopyParent(stash.Defendant, defendant);
+            jointMinorChildren = stash.JointMinorChildren is >= 0 and <= 10 ? stash.JointMinorChildren : 1;
+            jointChildrenAttendingSchool = stash.JointChildrenAttendingSchool is >= 0 and <= 10 ? stash.JointChildrenAttendingSchool : 0;
+            cashMedical = stash.CashMedical is "No" or "Yes" or "Contingent" ? stash.CashMedical : "No";
+            coverageSelection = stash.CoverageSelection ?? string.Empty;
+            orderCoverageAtHigherAmount = stash.OrderCoverageAtHigherAmount;
+        }
+        catch (Exception)
+        {
+            // A corrupt or unreadable stash is discarded silently.
+        }
+    }
+
+    private bool HasEnteredData =>
+        HasFigures(plaintiff)
+        || HasFigures(defendant)
+        || jointMinorChildren != 1
+        || jointChildrenAttendingSchool != 0
+        || cashMedical != "No"
+        || coverageSelection.Length > 0
+        || orderCoverageAtHigherAmount
+        || submitted;
+
+    private static bool HasFigures(OregonParentDto parent) =>
+        parent.MonthlyIncome != 0
+        || parent.SpousalSupportReceived != 0
+        || parent.SpousalSupportPaid != 0
+        || parent.UnionDues != 0
+        || parent.OwnHealthInsuranceCost != 0
+        || parent.NonJointChildren != 0
+        || parent.ChildCareCosts != 0
+        || (parent.ChildrensHealthCoverageCost ?? 0) != 0
+        || parent.AverageOvernights != 0
+        || parent.SocialSecurityVeteransBenefits != 0
+        || parent.MinimumOrderException;
 
     private async Task CalculateAsync()
     {
