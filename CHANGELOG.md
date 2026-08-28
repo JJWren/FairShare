@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.7.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.6.0...fairshare-v4.7.0) (2026-08-28)
+
+
+### Features
+
+* **design-system:** design-sync inputs; flattened css entry; disabled button style ([#231](https://github.com/JJWren/FairShare/issues/231)) ([321f6ef](https://github.com/JJWren/FairShare/commit/321f6ef7fe94e27de0895cfd03ffca065c06fc02))
+* **web:** drop the Oregon beta badge ([#229](https://github.com/JJWren/FairShare/issues/229)) ([d07be9e](https://github.com/JJWren/FairShare/commit/d07be9e5e78c4a2d594641c2c54ddb2c24796316)), closes [#228](https://github.com/JJWren/FairShare/issues/228)
+* **web:** sticky navbar; drop the redundant footer guide link ([#234](https://github.com/JJWren/FairShare/issues/234)) ([b116f44](https://github.com/JJWren/FairShare/commit/b116f44c3cd7bb0e8df0ee6870cf402689c6bb65)), closes [#232](https://github.com/JJWren/FairShare/issues/232) [#233](https://github.com/JJWren/FairShare/issues/233)
+
 ## [4.6.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.5.0...fairshare-v4.6.0) (2026-08-28)
 
 
