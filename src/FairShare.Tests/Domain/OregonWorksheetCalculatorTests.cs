@@ -135,4 +135,42 @@ public class OregonWorksheetCalculatorTests
 
         Assert.Equal(OregonRuleParameters.Current.EffectiveDate, outcome.RuleEffectiveDate);
     }
+
+    [Fact]
+    public void OverCapChildCare_FlowsThroughUncapped_MatchingTheOfficialCalculator()
+    {
+        // Verified against the official DOJ Guidelines Calculator v3.6.13 (published
+        // 07/01/2026) on 2026-08-28: Mother income 4500 / 91 overnights, Father income
+        // 3200 / 274 overnights, 1 minor child, no coverage available to either parent,
+        // cash medical included, Father pays $3,000 child care - over EVERY OAR
+        // 137-050-0735 Table 1 cap (highest: $1,705). The official calculator has no
+        // age/location inputs, used the full $3,000, and produced Mother total $2,360.00
+        // ($2,180.00 support + $180.00 cash medical). Table 1 is guidance the filer
+        // applies BEFORE entering the figure (both tools say so at the input); a future
+        // "helpful" auto-cap would break this penny parity - that is what this test
+        // guards. Evidence screenshots archived in the operator wiki
+        // (assets/fairshare-or-childcare-caps/), run recorded on issue #172.
+        // AsOfDate pins the vintage the official run was made against, so appending a
+        // future vintage (which may move SSR-dependent figures) can't drift this test
+        // away from what was actually verified.
+        OregonWorksheetInput input = new()
+        {
+            AsOfDate = new DateOnly(2026, 7, 1),
+            Plaintiff = new OregonParentInput { MonthlyIncome = 4500, AverageOvernights = 91 },
+            Defendant = new OregonParentInput { MonthlyIncome = 3200, AverageOvernights = 274, ChildCareCosts = 3000 },
+            JointMinorChildren = 1,
+            CashMedical = CashMedicalElection.Yes,
+        };
+
+        OregonCalculationOutcome outcome = Calculator.Calculate(input);
+
+        Assert.Equal(new DateOnly(2026, 7, 1), outcome.RuleEffectiveDate);
+        Assert.True(outcome.Success);
+        Assert.Equal(ParentType.Plaintiff, outcome.PaysForMinorChildren);
+        Assert.Equal(2360m, outcome.PlaintiffTotalSupport);
+        Assert.Equal(0m, outcome.DefendantTotalSupport);
+        Assert.Equal(3000m, Assert.Single(outcome.Lines, l => l.Number == "3a").Defendant);
+        Assert.Equal(2180m, Assert.Single(outcome.Lines, l => l.Number == "9a").Plaintiff);
+        Assert.Equal(180m, Assert.Single(outcome.Lines, l => l.Number == "9b").Plaintiff);
+    }
 }

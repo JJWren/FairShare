@@ -73,8 +73,41 @@
                     <input type="number" step="0.01" min="0" id="@($"{Prefix}_ChildCare")" @bind="ChildCare" inputmode="decimal" placeholder="0" class="form-control"
                            aria-describedby="@($"{Prefix}_ChildCareHelp")" />
                 </div>
-                <div id="@($"{Prefix}_ChildCareHelp")" class="form-text">
-                    For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                @* The described-by target is the text-only span: the toggle button sits beside
+                   it but must not be read out as part of the input's description. *@
+                <div class="form-text">
+                    <span id="@($"{Prefix}_ChildCareHelp")">
+                        For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                    </span>
+                    <button type="button" class="btn btn-link btn-sm p-0 align-baseline"
+                            @onclick="() => showChildCareCaps = !showChildCareCaps"
+                            aria-expanded="@showChildCareCaps.ToString().ToLowerInvariant()"
+                            aria-controls="@($"{Prefix}_ChildCareCaps")">
+                        @(showChildCareCaps ? "Hide" : "View") maximum allowed amounts
+                    </button>
+                </div>
+                @* Same guidance surface as the official calculator: Table 1 is a maximum
+                   the FILER applies before entering the figure (the official tool takes
+                   the entered amount as-is and so does FairShare - penny parity, verified
+                   against calculator v3.6.13 on 2026-08-28 with an over-cap case).
+                   Amounts are OAR 137-050-0735 Table 1 (eff. 7/7/2023) and mirror
+                   Domain's OregonRuleParameters child-care caps - the July schedule
+                   refresh checks both. Always rendered (hidden when collapsed) so the
+                   toggle's aria-controls target exists in every state. *@
+                <div id="@($"{Prefix}_ChildCareCaps")" class="form-text mt-1" hidden="@(!showChildCareCaps)">
+                    Enter the allowable amount, as on the official calculator: for each child in
+                    care, up to the OAR 137-050-0735 Table 1 maximum (per child, monthly) for that
+                    child's age - or more, only when the higher cost qualifies under the rule's
+                    section (4) exception:
+                    <ul class="mb-1 ps-3">
+                        <li>Under 1 year: $1,705 metro / $1,190 elsewhere</li>
+                        <li>1 to 3 years: $1,705 metro / $1,083 elsewhere</li>
+                        <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
+                        <li>6 and older: $1,100 metro / $629 elsewhere</li>
+                    </ul>
+                    With more than one child in care, enter the sum of each child's allowable
+                    amount. Metro means the Portland, Bend, Eugene, Corvallis, Springfield,
+                    Monmouth, and Ashland metro areas.
                 </div>
             </div>
             <div class="mb-3">
@@ -131,6 +164,10 @@
     [Parameter, EditorRequired] public OregonParentDto Data { get; set; } = new();
 
     private string PartyClass => $"fs-party-{Prefix.ToLowerInvariant()}";
+
+    // Table 1 guidance disclosure (line 3a) - collapsed by default like the official
+    // calculator's "more" link.
+    private bool showChildCareCaps;
 
     // Nullable proxies so untouched fields render EMPTY with a placeholder 0 instead of a
     // prefilled 0 the user must select-and-delete - the same pattern (and the same
