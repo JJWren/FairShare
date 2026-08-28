@@ -20,7 +20,21 @@ public interface IScenarioService
     /// </summary>
     Task<(SavedScenario Scenario, bool Created)> UpsertByNameAsync(SavedScenario scenario, CancellationToken ct = default);
 
+    /// <summary>
+    /// Renames a scenario. Fails with <see cref="ScenarioRenameOutcome.NameTaken"/> when the
+    /// owner already has a DIFFERENT scenario under the new name (case-insensitive) - a rename
+    /// never merges or overwrites another scenario the way save's upsert-by-name does.
+    /// </summary>
+    Task<ScenarioRenameOutcome> RenameAsync(Guid id, string newName, CancellationToken ct = default);
+
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+}
+
+public enum ScenarioRenameOutcome
+{
+    NotFound,
+    NameTaken,
+    Renamed
 }
 
 public class ScenarioService(FairShareDbContext db) : IScenarioService
@@ -61,6 +75,44 @@ public class ScenarioService(FairShareDbContext db) : IScenarioService
         existing.UpdatedUtc = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return (existing, false);
+    }
+
+    public async Task<ScenarioRenameOutcome> RenameAsync(Guid id, string newName, CancellationToken ct = default)
+    {
+        SavedScenario? existing = await _db.Scenarios.FirstOrDefaultAsync(s => s.Id == id, ct);
+
+        if (existing is null)
+        {
+            return ScenarioRenameOutcome.NotFound;
+        }
+
+        // Same case-insensitive natural key as UpsertByNameAsync; renaming a scenario to its
+        // OWN name (a pure case change, "trial" -> "Trial") is allowed via the Id exclusion.
+        string nameLower = newName.ToLowerInvariant();
+        bool taken = await _db.Scenarios.AnyAsync(
+            s => s.OwnerUserId == existing.OwnerUserId && s.Id != id && s.Name.ToLower() == nameLower, ct);
+
+        if (taken)
+        {
+            return ScenarioRenameOutcome.NameTaken;
+        }
+
+        existing.Name = newName;
+        existing.UpdatedUtc = DateTime.UtcNow;
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // The unique (OwnerUserId, Name) index backstops the AnyAsync pre-check under
+            // concurrency: a race that slips past it surfaces here as NameTaken, not a 500.
+            _db.Entry(existing).State = EntityState.Detached;
+            return ScenarioRenameOutcome.NameTaken;
+        }
+
+        return ScenarioRenameOutcome.Renamed;
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)

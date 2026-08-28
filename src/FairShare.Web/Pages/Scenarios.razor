@@ -50,16 +50,35 @@
                     @foreach (var s in scenarios)
                     {
                         <tr>
-                            <td>@s.Name</td>
+                            <td>
+                                @if (renamingId == s.Id)
+                                {
+                                    <input class="form-control form-control-sm" @bind="renamingName" maxlength="100" aria-label="New scenario name" />
+                                }
+                                else
+                                {
+                                    @s.Name
+                                }
+                            </td>
                             <td>@s.State</td>
                             <td>@(string.IsNullOrEmpty(s.Payer) ? "No net transfer" : $"{s.Payer} owes ${s.FinalAmount:N0}/mo")</td>
                             <td>@(s.RuleEffectiveDate ?? "-")</td>
                             <td>@((s.UpdatedUtc ?? s.CreatedUtc).ToLocalTime().ToString("yyyy-MM-dd"))</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-primary"
-                                        @onclick="() => Open(s)">Open</button>
-                                <button class="btn btn-sm btn-outline-danger"
-                                        @onclick="() => DeleteAsync(s)">Delete</button>
+                                @if (renamingId == s.Id)
+                                {
+                                    <button class="btn btn-sm btn-primary" @onclick="() => SaveRenameAsync(s)">Save</button>
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename">Cancel</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            @onclick="() => Open(s)">Open</button>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            @onclick="() => StartRename(s)">Rename</button>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => DeleteAsync(s)">Delete</button>
+                                }
                             </td>
                         </tr>
                     }
@@ -80,6 +99,8 @@
     private List<ScenarioSummaryDto>? scenarios;
     private bool isGuest;
     private string? error;
+    private Guid? renamingId;
+    private string renamingName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,6 +136,56 @@
     // query parameter and loads it (recomputing under current rules per ADR 0006).
     private void Open(ScenarioSummaryDto s)
         => Navigation.NavigateTo($"/States/{s.State}/{s.Form}?scenario={s.Id}");
+
+    private void StartRename(ScenarioSummaryDto s)
+    {
+        renamingId = s.Id;
+        renamingName = s.Name;
+    }
+
+    private void CancelRename() => renamingId = null;
+
+    private async Task SaveRenameAsync(ScenarioSummaryDto s)
+    {
+        if (string.IsNullOrWhiteSpace(renamingName))
+        {
+            error = "A scenario name cannot be empty.";
+            return;
+        }
+
+        try
+        {
+            using HttpResponseMessage response = await Http.PutAsJsonAsync(
+                $"api/v1/scenarios/{s.Id}/name", new ScenarioRenameRequest { Name = renamingName });
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                // The server's message names the colliding scenario ("You already have...").
+                var conflict = await response.Content.ReadFromJsonAsync<ConflictMessage>();
+                error = conflict?.Message ?? "You already have a scenario with that name.";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                error = $"Rename failed ({(int)response.StatusCode}).";
+                return;
+            }
+
+            error = null;
+            renamingId = null;
+            await LoadAsync();
+        }
+        catch (HttpRequestException)
+        {
+            error = "The FairShare API could not be reached. Check your connection and try again.";
+        }
+    }
+
+    private sealed class ConflictMessage
+    {
+        public string? Message { get; set; }
+    }
 
     private async Task DeleteAsync(ScenarioSummaryDto s)
     {

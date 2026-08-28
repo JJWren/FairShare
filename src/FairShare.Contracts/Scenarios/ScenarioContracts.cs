@@ -56,3 +56,9 @@ public class ScenarioDetailDto : ScenarioSummaryDto
     /// <summary>True when today's rules produce a different result than the saved snapshot.</summary>
     public bool ResultChanged { get; set; }
 }
+
+public class ScenarioRenameRequest
+{
+    [Required, MaxLength(100)]
+    public string Name { get; set; } = string.Empty;
+}

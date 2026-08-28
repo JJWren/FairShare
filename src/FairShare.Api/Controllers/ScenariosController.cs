@@ -119,6 +119,33 @@ public class ScenariosController(IScenarioService scenarios, ICalculationRunner 
         return Ok(detail);
     }
 
+    [HttpPut("{id:guid}/name")]
+    public async Task<IActionResult> Rename(Guid id, [FromBody] ScenarioRenameRequest request, CancellationToken ct)
+    {
+        SavedScenario? scenario = await OwnedAsync(id, ct);
+
+        if (scenario is null)
+        {
+            return NotFound();
+        }
+
+        string newName = request.Name.Trim();
+
+        // [Required] passes whitespace-only strings; a scenario must keep a visible name.
+        if (newName.Length == 0)
+        {
+            return BadRequest(new { message = "A scenario name cannot be empty." });
+        }
+
+        return await _scenarios.RenameAsync(id, newName, ct) switch
+        {
+            // OwnedAsync loaded the same tracked entity RenameAsync saved, so its Name is current.
+            ScenarioRenameOutcome.Renamed => Ok(ToSummary(scenario)),
+            ScenarioRenameOutcome.NameTaken => Conflict(new { message = $"You already have a scenario named \"{newName}\"." }),
+            _ => NotFound(),
+        };
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

@@ -129,6 +129,86 @@ public class ScenariosEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
+    public async Task Rename_ChangesNameInPlace_WithoutDuplicating()
+    {
+        string token = await LoginAsAdminAsync();
+
+        HttpResponseMessage saved = await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-original"));
+        Assert.Equal(HttpStatusCode.Created, saved.StatusCode);
+        ScenarioSummaryDto summary = (await saved.Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        HttpResponseMessage renamed = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{summary.Id}/name", token, new ScenarioRenameRequest { Name = "rename-after" });
+
+        Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
+        ScenarioSummaryDto updated = (await renamed.Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+        Assert.Equal(summary.Id, updated.Id);
+        Assert.Equal("rename-after", updated.Name);
+
+        HttpResponseMessage listResponse = await SendAsync(HttpMethod.Get, "api/v1/scenarios", token, body: null);
+        List<ScenarioSummaryDto> list = (await listResponse.Content.ReadFromJsonAsync<List<ScenarioSummaryDto>>())!;
+        Assert.Contains(list, s => s.Id == summary.Id && s.Name == "rename-after");
+        Assert.DoesNotContain(list, s => s.Name == "rename-original");
+
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{summary.Id}", token, body: null);
+    }
+
+    [Fact]
+    public async Task Rename_ToAnotherScenariosName_Conflicts()
+    {
+        string token = await LoginAsAdminAsync();
+
+        ScenarioSummaryDto first = (await (await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-conflict-a"))).Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+        ScenarioSummaryDto second = (await (await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-conflict-b"))).Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        // Case-insensitive: colliding with the other scenario's name in ANY case is refused,
+        // and the target keeps its name - a rename never merges records the way save does.
+        HttpResponseMessage conflict = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{second.Id}/name", token, new ScenarioRenameRequest { Name = "RENAME-CONFLICT-A" });
+
+        Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
+
+        HttpResponseMessage listResponse = await SendAsync(HttpMethod.Get, "api/v1/scenarios", token, body: null);
+        List<ScenarioSummaryDto> list = (await listResponse.Content.ReadFromJsonAsync<List<ScenarioSummaryDto>>())!;
+        Assert.Contains(list, s => s.Id == second.Id && s.Name == "rename-conflict-b");
+
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{first.Id}", token, body: null);
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{second.Id}", token, body: null);
+    }
+
+    [Fact]
+    public async Task Rename_CaseOnlyChange_IsAllowed()
+    {
+        string token = await LoginAsAdminAsync();
+
+        ScenarioSummaryDto summary = (await (await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-case"))).Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        HttpResponseMessage renamed = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{summary.Id}/name", token, new ScenarioRenameRequest { Name = "Rename-Case" });
+
+        Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
+        Assert.Equal("Rename-Case", (await renamed.Content.ReadFromJsonAsync<ScenarioSummaryDto>())!.Name);
+
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{summary.Id}", token, body: null);
+    }
+
+    [Fact]
+    public async Task Rename_WhitespaceOnlyName_IsRejected()
+    {
+        string token = await LoginAsAdminAsync();
+
+        ScenarioSummaryDto summary = (await (await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-blank"))).Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        // [Required] passes whitespace-only strings, so the endpoint checks the trimmed value.
+        HttpResponseMessage renamed = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{summary.Id}/name", token, new ScenarioRenameRequest { Name = "   " });
+
+        Assert.Equal(HttpStatusCode.BadRequest, renamed.StatusCode);
+
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{summary.Id}", token, body: null);
+    }
+
+    [Fact]
     public async Task Save_FailingInputs_IsRejected()
     {
         string token = await LoginAsAdminAsync();
