@@ -1,0 +1,13 @@
+{
+  "projectId": "861498ac-7beb-4242-878d-2337e999cc53",
+  "shape": "package",
+  "pkg": "@fairshare/warm-counsel",
+  "buildCmd": "npm run build --prefix design-system",
+  "cssEntry": "dist/warm-counsel.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "overrides": {
+    "NavBar": { "cardMode": "column" },
+    "Button": { "cardMode": "column" },
+    "WorksheetTable": { "cardMode": "column" }
+  }
+}

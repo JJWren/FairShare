@@ -37,6 +37,13 @@
   border-color: var(--fs-accent);
 }
 
+/* Disabled must read as inert, not as a working primary (WCAG exempts disabled
+   controls from the contrast pairs the test asserts). */
+.fs-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* ---- Money input -------------------------------------------------------- */
 
 .fs-field-label {

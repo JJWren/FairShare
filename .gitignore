@@ -168,3 +168,10 @@ design-system/dist/
 # Rendered SEO snapshots are build artifacts (CI renders fresh ones per build)
 snapshots/*
 !snapshots/.gitkeep
+
+# design-sync working state (converter scripts, build output, machine caches)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
