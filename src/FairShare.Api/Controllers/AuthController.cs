@@ -344,10 +344,6 @@ public class AuthController(
             return Unauthorized();
         }
 
-        // Audit before the delete so the actor identity is still resolvable.
-        await _audit.WriteAsync(AuditActions.AccountDeleted, target: user.UserName, ct: ct);
-        await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.AccountDeleted, target: null, ct);
-
         // One transaction: the owned rows and the account go together or not at all - a
         // failure mid-way must not leave deleted profiles under a live login, or a dead
         // login with income data still stored.
@@ -366,6 +362,13 @@ public class AuthController(
         }
 
         await tx.CommitAsync(ct);
+
+        // Audit and analytics only after the commit: their sinks live outside this
+        // transaction, so writing earlier would leave an "account deleted" record for
+        // an account a rollback kept alive. The actor's name and id come from the
+        // request's claims, so deletion doesn't affect resolution.
+        await _audit.WriteAsync(AuditActions.AccountDeleted, target: user.UserName, ct: ct);
+        await _analytics.RecordEventAsync(HttpContext, AnalyticsEventNames.AccountDeleted, target: null, ct);
 
         ClearRefreshCookie();
         return NoContent();
