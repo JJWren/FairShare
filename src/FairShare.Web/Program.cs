@@ -12,7 +12,9 @@ using FairShare.Web.Services;
 // non-EFIGS locale needing ICU data that isn't there. CurrentCulture covers this
 // already-running main thread (the Default* setters alone don't change it); the
 // Default* pair covers anything spawned later.
-var enUs = new System.Globalization.CultureInfo("en-US");
+// GetCultureInfo: the cached read-only instance - immutable, so the pin can't be
+// mutated later, and cheaper than constructing a writable copy.
+var enUs = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 System.Globalization.CultureInfo.CurrentCulture = enUs;
 System.Globalization.CultureInfo.CurrentUICulture = enUs;
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = enUs;
