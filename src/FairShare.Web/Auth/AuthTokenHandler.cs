@@ -90,6 +90,7 @@ public class AuthTokenHandler(ITokenStore tokenStore, JwtAuthenticationStateProv
 
             using HttpRequestMessage refreshRequest = new(HttpMethod.Post, refreshUri);
             refreshRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            refreshRequest.Headers.Add(AuthApiClient.CsrfHeaderName, "1");
 
             using HttpResponseMessage refreshResponse = await base.SendAsync(refreshRequest, cancellationToken);
 

@@ -33,6 +33,11 @@ public class AuthController(
 {
     private const string RefreshCookieName = "fairshare_refresh";
 
+    // Required on the anonymous endpoints that set or act on the refresh cookie
+    // (guest/refresh/logout); see MissingCsrfHeader below. The Web client sends it
+    // on every auth call.
+    private const string CsrfHeaderName = "X-FairShare-Auth";
+
     /// <summary>Cookie scheme the Google handler signs its external principal into.</summary>
     public const string ExternalScheme = "External";
     public const string GoogleProvider = "Google";
@@ -206,13 +211,28 @@ public class AuthController(
     [HttpPost("guest")]
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
-    public async Task<IActionResult> Guest(CancellationToken ct) => await IssueGuestTokensAsync(ct);
+    public async Task<IActionResult> Guest(CancellationToken ct)
+    {
+        // Guarded like refresh/logout: guest REPLACES the refresh cookie, so a forced
+        // cross-origin post would log a signed-in visitor out into a guest session.
+        if (MissingCsrfHeader(out IActionResult? rejection))
+        {
+            return rejection;
+        }
+
+        return await IssueGuestTokensAsync(ct);
+    }
 
     [HttpPost("refresh")]
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Refresh(CancellationToken ct)
     {
+        if (MissingCsrfHeader(out IActionResult? rejection))
+        {
+            return rejection;
+        }
+
         if (!Request.Cookies.TryGetValue(RefreshCookieName, out string? rawRefreshToken) || string.IsNullOrWhiteSpace(rawRefreshToken))
         {
             return Unauthorized();
@@ -249,6 +269,11 @@ public class AuthController(
     [AllowAnonymous]
     public async Task<IActionResult> Logout(CancellationToken ct)
     {
+        if (MissingCsrfHeader(out IActionResult? rejection))
+        {
+            return rejection;
+        }
+
         if (Request.Cookies.TryGetValue(RefreshCookieName, out string? rawRefreshToken) && !string.IsNullOrWhiteSpace(rawRefreshToken))
         {
             await _tokenService.ConsumeRefreshTokenAsync(rawRefreshToken, ct);
@@ -256,6 +281,28 @@ public class AuthController(
 
         ClearRefreshCookie();
         return NoContent();
+    }
+
+    /// <summary>
+    /// CSRF guard for the anonymous endpoints that set or act on the refresh cookie.
+    /// Requiring any custom header forces cross-origin browsers into a CORS preflight,
+    /// which the CORS policy refuses - so a foreign page cannot force-post these, with
+    /// no antiforgery infrastructure needed. 400, not 401: the request shape is wrong,
+    /// not the credentials. (Login also sets the cookie but needs the caller to hold
+    /// valid credentials already; the Google flow carries its own state protection.)
+    /// </summary>
+    private bool MissingCsrfHeader([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IActionResult? rejection)
+    {
+        if (Request.Headers.ContainsKey(CsrfHeaderName))
+        {
+            rejection = null;
+            return false;
+        }
+
+        rejection = Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: $"Missing required {CsrfHeaderName} header.");
+        return true;
     }
 
     [HttpPost("change-password")]

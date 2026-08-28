@@ -20,6 +20,10 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
         {
             BaseAddress = new Uri("https://localhost")
         });
+
+        // The cookie-acting auth endpoints require the CSRF header (the Web client always
+        // sends it); harmless on every other request.
+        _client.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
     }
 
     [Fact]
@@ -97,6 +101,7 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
         {
             BaseAddress = new Uri("http://localhost")
         });
+        httpClient.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
 
         HttpResponseMessage response = await httpClient.PostAsync("api/v1/auth/guest", content: null);
 
@@ -137,6 +142,7 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
             BaseAddress = new Uri("https://localhost"),
             HandleCookies = false
         });
+        rawClient.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
 
         HttpResponseMessage guestResponse = await rawClient.PostAsync("api/v1/auth/guest", content: null);
         Assert.True(guestResponse.Headers.TryGetValues("Set-Cookie", out var cookies));
@@ -161,6 +167,21 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
         HttpResponseMessage response = await _client.PostAsync("api/v1/auth/refresh", content: null);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CookieActingEndpoints_WithoutCsrfHeader_ReturnBadRequest()
+    {
+        // A fresh client WITHOUT the default header stands in for a cross-site form post:
+        // guest/refresh/logout all set or act on the refresh cookie and must refuse it.
+        using HttpClient bare = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await bare.PostAsync("api/v1/auth/guest", content: null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await bare.PostAsync("api/v1/auth/refresh", content: null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await bare.PostAsync("api/v1/auth/logout", content: null)).StatusCode);
     }
 
     [Fact]

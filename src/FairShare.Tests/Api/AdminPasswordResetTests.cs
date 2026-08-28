@@ -19,6 +19,7 @@ public class AdminPasswordResetTests : IClassFixture<FairShareApiFactory>
             BaseAddress = new Uri("https://localhost"),
             HandleCookies = false
         });
+        _client.DefaultRequestHeaders.Add("X-FairShare-Auth", "1");
     }
 
     [Fact]
