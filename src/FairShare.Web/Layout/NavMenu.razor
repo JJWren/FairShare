@@ -10,6 +10,15 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                @* Every identity - guest included - can reach the calculator and the guide;
+                   before this, a guest's left nav was empty and the guide was only
+                   discoverable from inside the Oregon calculator. *@
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Calculator</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="guides/oregon-worksheet">Oregon guide</NavLink>
+                </li>
                 <AuthorizeView>
                     <Authorized>
                         @if (!context.User.HasClaim("guest", "true"))
