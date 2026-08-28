@@ -51,11 +51,29 @@ jobs:
             fi
           }
 
+          # The SPA is only alive if its runtime config actually reaches browsers: the
+          # 4.4.0 regression served a stale precompressed appsettings.json (no
+          # Api.BaseUrl) to Accept-Encoding clients while / kept returning 200, so a
+          # status probe alone called a broken site healthy. --compressed makes curl ask
+          # like a browser does.
+          check_config() {
+            local url="https://easychildsupport.fyi/appsettings.json"
+            local body
+            body=$(curl -sS --compressed --max-time 15 --retry 2 --retry-delay 5 "$url") || body=""
+            if printf '%s' "$body" | grep -q '"BaseUrl"'; then
+              echo "Config: ok ($url)"
+            else
+              failures="${failures}- **Config** \`$url\` is missing Api.BaseUrl (stale or unwritten runtime config)"$'\n'
+              echo "Config: STALE/MISSING ($url)"
+            fi
+          }
+
           if [ "$SIMULATE" = "true" ]; then
             check "Alert-path test" "https://easychildsupport.fyi/uptime-simulated-failure"
           else
             check "Web" "https://easychildsupport.fyi/"
             check "API" "https://api.easychildsupport.fyi/healthz"
+            check_config
           fi
 
           # Run-unique heredoc delimiter so probe output can never terminate the block early.
