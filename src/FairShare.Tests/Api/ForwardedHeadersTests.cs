@@ -138,6 +138,16 @@ public class ForwardedHeadersTrustedProxyTests : IClassFixture<TrustedProxyApiFa
     }
 
     [Fact]
+    public async Task XForwardedProtoFromOutsidePinnedNetwork_IsIgnored()
+    {
+        // The middleware's KnownIPNetworks check gates every forwarded header at once:
+        // once the pin exists, an unpinned peer gets neither XFF nor XFP honored.
+        ForwardingEcho echo = await EchoAsync("8.8.8.8", ("X-Forwarded-Proto", "https"));
+
+        Assert.False(echo.IsHttps);
+    }
+
+    [Fact]
     public async Task ApiResponses_CarryNosniff()
     {
         HttpResponseMessage response = await _client.GetAsync("__test/remote-ip");

@@ -218,13 +218,15 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 
 // Behind a TLS-terminating reverse proxy (the eventual VPS setup), the app sees plain
 // HTTP; honoring X-Forwarded-Proto keeps Request.IsHttps - and everything derived from
-// it, like the refresh cookie's Secure/SameSite attributes - correct. X-Forwarded-Proto
-// stays trusted from anywhere (a client spoofing it only affects its own cookie
-// attributes), but X-Forwarded-For is honored ONLY when the operator pins the proxy's
-// source network(s) in ForwardedHeaders:KnownNetworks (CIDR list, e.g. 172.16.0.0/12
-// for Docker bridge networks). With the pin, RemoteIpAddress becomes the real client
-// and the rate limiter's buckets are per-client instead of one bucket for the whole
-// proxy; without it, a spoofed X-Forwarded-For from an untrusted peer stays ignored.
+// it, like the refresh cookie's Secure/SameSite attributes - correct. Trust has two
+// modes. Default (no pin): only X-Forwarded-Proto is processed, from any peer (a client
+// spoofing it only affects its own cookie attributes); X-Forwarded-For is ignored
+// entirely. Pinned (ForwardedHeaders:KnownNetworks holds the proxy's source CIDRs,
+// e.g. 172.16.0.0/12 for Docker bridge networks): the middleware's trust check gates
+// EVERY forwarded header at once, so both headers are honored - and only from peers
+// inside those networks; a direct/unpinned peer gets neither. RemoteIpAddress then
+// becomes the real client, making the rate limiter's buckets per-client instead of one
+// bucket for the whole proxy.
 builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
