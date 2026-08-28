@@ -4,7 +4,7 @@ ASP.NET Core Web API — auth, persistence, and the HTTP surface for everything 
 
 ## Responsibilities
 
-- **Auth**: ASP.NET Identity (SQLite via EF Core) + JWT bearer access tokens and single-use rotating refresh tokens (`Auth/TokenService.cs`). Login lockout, uniform 401s, registration gate (`Auth:AllowSelfRegistration`, default off).
+- **Auth**: ASP.NET Identity (SQLite via EF Core) + JWT bearer access tokens and single-use rotating refresh tokens (`Auth/TokenService.cs`). Login lockout, uniform 401s; public sign-up is Google OAuth only ([ADR 0004](../../docs/adr/0004-external-oauth-only-public-accounts.md)) — there is no self-registration endpoint.
 - **Controllers** (`Controllers/`): `AuthController` (login/refresh/guest/change-password), `UsersController` (admin CRUD + password reset), `ParentsController` (ownership-scoped profiles with optimistic concurrency), `CatalogController` + `CalculationsController` (thin HTTP wrappers over `FairShare.Domain`).
 - **Startup** (`Program.cs`): single-file minimal hosting — Identity/JWT config, rate limiting (per-IP, strict policy on the auth endpoints, `/healthz` exempt), CORS pinned to configured origins, forwarded-proto handling for reverse proxies, and the auto-migrate block (SQLite integrity check + pre-migration zip backup before applying migrations).
 - **Background work** (`Services/`): `AdminSeeder` (first-boot admin account) and `RefreshTokenCleanupService` (purges expired/stale-revoked refresh tokens every 6 h).

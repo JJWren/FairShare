@@ -36,7 +36,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) — maintained automatically by release-pleas
 - **Admin observability**: `/admin/stats` dashboard, persistent diagnostic logs and audit trail at `/admin/logs`, and a verbose-logging mode that always turns itself back off.
 - **Donations**: Optional `/support` page with a first-party `/go/donate` redirect — hidden entirely unless `DONATE_URL` is configured.
 - **Responsive UI**: Two-column layout optimized for both desktop and mobile (Bootstrap 5), with a Light/Dark/Auto theme toggle.
-- **Health & Safety**: Integrated database integrity checks and automated backup zipping on startup.
+- **Health & Safety**: SQLite integrity check on startup and an automatic pre-migration snapshot (kept in the data volume, pruned after 30 days). Off-host backups are an operator task — see [docs/SETUP.md](docs/SETUP.md).
 
 ---
 
