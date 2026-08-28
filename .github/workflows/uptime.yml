@@ -4,7 +4,8 @@
 # "uptime": opened on failure (with per-probe detail), auto-closed on recovery -
 # GitHub's own notifications deliver it. GitHub's cron is best-effort - */5 is
 # the platform minimum and real firing often drifts, so a short blip between probes can
-# be missed; the deterministic alert-path check is the simulate_failure input below.
+# be missed (#177's acceptance criteria were amended to match: sustained outages alert,
+# and the alert path itself is verified by the deterministic simulate_failure input below).
 #
 # Alert-path test without touching prod: run workflow_dispatch with
 # simulate_failure=true - it probes a known-404 path, the issue opens; run again
