@@ -1,0 +1,24 @@
+{
+  "name": "@fairshare/warm-counsel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FairShare's Warm Counsel design system: tokens (light + espresso dark) and the React design-time twins of the app's UI. The Blazor app consumes the same tokens; see design-system/README.md.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node build.mjs && tsc -p tsconfig.json",
+    "test": "node --test test/contrast.test.mjs"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "esbuild": "^0.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}
