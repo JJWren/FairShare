@@ -99,7 +99,19 @@ public class ScenarioService(FairShareDbContext db) : IScenarioService
 
         existing.Name = newName;
         existing.UpdatedUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // The unique (OwnerUserId, Name) index backstops the AnyAsync pre-check under
+            // concurrency: a race that slips past it surfaces here as NameTaken, not a 500.
+            _db.Entry(existing).State = EntityState.Detached;
+            return ScenarioRenameOutcome.NameTaken;
+        }
+
         return ScenarioRenameOutcome.Renamed;
     }
 

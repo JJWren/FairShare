@@ -193,6 +193,22 @@ public class ScenariosEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
+    public async Task Rename_WhitespaceOnlyName_IsRejected()
+    {
+        string token = await LoginAsAdminAsync();
+
+        ScenarioSummaryDto summary = (await (await SendAsync(HttpMethod.Post, "api/v1/scenarios", token, AlabamaScenario("rename-blank"))).Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        // [Required] passes whitespace-only strings, so the endpoint checks the trimmed value.
+        HttpResponseMessage renamed = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{summary.Id}/name", token, new ScenarioRenameRequest { Name = "   " });
+
+        Assert.Equal(HttpStatusCode.BadRequest, renamed.StatusCode);
+
+        await SendAsync(HttpMethod.Delete, $"api/v1/scenarios/{summary.Id}", token, body: null);
+    }
+
+    [Fact]
     public async Task Save_FailingInputs_IsRejected()
     {
         string token = await LoginAsAdminAsync();
