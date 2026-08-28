@@ -23,7 +23,7 @@
                 <label class="form-label" for="@($"{Prefix}_Income")">Monthly income</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Income")" @bind="Data.MonthlyIncome" class="form-control"
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Income")" @bind="Income" inputmode="decimal" placeholder="0" class="form-control"
                            aria-describedby="@($"{Prefix}_IncomeHelp")" />
                 </div>
                 <div id="@($"{Prefix}_IncomeHelp")" class="form-text">
@@ -34,33 +34,33 @@
                 <label class="form-label" for="@($"{Prefix}_SpousalIn")">Spousal support owed to this parent</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalIn")" @bind="Data.SpousalSupportReceived" class="form-control" />
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalIn")" @bind="SpousalIn" inputmode="decimal" placeholder="0" class="form-control" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_SpousalOut")">Spousal support this parent owes</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalOut")" @bind="Data.SpousalSupportPaid" class="form-control" />
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_SpousalOut")" @bind="SpousalOut" inputmode="decimal" placeholder="0" class="form-control" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Dues")">Mandatory union dues</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Dues")" @bind="Data.UnionDues" class="form-control" />
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Dues")" @bind="Dues" inputmode="decimal" placeholder="0" class="form-control" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_OwnHealth")">Cost of this parent's own health insurance</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_OwnHealth")" @bind="Data.OwnHealthInsuranceCost" class="form-control" />
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_OwnHealth")" @bind="OwnHealth" inputmode="decimal" placeholder="0" class="form-control" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_NonJoint")">Non-joint children</label>
-                <input type="number" min="0" max="20" id="@($"{Prefix}_NonJoint")" @bind="Data.NonJointChildren" class="form-control"
+                <input type="number" min="0" max="20" id="@($"{Prefix}_NonJoint")" @bind="NonJoint" inputmode="numeric" placeholder="0" class="form-control"
                        aria-describedby="@($"{Prefix}_NonJointHelp")" />
                 <div id="@($"{Prefix}_NonJointHelp")" class="form-text">
                     This parent's other legal children - minors in the household or under an ongoing support order (line 1c).
@@ -70,7 +70,7 @@
                 <label class="form-label" for="@($"{Prefix}_ChildCare")">Child care costs this parent pays</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_ChildCare")" @bind="Data.ChildCareCosts" class="form-control"
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_ChildCare")" @bind="ChildCare" inputmode="decimal" placeholder="0" class="form-control"
                            aria-describedby="@($"{Prefix}_ChildCareHelp")" />
                 </div>
                 @* The described-by target is the text-only span: the toggle button sits beside
@@ -130,7 +130,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Overnights")">Average overnights per year</label>
-                <input type="number" step="0.5" min="0" max="365" id="@($"{Prefix}_Overnights")" @bind="Data.AverageOvernights" class="form-control"
+                <input type="number" step="0.5" min="0" max="365" id="@($"{Prefix}_Overnights")" @bind="Overnights" inputmode="decimal" placeholder="0" class="form-control"
                        aria-describedby="@($"{Prefix}_OvernightsHelp")" />
                 <div id="@($"{Prefix}_OvernightsHelp")" class="form-text">
                     Two-year average of overnights with the joint minor children; both parents must total 365 (line 6a).
@@ -140,7 +140,7 @@
                 <label class="form-label" for="@($"{Prefix}_Ssva")">Social Security / veterans benefits paid to the children</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Ssva")" @bind="Data.SocialSecurityVeteransBenefits" class="form-control"
+                    <input type="number" step="0.01" min="0" id="@($"{Prefix}_Ssva")" @bind="Ssva" inputmode="decimal" placeholder="0" class="form-control"
                            aria-describedby="@($"{Prefix}_SsvaHelp")" />
                 </div>
                 <div id="@($"{Prefix}_SsvaHelp")" class="form-text">
@@ -169,6 +169,55 @@
     // calculator's "more" link.
     private bool showChildCareCaps;
 
+    // Nullable proxies so untouched fields render EMPTY with a placeholder 0 instead of a
+    // prefilled 0 the user must select-and-delete - the same pattern (and the same
+    // value-based resync) as the AL ParentCard (#158/#198): a field re-derives only when
+    // its DTO value stops matching the field's own mapping, which catches the parent's
+    // in-place writes (scenario load, sign-in stash restore) and Clear, while a typed 0
+    // never resyncs away. The coverage premium keeps its dedicated proxy below: there,
+    // 0 is a meaningful value ("coverage at no cost"), never an empty state.
+    private decimal? _income, _spousalIn, _spousalOut, _dues, _ownHealth, _childCare, _overnights, _ssva;
+    private int? _nonJoint;
+
+    private decimal? Income { get => _income; set { _income = value; Data.MonthlyIncome = value ?? 0m; } }
+    private decimal? SpousalIn { get => _spousalIn; set { _spousalIn = value; Data.SpousalSupportReceived = value ?? 0m; } }
+    private decimal? SpousalOut { get => _spousalOut; set { _spousalOut = value; Data.SpousalSupportPaid = value ?? 0m; } }
+    private decimal? Dues { get => _dues; set { _dues = value; Data.UnionDues = value ?? 0m; } }
+    private decimal? OwnHealth { get => _ownHealth; set { _ownHealth = value; Data.OwnHealthInsuranceCost = value ?? 0m; } }
+    private int? NonJoint { get => _nonJoint; set { _nonJoint = value; Data.NonJointChildren = value ?? 0; } }
+    private decimal? ChildCare { get => _childCare; set { _childCare = value; Data.ChildCareCosts = value ?? 0m; } }
+    private decimal? Overnights { get => _overnights; set { _overnights = value; Data.AverageOvernights = value ?? 0m; } }
+    private decimal? Ssva { get => _ssva; set { _ssva = value; Data.SocialSecurityVeteransBenefits = value ?? 0m; } }
+
+    protected override void OnParametersSet()
+    {
+        if (Data.MonthlyIncome != (_income ?? 0m)
+            || Data.SpousalSupportReceived != (_spousalIn ?? 0m)
+            || Data.SpousalSupportPaid != (_spousalOut ?? 0m)
+            || Data.UnionDues != (_dues ?? 0m)
+            || Data.OwnHealthInsuranceCost != (_ownHealth ?? 0m)
+            || Data.NonJointChildren != (_nonJoint ?? 0)
+            || Data.ChildCareCosts != (_childCare ?? 0m)
+            || Data.AverageOvernights != (_overnights ?? 0m)
+            || Data.SocialSecurityVeteransBenefits != (_ssva ?? 0m))
+        {
+            SyncFieldsFromData();
+        }
+    }
+
+    private void SyncFieldsFromData()
+    {
+        _income = Data.MonthlyIncome == 0 ? null : Data.MonthlyIncome;
+        _spousalIn = Data.SpousalSupportReceived == 0 ? null : Data.SpousalSupportReceived;
+        _spousalOut = Data.SpousalSupportPaid == 0 ? null : Data.SpousalSupportPaid;
+        _dues = Data.UnionDues == 0 ? null : Data.UnionDues;
+        _ownHealth = Data.OwnHealthInsuranceCost == 0 ? null : Data.OwnHealthInsuranceCost;
+        _nonJoint = Data.NonJointChildren == 0 ? null : Data.NonJointChildren;
+        _childCare = Data.ChildCareCosts == 0 ? null : Data.ChildCareCosts;
+        _overnights = Data.AverageOvernights == 0 ? null : Data.AverageOvernights;
+        _ssva = Data.SocialSecurityVeteransBenefits == 0 ? null : Data.SocialSecurityVeteransBenefits;
+    }
+
     // Line 4a's "none": a null premium means no appropriate coverage is available. The checkbox
     // owns the null; unchecking restores an editable $0 premium.
     private bool NoCoverage
@@ -196,5 +245,6 @@
         Data.AverageOvernights = 0;
         Data.SocialSecurityVeteransBenefits = 0;
         Data.MinimumOrderException = false;
+        SyncFieldsFromData();
     }
 }

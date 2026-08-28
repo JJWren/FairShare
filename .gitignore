@@ -164,3 +164,7 @@ aidlc-docs/
 # design-system package (React design-time twins; see design-system/README.md)
 design-system/node_modules/
 design-system/dist/
+
+# Rendered SEO snapshots are build artifacts (CI renders fresh ones per build)
+snapshots/*
+!snapshots/.gitkeep
