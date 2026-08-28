@@ -7,4 +7,7 @@
         ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
         : stored;
     document.documentElement.setAttribute('data-bs-theme', resolved);
+    // Warm Counsel tokens key off data-fs-theme (the design-system tokens file is
+    // consumed byte-identical, so the app mirrors the attribute rather than forking it).
+    document.documentElement.setAttribute('data-fs-theme', resolved);
 })();

@@ -21,8 +21,8 @@
     <meta property="og:image:alt" content="FairShare - free child-support calculator, line-by-line estimates matching the court's own worksheets" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://easychildsupport.fyi/og-card.png" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#212529" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#201c17" media="(prefers-color-scheme: dark)" />
     <!-- No static canonical here on purpose: this shell serves EVERY route, so one
          canonical would mark /privacy, /guides/... as duplicates of the home page.
          Each public page emits its own via Blazor HeadContent, and js/site.js injects
@@ -30,8 +30,13 @@
     <title>FairShare</title>
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Warm Counsel (#184): locked design tokens (byte-identical to the design-system
+         file, test-enforced), self-hosted fonts, then the bridge LAST so it wins. -->
+    <link rel="stylesheet" href="css/warm-counsel-tokens.css" />
+    <link rel="stylesheet" href="css/warm-counsel-fonts.css" />
     <link rel="stylesheet" href="css/site.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="css/warm-counsel.css" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <script src="js/theme-init.js"></script>

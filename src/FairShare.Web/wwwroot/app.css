@@ -1,6 +1,4 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
+/* Base font/background live in css/warm-counsel.css (the token bridge). */
 
 /* No .btn-primary override: the old #1b6ec2 fill fought Bootstrap's #0d6efd links
    and #0b5ed7 hover, so primary showed three blues. Bootstrap's own set is one. */
@@ -83,34 +81,10 @@ h1:focus {
         top: 0.5rem;
     }
 
-/* FairShare accent tokens. Parties get cool hues deliberately disjoint from the action
-   palette (blue Calculate, red Reset, green Export); the results card gets the page's one
-   warm accent so the answer draws the eye. Each emphasis/background pair keeps WCAG AA
-   text contrast in its theme - the dark values are re-tuned, not auto-derived. theme-init.js
-   always resolves "auto" and stamps data-bs-theme, so the dark block needs no media query. */
-:root {
-    --fs-plaintiff-border: #0aa2c0;
-    --fs-plaintiff-bg-subtle: #d2f4f8;
-    --fs-plaintiff-emphasis: #0a5866;
-    --fs-defendant-border: #8540f5;
-    --fs-defendant-bg-subtle: #e8dcfd;
-    --fs-defendant-emphasis: #4c2889;
-    --fs-results-border: #997404;
-    --fs-results-bg-subtle: #fff3cd;
-    --fs-results-emphasis: #664d03;
-}
-
-[data-bs-theme="dark"] {
-    --fs-plaintiff-border: #087990;
-    --fs-plaintiff-bg-subtle: #04333c;
-    --fs-plaintiff-emphasis: #7ae1f5;
-    --fs-defendant-border: #8f5cf7;
-    --fs-defendant-bg-subtle: #2c1a52;
-    --fs-defendant-emphasis: #c5a1fc;
-    --fs-results-border: #997404;
-    --fs-results-bg-subtle: #332701;
-    --fs-results-emphasis: #ffda6a;
-}
+/* The party/results palette now lives in css/warm-counsel-tokens.css (the locked
+   design tokens - the same hand-tuned WCAG-AA pairs, kept verbatim by the design);
+   css/warm-counsel.css aliases this file's -border/-bg-subtle/-emphasis names onto
+   the token names so these classes keep working from one source of truth. */
 
 /* Party cards: color is never the only distinguisher - the tinted edge pairs with the
    labeled badge in each header (WCAG 1.4.1). */

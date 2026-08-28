@@ -33,6 +33,8 @@ window.fairshareTheme = {
             ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
             : theme;
         document.documentElement.setAttribute('data-bs-theme', resolved);
+        // Mirror for the Warm Counsel tokens (same reasoning as theme-init.js).
+        document.documentElement.setAttribute('data-fs-theme', resolved);
     },
     setTheme: function (theme) {
         localStorage.setItem(this.THEME_KEY, theme);
