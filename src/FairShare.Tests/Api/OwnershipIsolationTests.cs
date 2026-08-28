@@ -160,6 +160,28 @@ public class OwnershipIsolationTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
+    public async Task User_CannotRenameAnotherUsersScenario()
+    {
+        string ownerToken = await CreateAndLoginUserAsync("isolation-rename-owner");
+        string otherToken = await CreateAndLoginUserAsync("isolation-rename-other");
+
+        HttpResponseMessage saved = await SendAsync(HttpMethod.Post, "api/v1/scenarios", ownerToken, AlabamaScenario("isolation-rename"));
+        Assert.Equal(HttpStatusCode.Created, saved.StatusCode);
+        ScenarioSummaryDto summary = (await saved.Content.ReadFromJsonAsync<ScenarioSummaryDto>())!;
+
+        HttpResponseMessage rename = await SendAsync(
+            HttpMethod.Put, $"api/v1/scenarios/{summary.Id}/name", otherToken,
+            new ScenarioRenameRequest { Name = "stolen-name" });
+
+        // Same 404 posture as read/delete: someone else's scenario does not exist for you.
+        Assert.Equal(HttpStatusCode.NotFound, rename.StatusCode);
+
+        HttpResponseMessage ownerRead = await SendAsync(HttpMethod.Get, $"api/v1/scenarios/{summary.Id}", ownerToken, body: null);
+        ScenarioDetailDto detail = (await ownerRead.Content.ReadFromJsonAsync<ScenarioDetailDto>())!;
+        Assert.Equal("isolation-rename", detail.Name);
+    }
+
+    [Fact]
     public async Task Admin_CannotReadAnotherUsersScenario()
     {
         string adminToken = await LoginAsAdminAsync();
