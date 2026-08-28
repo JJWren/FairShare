@@ -13,3 +13,12 @@ add_header X-Content-Type-Options "nosniff" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 add_header X-Frame-Options "DENY" always;
+# HSTS reaches browsers via the reverse proxy's TLS termination (upstream response
+# headers pass through); browsers ignore HSTS on plain-HTTP responses, so direct LAN
+# access is unaffected. Deliberately conservative one-day max-age to start (#175) -
+# raise toward 31536000 after a burn-in period. No includeSubDomains: the test
+# subdomain's reachability must never hinge on this header.
+add_header Strict-Transport-Security "max-age=86400" always;
+# Empty (omitted) on prod; "noindex, nofollow" on the test host - see the map in
+# nginx.conf. Keeps the nightly-reset duplicate site out of search indexes.
+add_header X-Robots-Tag $fairshare_robots always;
