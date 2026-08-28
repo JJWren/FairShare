@@ -86,30 +86,28 @@
                         @(showChildCareCaps ? "Hide" : "View") maximum allowed amounts
                     </button>
                 </div>
-                @if (showChildCareCaps)
-                {
-                    @* Same guidance surface as the official calculator: Table 1 is a maximum
-                       the FILER applies before entering the figure (the official tool takes
-                       the entered amount as-is and so does FairShare - penny parity, verified
-                       against calculator v3.6.13 on 2026-08-28 with an over-cap case).
-                       Amounts are OAR 137-050-0735 Table 1 (eff. 7/7/2023) and mirror
-                       Domain's OregonRuleParameters child-care caps - the July schedule
-                       refresh checks both. *@
-                    <div id="@($"{Prefix}_ChildCareCaps")" class="form-text mt-1">
-                        Enter the allowable amount, as on the official calculator: up to the
-                        OAR 137-050-0735 Table 1 maximum (per child, monthly) for the age of the
-                        child in care - or more, only when the higher cost qualifies under the
-                        rule's section (4) exception:
-                        <ul class="mb-1 ps-3">
-                            <li>Under 1 year: $1,705 metro / $1,190 elsewhere</li>
-                            <li>1 to 3 years: $1,705 metro / $1,083 elsewhere</li>
-                            <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
-                            <li>6 and older: $1,100 metro / $629 elsewhere</li>
-                        </ul>
-                        Metro means the Portland, Bend, Eugene, Corvallis, Springfield, Monmouth,
-                        and Ashland metro areas.
-                    </div>
-                }
+                @* Same guidance surface as the official calculator: Table 1 is a maximum
+                   the FILER applies before entering the figure (the official tool takes
+                   the entered amount as-is and so does FairShare - penny parity, verified
+                   against calculator v3.6.13 on 2026-08-28 with an over-cap case).
+                   Amounts are OAR 137-050-0735 Table 1 (eff. 7/7/2023) and mirror
+                   Domain's OregonRuleParameters child-care caps - the July schedule
+                   refresh checks both. Always rendered (hidden when collapsed) so the
+                   toggle's aria-controls target exists in every state. *@
+                <div id="@($"{Prefix}_ChildCareCaps")" class="form-text mt-1" hidden="@(!showChildCareCaps)">
+                    Enter the allowable amount, as on the official calculator: up to the
+                    OAR 137-050-0735 Table 1 maximum (per child, monthly) for the age of the
+                    child in care - or more, only when the higher cost qualifies under the
+                    rule's section (4) exception:
+                    <ul class="mb-1 ps-3">
+                        <li>Under 1 year: $1,705 metro / $1,190 elsewhere</li>
+                        <li>1 to 3 years: $1,705 metro / $1,083 elsewhere</li>
+                        <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
+                        <li>6 and older: $1,100 metro / $629 elsewhere</li>
+                    </ul>
+                    Metro means the Portland, Bend, Eugene, Corvallis, Springfield, Monmouth,
+                    and Ashland metro areas.
+                </div>
             </div>
             <div class="mb-3">
                 <div class="form-check">
