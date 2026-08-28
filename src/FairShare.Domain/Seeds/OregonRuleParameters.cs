@@ -42,9 +42,10 @@ namespace FairShare.Domain.Seeds
 
         /// <summary>
         /// The newest vintage whose effective date is on or before <paramref name="date"/>.
-        /// <paramref name="vintages"/> must be sorted oldest to newest. A date before the earliest
-        /// vintage gets the earliest — this build simply has no older rules to offer, and the
-        /// outcome names the vintage actually used, so the substitution is always visible.
+        /// <paramref name="vintages"/> must be sorted oldest to newest (validated - a silently
+        /// wrong vintage on a legal figure is far worse than a loud failure). A date before the
+        /// earliest vintage gets the earliest — this build simply has no older rules to offer,
+        /// and the outcome names the vintage actually used, so the substitution is always visible.
         /// </summary>
         public static OregonRuleParameters ForDate(DateOnly date, System.Collections.Generic.IReadOnlyList<OregonRuleParameters> vintages)
         {
@@ -54,16 +55,21 @@ namespace FairShare.Domain.Seeds
             }
 
             OregonRuleParameters selected = vintages[0];
+            DateOnly previous = vintages[0].EffectiveDate;
 
             foreach (OregonRuleParameters vintage in vintages)
             {
+                if (vintage.EffectiveDate < previous)
+                {
+                    throw new ArgumentException(
+                        "Vintages must be sorted oldest to newest by effective date.", nameof(vintages));
+                }
+
+                previous = vintage.EffectiveDate;
+
                 if (vintage.EffectiveDate <= date)
                 {
                     selected = vintage;
-                }
-                else
-                {
-                    break;
                 }
             }
 

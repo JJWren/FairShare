@@ -83,10 +83,12 @@ public class RuleVintageTests
     }
 
     [Fact]
-    public void AsOfDate_RoutesThroughForDate()
+    public void AsOfDate_WithSingleVintageHistory_ResolvesCurrent()
     {
-        // With one production vintage, any AsOfDate resolves to Current - the mechanism is
-        // covered above; this pins that the single-arg entry point actually consults it.
+        // Honest scope: with one production vintage this cannot distinguish "AsOfDate
+        // consulted" from "AsOfDate ignored" - ForDate's selection logic is proven against
+        // the synthetic multi-vintage history above. This pins the single-vintage contract:
+        // any pinned date on today's build computes (and names) the one verified vintage.
         OregonWorksheetInput input = new()
         {
             AsOfDate = new DateOnly(2020, 1, 1),
@@ -99,6 +101,16 @@ public class RuleVintageTests
 
         Assert.True(outcome.Success);
         Assert.Equal(OregonRuleParameters.Current.EffectiveDate, outcome.RuleEffectiveDate);
+    }
+
+    [Fact]
+    public void ForDate_UnsortedVintages_Throws()
+    {
+        // A silently wrong vintage on a legal figure is worse than a loud failure.
+        OregonRuleParameters[] unsorted = [NewerVintage, OlderVintage];
+
+        Assert.Throws<ArgumentException>(() =>
+            OregonRuleParameters.ForDate(new DateOnly(2026, 1, 1), unsorted));
     }
 
     [Fact]

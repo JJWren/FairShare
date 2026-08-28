@@ -232,11 +232,13 @@
             </div>
         </div>
         @* The Oregon page has always named its rule vintage; Alabama's schedule revision
-           was invisible until the API started sending RuleVintage (finding O13). *@
-        @if (submitted && result?.RuleVintage is { Length: > 0 } vintage)
+           was invisible until the API started sending RuleVintage (finding O13). Neutral
+           phrasing on purpose: the field carries whatever identifier the state's rules use
+           (a schedule label for AL, a dated OAR vintage for OR). *@
+        @if (submitted && !string.IsNullOrWhiteSpace(result?.RuleVintage))
         {
             <p class="text-muted text-center small mt-2 mb-0">
-                Implements the official schedule "@vintage".
+                Implements @result!.RuleVintage.
             </p>
         }
         @* Body size on purpose: the most legally load-bearing sentence on the page
