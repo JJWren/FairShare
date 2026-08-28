@@ -1,0 +1,94 @@
+# Example PRODUCTION stack: prebuilt GHCR images pinned to a release, behind a
+# TLS-terminating reverse proxy (Nginx Proxy Manager, Caddy, Traefik...).
+#
+#   cp docker-compose.prod.example.yml docker-compose.yml   # on the prod host
+#   cp .env.example .env                                     # then fill it in, plus FAIRSHARE_VERSION
+#   docker compose pull && docker compose up -d
+#
+# Differences from the build-from-source docker-compose.yml, on purpose:
+#   - `image:` pinned to a released tag via FAIRSHARE_VERSION (never :latest in prod;
+#     upgrades are an explicit .env bump + pull, and rollback is the previous tag).
+#   - DataProtection keys on the data volume so Identity tokens survive recreates.
+#   - ForwardedHeaders__KnownNetworks pins the proxy's source network, which turns the
+#     rate limiter's buckets per-client instead of one bucket for the whole proxy
+#     (docs/SETUP.md section 7).
+#   - Log rotation caps stdout (durable logs live in SQLite, admin > Logs).
+#
+# The named volume holds the SQLite database AND the DataProtection keys - back it up
+# off-host (docs/SETUP.md section 8); losing it loses every account and scenario.
+name: fairshare-prod
+
+services:
+  api:
+    image: ghcr.io/jjwren/fairshare-api:${FAIRSHARE_VERSION:?Set FAIRSHARE_VERSION in .env, e.g. 4.3.1}
+    container_name: fairshare-api
+    ports:
+      - "${API_PORT:-5859}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      # /data (not /app/data): the image pre-creates /data owned by its non-root user;
+      # any other mountpoint comes up root-owned and unwritable.
+      ConnectionStrings__Default: "Data Source=/data/fairshare.db"
+      Jwt__SigningKey: "${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env (see .env.example)}"
+      AdminSeed__Enabled: "${ADMIN_SEED_ENABLED:-true}"
+      AdminSeed__User: "${ADMIN_USER:-admin}"
+      AdminSeed__Password: "${ADMIN_PASSWORD:-}"
+      AdminSeed__LogGeneratedPassword: "${ADMIN_SEED_LOG_GENERATED_PASSWORD:-false}"
+      Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID:-}"
+      Authentication__Google__ClientSecret: "${GOOGLE_CLIENT_SECRET:-}"
+      Donations__BuyMeACoffeeUrl: "${DONATE_URL:-}"
+      # The browser-visible SPA origin (CORS), e.g. https://fairshare.example.com
+      Cors__AllowedOrigins__0: "${WEB_ORIGIN:?Set WEB_ORIGIN in .env}"
+      # Identity-token keys survive container recreates on the data volume.
+      DataProtection__KeysPath: "/data/keys"
+      # Docker bridge networks: with this pin, X-Forwarded-For from the proxy is honored
+      # and rate limiting is per real client. Widen/narrow to your proxy's source network.
+      ForwardedHeaders__KnownNetworks__0: "172.16.0.0/12"
+    volumes:
+      # Named volume, not a bind mount: SQLite needs real file locks (SMB/NFS mounts break them).
+      - "fairshare-data:/data"
+    healthcheck:
+      # aspnet images ship no curl/wget; bash + /dev/tcp does the HTTP GET.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /healthz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    image: ghcr.io/jjwren/fairshare-web:${FAIRSHARE_VERSION:?Set FAIRSHARE_VERSION in .env, e.g. 4.3.1}
+    container_name: fairshare-web
+    ports:
+      - "${WEB_PORT:-5858}:80"
+    environment:
+      # Browser-visible API URL (the browser makes the calls, not this container);
+      # also injected into the CSP connect-src at container start.
+      API_BASE_URL: "${API_BASE_URL:?Set API_BASE_URL in .env}"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  fairshare-data:
+
+# Reverse-proxy notes (docs/SETUP.md section 7):
+#   - Forward X-Forwarded-Proto and X-Forwarded-For to the API.
+#   - If the proxy joins this compose network directly (e.g. an external "proxy"
+#     network), add `networks:` entries here and drop the host port publishes.

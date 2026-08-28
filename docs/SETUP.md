@@ -32,7 +32,7 @@ docker compose up --build
 
 Both images build from source — no registry needed. Swagger is Development-only and not served by the Production compose build.
 
-**Prebuilt images:** every release publishes `ghcr.io/jjwren/fairshare-api:<version>` and `ghcr.io/jjwren/fairshare-web:<version>` (plus `:latest` = newest release), and every merge to `main` publishes `:main` (and `:sha-<short>`). To run a pinned version instead of building, replace each service's `build:` with `image: ghcr.io/jjwren/fairshare-api:<version>` and `image: ghcr.io/jjwren/fairshare-web:<version>`; the environment and volume settings are unchanged.
+**Prebuilt images:** every release publishes `ghcr.io/jjwren/fairshare-api:<version>` and `ghcr.io/jjwren/fairshare-web:<version>` (plus `:latest` = newest release), and every merge to `main` publishes `:main` (and `:sha-<short>`). For a production host, start from the committed **[`docker-compose.prod.example.yml`](../docker-compose.prod.example.yml)** — the pinned-image variant of the dev compose (same `.env` names, plus `FAIRSHARE_VERSION` for the tag), with DataProtection keys on the data volume, the reverse-proxy `ForwardedHeaders` pin (section 7), and log rotation. Upgrades are an explicit `.env` bump + `docker compose pull && docker compose up -d`; rollback is the previous tag.
 
 The API only reads its environment at startup — after changing `.env`, run `docker compose up -d` again.
 
@@ -50,6 +50,7 @@ Every variable in [`.env.example`](../.env.example), what it does, and — the p
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | *(empty)* | Google OAuth client for public sign-in (section 4). **Absent, the deployment has no public sign-up path at all**: the Google button is hidden, `/api/v1/auth/google/start` returns 404, and accounts exist only if an admin creates them. |
 | `DONATE_URL` | No | *(empty)* | The `https` URL of your Buy Me a Coffee (or similar) page (section 5). Absent (or not an absolute `https` URL), the donate button is hidden and `/go/donate` returns 404; the `/support` page still explains the project. |
 | `WEB_PORT` / `API_PORT` | No | `5858` / `5859` | Host ports (browser-visible). |
+| `FAIRSHARE_VERSION` | Prod example only | — | Release tag the pinned-image compose runs (e.g. `4.3.1`). Not read by the build-from-source compose. |
 | `WEB_ORIGIN` | No | `http://localhost:5858` | The web app's browser-visible URL — used for CORS. Must match what users actually type. |
 | `API_BASE_URL` | No | `http://localhost:5859` | The API's **browser-visible** URL — never the compose-internal service name. |
 
@@ -69,7 +70,7 @@ Settings read by `FairShare.Api` (compose maps the `.env` variables above onto t
 | `AdminSeed:Enabled` | `true` | Enables seeding the initial admin account. Disable after first boot. |
 | `AdminSeed:User` | `admin` | Username for the initial admin. |
 | `AdminSeed:Password` | *(random)* | Password for the initial admin (logged on first run if empty). |
-| `AdminSeed:LogGeneratedPassword` | `true` | Whether a generated admin password is printed to the log. |
+| `AdminSeed:LogGeneratedPassword` | `false` | Whether a generated admin password is printed (stderr only — never the durable in-app log store). |
 | `RateLimiting:Enabled` | `true` | Kill-switch for rate limiting (values are fixed: 100 req/min per IP globally, 10 req/min per IP on the auth endpoints). |
 | `ForwardedHeaders:KnownNetworks` | `[]` | CIDR list of trusted proxy source networks (e.g. `ForwardedHeaders__KnownNetworks__0=172.16.0.0/12` for Docker bridge networks). When set, `X-Forwarded-For` from those peers becomes the client address, so rate-limit buckets are per real client instead of one bucket for the whole proxy. Unset = forwarded addresses ignored (spoof-safe default). |
 | `DataProtection:KeysPath` | *(unset)* | Directory for ASP.NET DataProtection keys (Identity tokens). Set it to a volume path (the compose stacks use `/data/keys`) so keys survive container recreates; unset = framework default inside the container. |
