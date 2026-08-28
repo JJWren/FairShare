@@ -45,6 +45,18 @@ window.fairshareTheme = {
     }
 };
 
+// Snapshot hygiene (#173): a page served from /_snapshot arrives with the previous
+// render's runtime-appended head tags baked in - the route canonical from Blazor's
+// HeadContent and the JSON-LD injected below. Drop them before this file re-injects and
+// before Blazor boots and appends fresh ones; otherwise every snapshot load carries
+// duplicates, and a client-side navigation leaves the snapshot's stale canonical as the
+// first (winning) one. Crawlers that don't run JS never execute this and keep the baked
+// tags - which is the whole point of the snapshot.
+(function () {
+    document.querySelectorAll('head link[rel="canonical"], head script[type="application/ld+json"]')
+        .forEach(function (el) { el.remove(); });
+})();
+
 // Structured data for crawlers. Injected from this external file instead of an inline
 // <script type="application/ld+json"> so the CSP's script-src 'self' is unambiguously
 // satisfied; every crawler that matters here renders JS anyway (the whole site is a SPA).
