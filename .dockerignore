@@ -27,3 +27,9 @@ src/FairShare.Tests/
 Dockerfile
 docker-compose*.yml
 .dockerignore
+
+# SEO snapshot tooling (CI installs Playwright at the repo root) and the design-system
+# npm package - build-context noise, never image content. snapshots/ itself IS copied.
+node_modules/
+package*.json
+design-system/
