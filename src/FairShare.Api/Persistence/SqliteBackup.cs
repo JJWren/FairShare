@@ -58,12 +58,18 @@ public static class SqliteBackup
         }
 
         DateTime cutoffUtc = DateTime.UtcNow.AddDays(-RetentionDays);
+        DirectoryInfo dir = new(backupDir);
 
-        foreach (FileInfo stale in new DirectoryInfo(backupDir).GetFiles("fairshare_*.zip"))
+        // Both shapes: finished .zip snapshots, and any raw .db a crash between the
+        // backup step and the zip step left behind - those must age out too.
+        foreach (string pattern in new[] { "fairshare_*.zip", "fairshare_*.db" })
         {
-            if (stale.LastWriteTimeUtc < cutoffUtc)
+            foreach (FileInfo stale in dir.GetFiles(pattern))
             {
-                stale.Delete();
+                if (stale.LastWriteTimeUtc < cutoffUtc)
+                {
+                    stale.Delete();
+                }
             }
         }
     }

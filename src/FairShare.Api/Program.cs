@@ -264,6 +264,27 @@ if (allowedOrigins.Length == 0)
         "Cors:AllowedOrigins is empty - browser clients on other origins (e.g. the FairShare.Web app) will be blocked until it is configured.");
 }
 
+// Expired backup snapshots are cleared on EVERY start - /privacy promises it, so it
+// must not depend on the AutoMigrate setting below.
+using (IServiceScope pruneScope = app.Services.CreateScope())
+{
+    FairShareDbContext pruneDb = pruneScope.ServiceProvider.GetRequiredService<FairShareDbContext>();
+
+    if (pruneDb.Database.IsSqlite())
+    {
+        try
+        {
+            string dataSource = pruneDb.Database.GetDbConnection().DataSource;
+            SqliteBackup.PruneExpiredSnapshots(
+                Path.Combine(Path.GetDirectoryName(dataSource) ?? AppContext.BaseDirectory, "backups"));
+        }
+        catch (Exception pruneEx)
+        {
+            app.Logger.LogWarning(pruneEx, "Backup snapshot pruning failed; continuing startup.");
+        }
+    }
+}
+
 // Self-host upgrade safety
 if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
 {
@@ -274,17 +295,6 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
     {
         string dbPath = db.Database.GetDbConnection().DataSource;
         string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
-
-        // Every start, not just migration starts: /privacy promises expired backup
-        // snapshots are cleared when the app starts or takes a new snapshot.
-        try
-        {
-            SqliteBackup.PruneExpiredSnapshots(backupDir);
-        }
-        catch (Exception pruneEx)
-        {
-            app.Logger.LogWarning(pruneEx, "Backup snapshot pruning failed; continuing startup.");
-        }
 
         try
         {
