@@ -6,6 +6,7 @@
   color: var(--fs-ink);
   font-family: var(--fs-font-body);
   min-height: 100%;
+  display: flow-root; /* child margins must not collapse through the page background */
 }
 
 /* ---- Buttons ------------------------------------------------------------ */

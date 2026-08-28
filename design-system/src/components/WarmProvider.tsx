@@ -13,7 +13,7 @@ export interface WarmProviderProps {
  */
 export function WarmProvider({ theme = "light", children }: WarmProviderProps) {
   return (
-    <div className="fs-root" data-fs-theme={theme === "dark" ? "dark" : undefined} style={{ minHeight: "100%", padding: 1 }}>
+    <div className="fs-root" data-fs-theme={theme === "dark" ? "dark" : undefined}>
       {children}
     </div>
   );

@@ -19,6 +19,12 @@ export function Toggle({ checked, label, onChange }: ToggleProps) {
       aria-checked={checked}
       tabIndex={0}
       onClick={() => onChange?.(!checked)}
+      onKeyDown={(e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault(); // Space must not scroll the page
+          onChange?.(!checked);
+        }
+      }}
     >
       {label}
       <span className={`fs-toggle__track${checked ? " fs-toggle__track--on" : ""}`}>

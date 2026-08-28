@@ -1,7 +1,8 @@
 /* Warm Counsel tokens - the single source of truth for FairShare's visual identity.
    Locked 2026-08-28 (issue #183); every pair here is WCAG-AA-verified by
-   test/contrast.test.mjs. The Blazor app consumes this same file (#184). */
-@import url("https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Karla:wght@400;500;700&display=swap");
+   test/contrast.test.mjs. The Blazor app consumes this same file (#184).
+   Fonts load separately (fonts.css or self-hosted) - no network fetch here, so the
+   app's default-src 'self' CSP can consume this file untouched. */
 
 :root,
 .fs-root {

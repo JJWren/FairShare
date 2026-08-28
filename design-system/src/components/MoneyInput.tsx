@@ -21,7 +21,7 @@ export function MoneyInput({ label, hint, id, ...rest }: MoneyInputProps) {
       <label className="fs-field-label" htmlFor={inputId}>{label}</label>
       <div className="fs-money">
         <span className="fs-money__prefix">$</span>
-        <input id={inputId} className="fs-money__input" inputMode="decimal" min={0} type="number" {...rest} />
+        <input id={inputId} className="fs-money__input" inputMode="decimal" min={0} step={0.01} type="number" {...rest} />
       </div>
       {hint ? <div className="fs-field-hint">{hint}</div> : null}
     </div>

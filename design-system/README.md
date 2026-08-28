@@ -12,6 +12,10 @@ Two consumers, one token file:
 - **Claude Design** consumes the compiled React components (design-time twins), so design
   work there composes FairShare's real parts. Synced via `/design-sync`.
 
+**Fonts are a separate opt-in**: `tokens.css` carries no network fetch (the app's CSP is
+`default-src 'self'`). Import `src/styles/fonts.css` for the Google-hosted Lora + Karla,
+or self-host both families and skip it — every token falls back to Georgia / Segoe UI.
+
 ```bash
 npm install
 npm run build   # esbuild bundle + .d.ts
