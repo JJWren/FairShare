@@ -133,11 +133,38 @@
     // prefilled 0 the user must select-and-delete ("05000" typos). Empty means 0 at
     // calculate time; the DTO wire shape is unchanged. inputmode=numeric on the inputs
     // brings up the number pad on phones.
-    private int? Income { get => Data.MonthlyGrossIncome == 0 ? null : Data.MonthlyGrossIncome; set => Data.MonthlyGrossIncome = value ?? 0; }
-    private int? Support { get => Data.PreexistingChildSupport == 0 ? null : Data.PreexistingChildSupport; set => Data.PreexistingChildSupport = value ?? 0; }
-    private int? Alimony { get => Data.PreexistingAlimony == 0 ? null : Data.PreexistingAlimony; set => Data.PreexistingAlimony = value ?? 0; }
-    private int? Childcare { get => Data.WorkRelatedChildcareCosts == 0 ? null : Data.WorkRelatedChildcareCosts; set => Data.WorkRelatedChildcareCosts = value ?? 0; }
-    private int? Healthcare { get => Data.HealthcareCoverageCosts == 0 ? null : Data.HealthcareCoverageCosts; set => Data.HealthcareCoverageCosts = value ?? 0; }
+    //
+    // The visible values are component state, not derived from the DTO per render: deriving
+    // null from 0 every render made an explicitly typed 0 vanish from the field on the next
+    // render. They re-derive only when a DIFFERENT DTO instance is bound (page reset, stash
+    // restore), a saved profile is applied, or Clear runs - a stored 0 renders empty there
+    // by design.
+    private int? _income, _support, _alimony, _childcare, _healthcare;
+    private ParentDataDto? _syncedData;
+
+    private int? Income { get => _income; set { _income = value; Data.MonthlyGrossIncome = value ?? 0; } }
+    private int? Support { get => _support; set { _support = value; Data.PreexistingChildSupport = value ?? 0; } }
+    private int? Alimony { get => _alimony; set { _alimony = value; Data.PreexistingAlimony = value ?? 0; } }
+    private int? Childcare { get => _childcare; set { _childcare = value; Data.WorkRelatedChildcareCosts = value ?? 0; } }
+    private int? Healthcare { get => _healthcare; set { _healthcare = value; Data.HealthcareCoverageCosts = value ?? 0; } }
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(_syncedData, Data))
+        {
+            _syncedData = Data;
+            SyncFieldsFromData();
+        }
+    }
+
+    private void SyncFieldsFromData()
+    {
+        _income = Data.MonthlyGrossIncome == 0 ? null : Data.MonthlyGrossIncome;
+        _support = Data.PreexistingChildSupport == 0 ? null : Data.PreexistingChildSupport;
+        _alimony = Data.PreexistingAlimony == 0 ? null : Data.PreexistingAlimony;
+        _childcare = Data.WorkRelatedChildcareCosts == 0 ? null : Data.WorkRelatedChildcareCosts;
+        _healthcare = Data.HealthcareCoverageCosts == 0 ? null : Data.HealthcareCoverageCosts;
+    }
 
     private string SignInHref =>
         $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";
@@ -183,6 +210,7 @@
                 Data.WorkRelatedChildcareCosts = profile.WorkRelatedChildcareCosts;
                 Data.HealthcareCoverageCosts = profile.HealthcareCoverageCosts;
                 Data.HasPrimaryCustody = profile.HasPrimaryCustody;
+                SyncFieldsFromData();
 
                 ParentName = profile.DisplayName;
                 await ParentNameChanged.InvokeAsync(ParentName);
@@ -206,6 +234,7 @@
         Data.WorkRelatedChildcareCosts = 0;
         Data.HealthcareCoverageCosts = 0;
         Data.HasPrimaryCustody = false;
+        SyncFieldsFromData();
 
         ParentName = string.Empty;
         await ParentNameChanged.InvokeAsync(ParentName);
