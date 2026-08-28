@@ -76,3 +76,33 @@ window.fairshareTheme = {
     script.textContent = JSON.stringify(data);
     document.head.appendChild(script);
 })();
+
+// Desktop hover-open for navbar dropdowns (Guides, Admin - #225/#226), driven through
+// Bootstrap's Dropdown API so the .show state and the toggle's aria-expanded stay in
+// sync (a pure CSS :hover display would open the menu while aria-expanded said false).
+// Delegated on document because Blazor renders the navbar after this file runs. Touch
+// and keyboard use Bootstrap's click toggle unchanged; inside the collapsed mobile menu
+// these handlers never fire (the media checks fail below lg).
+(function () {
+    function hoverCapable() {
+        return window.bootstrap &&
+            window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+            window.matchMedia('(min-width: 992px)').matches;
+    }
+    function toggleOf(e) {
+        var li = e.target instanceof Element && e.target.closest('.navbar .nav-item.dropdown');
+        // Moves within the item (toggle <-> its own menu) are not enter/leave events.
+        if (!li || (e.relatedTarget instanceof Element && li.contains(e.relatedTarget))) return null;
+        return li.querySelector('[data-bs-toggle="dropdown"]');
+    }
+    document.addEventListener('pointerover', function (e) {
+        if (!hoverCapable()) return;
+        var t = toggleOf(e);
+        if (t) window.bootstrap.Dropdown.getOrCreateInstance(t).show();
+    });
+    document.addEventListener('pointerout', function (e) {
+        if (!hoverCapable()) return;
+        var t = toggleOf(e);
+        if (t) window.bootstrap.Dropdown.getOrCreateInstance(t).hide();
+    });
+})();

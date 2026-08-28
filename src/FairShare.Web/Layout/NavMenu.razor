@@ -20,8 +20,10 @@
                     @* Guides menu (#225): a button toggle (not an href) so Blazor routing never
                        sees the click. Bootstrap's bundle already drives the navbar collapse, so
                        the same data-API opens this - tap-to-expand inside the collapsed mobile
-                       menu, hover-open on desktop pointers via app.css. *@
-                    <button class="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                       menu, hover-open on desktop pointers via js/site.js. The active class
+                       replaces what NavLink used to add for the direct guide link, so the
+                       navbar still marks the current section with the menu closed. *@
+                    <button class="nav-link dropdown-toggle btn btn-link @(IsUnder("guides/") ? "active" : null)" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Guides
                     </button>
                     <ul class="dropdown-menu">
@@ -48,7 +50,7 @@
                             @* One Admin entry (#226): Users/Stats/Logs live in this menu and in
                                the shared AdminNav tabs, not as three top-level nav items. *@
                             <li class="nav-item dropdown">
-                                <button class="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="nav-link dropdown-toggle btn btn-link @(IsUnder("admin/") ? "active" : null)" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Admin
                                 </button>
                                 <ul class="dropdown-menu">
@@ -107,6 +109,12 @@
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => StateHasChanged();
+
+    // Section cue for the dropdown toggles: a <button> gets no NavLink "active" treatment,
+    // so mark it by URI prefix instead (LocationChanged above re-renders on navigation).
+    private bool IsUnder(string prefix)
+        => NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+            .StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
 
     // Signing in from anywhere returns to that page afterwards; the login page itself
     // gets no returnUrl so a completed sign-in lands on the state picker instead.
