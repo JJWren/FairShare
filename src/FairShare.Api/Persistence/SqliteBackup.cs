@@ -12,8 +12,9 @@ namespace FairShare.Api.Persistence;
 /// </summary>
 public static class SqliteBackup
 {
-    // The privacy page says expired snapshots are cleared when the app starts or takes
-    // a new snapshot; PruneExpiredSnapshots runs on both of those paths, with this window.
+    // The privacy page says expired snapshots are deleted when the app starts or takes a
+    // new snapshot, retried per start; PruneExpiredSnapshots is that attempt, and running
+    // it on both paths is what makes the retry claim true.
     private const int RetentionDays = 30;
 
     public static void CreateSnapshot(string dbPath, string backupDir)
@@ -47,8 +48,9 @@ public static class SqliteBackup
     }
 
     /// <summary>
-    /// Deletes snapshots past the retention window. Runs on every app start (Program)
-    /// and before each new snapshot, so an expired copy never survives either path.
+    /// Best-effort deletion of snapshots past the retention window. Runs on every app
+    /// start (Program) and before each new snapshot, so a delete the filesystem refuses
+    /// is retried on every subsequent start.
     /// </summary>
     public static void PruneExpiredSnapshots(string backupDir)
     {

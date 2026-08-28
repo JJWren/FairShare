@@ -264,8 +264,8 @@ if (allowedOrigins.Length == 0)
         "Cors:AllowedOrigins is empty - browser clients on other origins (e.g. the FairShare.Web app) will be blocked until it is configured.");
 }
 
-// Expired backup snapshots are cleared on EVERY start - /privacy promises it, so it
-// must not depend on the AutoMigrate setting below.
+// Expired-snapshot pruning runs on EVERY start - /privacy promises deletion with
+// per-start retries, so the attempt must not depend on the AutoMigrate setting below.
 using (IServiceScope pruneScope = app.Services.CreateScope())
 {
     FairShareDbContext pruneDb = pruneScope.ServiceProvider.GetRequiredService<FairShareDbContext>();
