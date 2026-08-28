@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.4.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.3.1...fairshare-v4.4.0) (2026-08-28)
+
+
+### Features
+
+* **api:** per-client rate limiting behind a pinned proxy ([#202](https://github.com/JJWren/FairShare/issues/202)) ([4d4d94a](https://github.com/JJWren/FairShare/commit/4d4d94aa5414c0308d19fa0bf11e103dc91b25c6))
+* **design:** Warm Counsel design-system package - tokens + React twins ([#195](https://github.com/JJWren/FairShare/issues/195)) ([24a8a4a](https://github.com/JJWren/FairShare/commit/24a8a4a87b3ee12f353e3f664198b51da814cd6c))
+* **domain:** effective-dated rule vintages; results name their rules ([#211](https://github.com/JJWren/FairShare/issues/211)) ([302effd](https://github.com/JJWren/FairShare/commit/302effd8028a7e39b72a928c5aa5bf5de5960f04))
+* scenario rename ([#206](https://github.com/JJWren/FairShare/issues/206)) ([182cdbc](https://github.com/JJWren/FairShare/commit/182cdbc6f5cff1b1042655aa51241d7699607461))
+* **web:** boot progress, busy Calculate, sitemap+canonical+JSON-LD ([#207](https://github.com/JJWren/FairShare/issues/207)) ([f80fde2](https://github.com/JJWren/FairShare/commit/f80fde24632f948244bc32bc093b077be5bd683f))
+* **web:** guest-reachable nav and guide links, share-card meta ([#200](https://github.com/JJWren/FairShare/issues/200)) ([38a48e2](https://github.com/JJWren/FairShare/commit/38a48e2ec4ba55bda00d11b138029b8b8c86606e))
+* **web:** Oregon figures survive the sign-in round-trip ([#204](https://github.com/JJWren/FairShare/issues/204)) ([20c66f7](https://github.com/JJWren/FairShare/commit/20c66f7ad60775b006d22f45e6bfd89f4574fbbd))
+* **web:** real 404s, precompressed serving, HSTS, test-host noindex ([#201](https://github.com/JJWren/FairShare/issues/201)) ([28d70d9](https://github.com/JJWren/FairShare/commit/28d70d9ce6b04b6388f822228a3f3d057b3934ac))
+* **web:** state names on the landing picker; Alabama money-input parity ([#198](https://github.com/JJWren/FairShare/issues/198)) ([6e5564c](https://github.com/JJWren/FairShare/commit/6e5564cac8a7c0887edccf348b3622b31be45527))
+
+
+### Bug Fixes
+
+* **api:** close CodeQL log-forging findings ([#194](https://github.com/JJWren/FairShare/issues/194)) ([75768b4](https://github.com/JJWren/FairShare/commit/75768b4aa39300585fe50ad87f50e0c58cfde557))
+* **web:** remove the 14px mobile root font and the btn-primary override ([#197](https://github.com/JJWren/FairShare/issues/197)) ([6c4c1ae](https://github.com/JJWren/FairShare/commit/6c4c1ae169911bb1705551077167406bdcb431cd))
+* **web:** screen-reader and keyboard accessibility set ([#199](https://github.com/JJWren/FairShare/issues/199)) ([7f3b3d7](https://github.com/JJWren/FairShare/commit/7f3b3d7d74fc6bfadd9632ddb20a09eedf23ffbf))
+
+
+### Performance Improvements
+
+* **web:** ship only the EFIGS ICU shard ([#205](https://github.com/JJWren/FairShare/issues/205)) ([a45ce8d](https://github.com/JJWren/FairShare/commit/a45ce8dab8638ae7b4b8b6742172af39ac227228))
+
 ## [4.3.1](https://github.com/JJWren/FairShare/compare/fairshare-v4.3.0...fairshare-v4.3.1) (2026-08-28)
 
 
