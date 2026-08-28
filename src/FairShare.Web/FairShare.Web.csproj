@@ -7,6 +7,12 @@
     <AssemblyName>FairShare.Web</AssemblyName>
     <RootNamespace>FairShare.Web</RootNamespace>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!-- The app is English-only, so ship just the EFIGS ICU shard instead of all three
+         (~590KB compressed saved from the payload). NOT InvariantGlobalization: that mode
+         formats currency with the generic "¤" symbol instead of "$". BlazorIcuDataFileName
+         is the Blazor-SDK property (WasmIcuDataFileName is the wasm-workload one and has
+         no effect here); the name resolves inside the runtime pack's native dir. -->
+    <BlazorIcuDataFileName>icudt_EFIGS.dat</BlazorIcuDataFileName>
     <Version>4.3.1</Version>
     <AssemblyVersion>4.3.1</AssemblyVersion>
     <FileVersion>4.3.1</FileVersion>
