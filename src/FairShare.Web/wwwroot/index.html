@@ -56,12 +56,15 @@
             <!-- Boot progress: blazor.webassembly.js updates --blazor-load-percentage(-text)
                  on :root while the runtime downloads; the circle fills and the % ticks up
                  (styles in css/site.css). Falls back to the static "Loading" text. -->
-            <div class="fs-boot-progress mx-auto my-4" role="status" aria-label="Loading FairShare">
+            <div class="fs-boot-progress mx-auto my-4" role="status">
                 <svg class="loading-progress" aria-hidden="true">
                     <circle r="40%" cx="50%" cy="50%" />
                     <circle r="40%" cx="50%" cy="50%" />
                 </svg>
                 <div class="loading-progress-text" aria-hidden="true"></div>
+                <!-- Real text inside the status region: aria-label alone on role=status is
+                     unevenly announced, so keep a hidden loading string like the old spinner had. -->
+                <span class="visually-hidden">Loading FairShare...</span>
             </div>
         </div>
     </div>
