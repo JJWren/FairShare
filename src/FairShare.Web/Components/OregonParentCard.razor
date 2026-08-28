@@ -73,8 +73,12 @@
                     <input type="number" step="0.01" min="0" id="@($"{Prefix}_ChildCare")" @bind="Data.ChildCareCosts" class="form-control"
                            aria-describedby="@($"{Prefix}_ChildCareHelp")" />
                 </div>
-                <div id="@($"{Prefix}_ChildCareHelp")" class="form-text">
-                    For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                @* The described-by target is the text-only span: the toggle button sits beside
+                   it but must not be read out as part of the input's description. *@
+                <div class="form-text">
+                    <span id="@($"{Prefix}_ChildCareHelp")">
+                        For joint children under 13 (or disabled), work- or training-related, out of pocket (line 3a).
+                    </span>
                     <button type="button" class="btn btn-link btn-sm p-0 align-baseline"
                             @onclick="() => showChildCareCaps = !showChildCareCaps"
                             aria-expanded="@showChildCareCaps.ToString().ToLowerInvariant()"
@@ -102,7 +106,8 @@
                             <li>3 to 6 years: $1,400 metro / $860 elsewhere</li>
                             <li>6 and older: $1,100 metro / $629 elsewhere</li>
                         </ul>
-                        Metro = Portland, Bend, Eugene, Corvallis, Springfield, Monmouth, Ashland.
+                        Metro means the Portland, Bend, Eugene, Corvallis, Springfield, Monmouth,
+                        and Ashland metro areas.
                     </div>
                 }
             </div>
