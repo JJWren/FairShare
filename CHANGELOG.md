@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.5.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.4.0...fairshare-v4.5.0) (2026-08-28)
+
+
+### Features
+
+* **web:** apply the Warm Counsel visual identity app-wide ([#184](https://github.com/JJWren/FairShare/issues/184)) ([#216](https://github.com/JJWren/FairShare/issues/216)) ([deddce7](https://github.com/JJWren/FairShare/commit/deddce7a09646e2c835ddd594496a8aa584a3d29))
+* **web:** per-state availability affordances ([#214](https://github.com/JJWren/FairShare/issues/214)) ([564b055](https://github.com/JJWren/FairShare/commit/564b055d16dc89cbabd9179a13c8dda628bb1648))
+
+
+### Bug Fixes
+
+* **web:** runtime appsettings must invalidate precompressed siblings ([#215](https://github.com/JJWren/FairShare/issues/215)) ([f05344e](https://github.com/JJWren/FairShare/commit/f05344ea1fdc97c1bc4a58f9930a713a35e5e3f4))
+
 ## [4.4.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.3.1...fairshare-v4.4.0) (2026-08-28)
 
 
