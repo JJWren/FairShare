@@ -57,6 +57,7 @@ public class OwnershipIsolationTests : IClassFixture<FairShareApiFactory>
 
         // The owner's record is untouched.
         HttpResponseMessage ownerRead = await SendAsync(HttpMethod.Get, $"api/v1/parents/{owned.Id}", ownerToken, body: null);
+        Assert.Equal(HttpStatusCode.OK, ownerRead.StatusCode);
         ParentProfileDto after = (await ownerRead.Content.ReadFromJsonAsync<ParentProfileDto>())!;
         Assert.Equal("Isolation Update Target", after.DisplayName);
     }
@@ -85,6 +86,7 @@ public class OwnershipIsolationTests : IClassFixture<FairShareApiFactory>
         ParentProfileDto own = await CreateParentAsync(adminToken, "Isolation List Own");
 
         HttpResponseMessage response = await SendAsync(HttpMethod.Get, "api/v1/parents", adminToken, body: null);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         List<ParentProfileDto> list = (await response.Content.ReadFromJsonAsync<List<ParentProfileDto>>())!;
 
         Assert.Contains(list, p => p.Id == own.Id);
@@ -130,6 +132,7 @@ public class OwnershipIsolationTests : IClassFixture<FairShareApiFactory>
         }
 
         HttpResponseMessage response = await SendAsync(HttpMethod.Get, "api/v1/parents", ownerToken, body: null);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         List<ParentProfileDto> list = (await response.Content.ReadFromJsonAsync<List<ParentProfileDto>>())!;
 
         Assert.Contains(list, p => p.Id == own.Id);
@@ -223,7 +226,10 @@ public class OwnershipIsolationTests : IClassFixture<FairShareApiFactory>
             Password = "Adm!n-Test-12345"
         });
 
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         AuthTokenResponse tokens = (await response.Content.ReadFromJsonAsync<AuthTokenResponse>())!;
+        Assert.False(string.IsNullOrWhiteSpace(tokens.AccessToken));
         return tokens.AccessToken;
     }
 
