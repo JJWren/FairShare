@@ -327,7 +327,9 @@
             jointMinorChildren = stash.JointMinorChildren is >= 0 and <= 10 ? stash.JointMinorChildren : 1;
             jointChildrenAttendingSchool = stash.JointChildrenAttendingSchool is >= 0 and <= 10 ? stash.JointChildrenAttendingSchool : 0;
             cashMedical = stash.CashMedical is "No" or "Yes" or "Contingent" ? stash.CashMedical : "No";
-            coverageSelection = stash.CoverageSelection ?? string.Empty;
+            coverageSelection = stash.CoverageSelection is "Plaintiff" or "Defendant" or "Both" or "EitherWhenAvailable"
+                ? stash.CoverageSelection
+                : string.Empty;
             orderCoverageAtHigherAmount = stash.OrderCoverageAtHigherAmount;
         }
         catch (Exception)
@@ -336,28 +338,7 @@
         }
     }
 
-    private bool HasEnteredData =>
-        HasFigures(plaintiff)
-        || HasFigures(defendant)
-        || jointMinorChildren != 1
-        || jointChildrenAttendingSchool != 0
-        || cashMedical != "No"
-        || coverageSelection.Length > 0
-        || orderCoverageAtHigherAmount
-        || submitted;
-
-    private static bool HasFigures(OregonParentDto parent) =>
-        parent.MonthlyIncome != 0
-        || parent.SpousalSupportReceived != 0
-        || parent.SpousalSupportPaid != 0
-        || parent.UnionDues != 0
-        || parent.OwnHealthInsuranceCost != 0
-        || parent.NonJointChildren != 0
-        || parent.ChildCareCosts != 0
-        || (parent.ChildrensHealthCoverageCost ?? 0) != 0
-        || parent.AverageOvernights != 0
-        || parent.SocialSecurityVeteransBenefits != 0
-        || parent.MinimumOrderException;
+    // The stash gates on the same HasEnteredData the Reset confirm uses (defined below).
 
     private async Task CalculateAsync()
     {
