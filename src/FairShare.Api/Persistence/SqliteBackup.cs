@@ -68,7 +68,15 @@ public static class SqliteBackup
             {
                 if (stale.LastWriteTimeUtc < cutoffUtc)
                 {
-                    stale.Delete();
+                    try
+                    {
+                        stale.Delete();
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        // Best-effort housekeeping: one undeletable file must never block
+                        // the fresh pre-migration snapshot this may be running ahead of.
+                    }
                 }
             }
         }
