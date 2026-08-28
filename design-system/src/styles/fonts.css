@@ -1,0 +1,4 @@
+/* Warm Counsel typefaces via Google Fonts. Opt-in on purpose: tokens.css must stay
+   network-free so the Blazor app (default-src 'self' CSP) can import it directly.
+   Consumers either import this file or self-host Lora + Karla and skip it. */
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Karla:wght@400;500;700&display=swap");

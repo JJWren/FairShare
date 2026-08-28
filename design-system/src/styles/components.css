@@ -1,0 +1,257 @@
+/* Warm Counsel component classes. Every color, radius, and shadow comes from
+   tokens.css custom properties - no literals here, so both themes work untouched. */
+
+.fs-root {
+  background: var(--fs-page);
+  color: var(--fs-ink);
+  font-family: var(--fs-font-body);
+  min-height: 100%;
+  display: flow-root; /* child margins must not collapse through the page background */
+}
+
+/* ---- Buttons ------------------------------------------------------------ */
+
+.fs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 24px;
+  font: 700 15px var(--fs-font-body);
+  border-radius: var(--fs-radius-pill);
+  border: 1.5px solid transparent;
+  background: var(--fs-btn-bg);
+  color: var(--fs-btn-ink);
+  cursor: pointer;
+}
+
+.fs-btn--outline-danger {
+  background: var(--fs-input-bg);
+  color: var(--fs-danger);
+  border-color: var(--fs-danger);
+}
+
+.fs-btn--outline-accent {
+  background: var(--fs-input-bg);
+  color: var(--fs-accent);
+  border-color: var(--fs-accent);
+}
+
+/* ---- Money input -------------------------------------------------------- */
+
+.fs-field-label {
+  display: block;
+  font: 700 14px var(--fs-font-body);
+  color: var(--fs-ink);
+  margin-bottom: 6px;
+}
+
+.fs-money {
+  display: flex;
+  align-items: stretch;
+}
+
+.fs-money__prefix {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--fs-border-strong);
+  border-right: 0;
+  border-radius: var(--fs-radius-control) 0 0 var(--fs-radius-control);
+  padding: 0 13px;
+  background: var(--fs-card-alt);
+  font-size: 16px;
+  color: var(--fs-muted);
+}
+
+.fs-money__input {
+  flex: 1;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--fs-border-strong);
+  border-radius: 0 var(--fs-radius-control) var(--fs-radius-control) 0;
+  padding: 0 13px;
+  font: 400 16px var(--fs-font-body);
+  background: var(--fs-input-bg);
+  color: var(--fs-ink);
+  width: 100%;
+}
+
+.fs-field-hint {
+  font-size: 12.5px;
+  color: var(--fs-muted);
+  margin-top: 5px;
+}
+
+/* ---- Party badges + cards ----------------------------------------------- */
+
+.fs-party-badge {
+  display: inline-block;
+  font: 700 13px var(--fs-font-body);
+  padding: 5px 14px;
+  border-radius: var(--fs-radius-pill);
+}
+
+.fs-party-badge--plaintiff {
+  background: var(--fs-plaintiff-bg);
+  color: var(--fs-plaintiff-ink);
+}
+
+.fs-party-badge--defendant {
+  background: var(--fs-defendant-bg);
+  color: var(--fs-defendant-ink);
+}
+
+.fs-party-card {
+  background: var(--fs-card);
+  border: 1px solid var(--fs-border-soft);
+  border-radius: var(--fs-radius-card);
+  box-shadow: var(--fs-shadow);
+  overflow: hidden;
+}
+
+.fs-party-card--plaintiff { border-left: 5px solid var(--fs-plaintiff-edge); }
+.fs-party-card--defendant { border-left: 5px solid var(--fs-defendant-edge); }
+
+.fs-party-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--fs-card-alt);
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.fs-party-card__body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Toggle -------------------------------------------------------------- */
+
+.fs-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--fs-muted);
+  cursor: pointer;
+}
+
+.fs-toggle__track {
+  width: 36px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--fs-card-alt);
+  border: 1.5px solid var(--fs-border-strong);
+  box-sizing: border-box;
+  position: relative;
+  flex: none;
+}
+
+.fs-toggle__track--on {
+  background: var(--fs-toggle);
+  border-color: var(--fs-toggle);
+}
+
+.fs-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--fs-card);
+}
+
+.fs-toggle__track--on .fs-toggle__thumb { left: auto; right: 2px; }
+
+/* ---- Worksheet table ----------------------------------------------------- */
+
+.fs-worksheet {
+  background: var(--fs-card);
+  border: 1px solid var(--fs-border-soft);
+  border-radius: var(--fs-radius-card);
+  box-shadow: var(--fs-shadow);
+  overflow: hidden;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.fs-worksheet th {
+  text-align: left;
+  font: 700 12px var(--fs-font-body);
+  color: var(--fs-muted);
+  padding: 10px 16px;
+  background: var(--fs-card-alt);
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.fs-worksheet td {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.fs-worksheet th.fs-worksheet--num,
+.fs-worksheet td.fs-worksheet--num { text-align: right; }
+
+.fs-worksheet__line { color: var(--fs-faint); }
+
+.fs-worksheet__row--gold td {
+  background: var(--fs-gold-bg);
+  color: var(--fs-gold-ink);
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+/* ---- Nav bar -------------------------------------------------------------- */
+
+.fs-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  background: var(--fs-card);
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.fs-navbar__brand {
+  font: 600 19px var(--fs-font-display);
+  color: var(--fs-ink);
+  text-decoration: none;
+}
+
+.fs-navbar__links {
+  display: flex;
+  gap: 22px;
+  font-size: 14px;
+  color: var(--fs-muted);
+}
+
+.fs-navbar__link { color: var(--fs-muted); text-decoration: none; }
+.fs-navbar__link--active { color: var(--fs-ink); font-weight: 700; }
+
+.fs-navbar__signin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  font: 700 14px var(--fs-font-body);
+  color: var(--fs-accent);
+  background: var(--fs-accent-bg);
+  padding: 0 18px;
+  border-radius: var(--fs-radius-pill);
+  text-decoration: none;
+}
+
+.fs-navbar__guest {
+  font-size: 12px;
+  background: var(--fs-card-alt);
+  border: 1px solid var(--fs-border-soft);
+  color: var(--fs-muted);
+  padding: 4px 12px;
+  border-radius: var(--fs-radius-pill);
+}

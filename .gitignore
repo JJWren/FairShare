@@ -160,3 +160,7 @@ FairShare.db
 ################################################################################
 aidlc-docs/
 
+
+# design-system package (React design-time twins; see design-system/README.md)
+design-system/node_modules/
+design-system/dist/
