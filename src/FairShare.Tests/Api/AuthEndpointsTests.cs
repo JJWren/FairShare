@@ -185,7 +185,7 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
-    public async Task States_WithGuestToken_ReturnsAlabama()
+    public async Task States_WithGuestToken_ReturnsRegisteredStatesWithDisplayNames()
     {
         HttpResponseMessage guestResponse = await _client.PostAsync("api/v1/auth/guest", content: null);
         AuthTokenResponse tokens = (await guestResponse.Content.ReadFromJsonAsync<AuthTokenResponse>())!;
