@@ -12,6 +12,11 @@ namespace FairShare.Api.Persistence;
 /// </summary>
 public static class SqliteBackup
 {
+    // The privacy page says expired snapshots are deleted when the app starts or takes a
+    // new snapshot, retried per start; PruneExpiredSnapshots is that attempt, and running
+    // it on both paths is what makes the retry claim true.
+    private const int RetentionDays = 30;
+
     public static void CreateSnapshot(string dbPath, string backupDir)
     {
         if (!File.Exists(dbPath))
@@ -20,6 +25,7 @@ public static class SqliteBackup
         }
 
         Directory.CreateDirectory(backupDir);
+        PruneExpiredSnapshots(backupDir);
 
         // Timestamp alone collides when two instances start in the same second (e.g.
         // parallel test hosts); the random suffix keeps every backup name unique.
@@ -39,5 +45,42 @@ public static class SqliteBackup
         using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
         zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
         File.Delete(backupFile);
+    }
+
+    /// <summary>
+    /// Best-effort deletion of snapshots past the retention window. Runs on every app
+    /// start (Program) and before each new snapshot, so a delete the filesystem refuses
+    /// is retried on every subsequent start.
+    /// </summary>
+    public static void PruneExpiredSnapshots(string backupDir)
+    {
+        if (!Directory.Exists(backupDir))
+        {
+            return;
+        }
+
+        DateTime cutoffUtc = DateTime.UtcNow.AddDays(-RetentionDays);
+        DirectoryInfo dir = new(backupDir);
+
+        // Both shapes: finished .zip snapshots, and any raw .db a crash between the
+        // backup step and the zip step left behind - those must age out too.
+        foreach (string pattern in new[] { "fairshare_*.zip", "fairshare_*.db" })
+        {
+            foreach (FileInfo stale in dir.GetFiles(pattern))
+            {
+                if (stale.LastWriteTimeUtc < cutoffUtc)
+                {
+                    try
+                    {
+                        stale.Delete();
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        // Best-effort housekeeping: one undeletable file must never block
+                        // the fresh pre-migration snapshot this may be running ahead of.
+                    }
+                }
+            }
+        }
     }
 }

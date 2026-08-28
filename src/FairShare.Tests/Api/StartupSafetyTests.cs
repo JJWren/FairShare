@@ -53,8 +53,21 @@ public class StartupSafetyTests
                 create.ExecuteNonQuery();
             }
 
+            // Expired leftovers from a previous era: a finished .zip snapshot AND a raw
+            // .db a crash left behind mid-backup. Pruning runs before each new snapshot
+            // (and on every app start), so neither may survive the call.
+            Directory.CreateDirectory(backupDir);
+            string expiredZip = Path.Combine(backupDir, "fairshare_expired.zip");
+            string expiredDb = Path.Combine(backupDir, "fairshare_orphan.db");
+            File.WriteAllBytes(expiredZip, [0x50, 0x4B]);
+            File.WriteAllBytes(expiredDb, [0x00]);
+            File.SetLastWriteTimeUtc(expiredZip, DateTime.UtcNow.AddDays(-31));
+            File.SetLastWriteTimeUtc(expiredDb, DateTime.UtcNow.AddDays(-31));
+
             SqliteBackup.CreateSnapshot(dbPath, backupDir);
 
+            Assert.False(File.Exists(expiredZip), "expired zip snapshots must rotate out");
+            Assert.False(File.Exists(expiredDb), "orphaned raw snapshots must rotate out");
             string zip = Assert.Single(Directory.GetFiles(backupDir, "*.zip"));
             string extractDir = Path.Combine(dir, "extracted");
             ZipFile.ExtractToDirectory(zip, extractDir);

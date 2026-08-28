@@ -264,6 +264,27 @@ if (allowedOrigins.Length == 0)
         "Cors:AllowedOrigins is empty - browser clients on other origins (e.g. the FairShare.Web app) will be blocked until it is configured.");
 }
 
+// Expired-snapshot pruning runs on EVERY start - /privacy promises deletion with
+// per-start retries, so the attempt must not depend on the AutoMigrate setting below.
+using (IServiceScope pruneScope = app.Services.CreateScope())
+{
+    FairShareDbContext pruneDb = pruneScope.ServiceProvider.GetRequiredService<FairShareDbContext>();
+
+    if (pruneDb.Database.IsSqlite())
+    {
+        try
+        {
+            string dataSource = pruneDb.Database.GetDbConnection().DataSource;
+            SqliteBackup.PruneExpiredSnapshots(
+                Path.Combine(Path.GetDirectoryName(dataSource) ?? AppContext.BaseDirectory, "backups"));
+        }
+        catch (Exception pruneEx)
+        {
+            app.Logger.LogWarning(pruneEx, "Backup snapshot pruning failed; continuing startup.");
+        }
+    }
+}
+
 // Self-host upgrade safety
 if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
 {
@@ -273,6 +294,7 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
     if (db.Database.IsSqlite())
     {
         string dbPath = db.Database.GetDbConnection().DataSource;
+        string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
 
         try
         {
@@ -297,7 +319,6 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
                 {
                     try
                     {
-                        string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
                         SqliteBackup.CreateSnapshot(dbPath, backupDir);
                     }
                     catch (Exception backupEx)
