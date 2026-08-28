@@ -84,7 +84,11 @@ public class AdminSeeder(
                 {
                     if (seedOpts.LogGeneratedPassword)
                     {
-                        _logger.LogWarning("Seeded admin user '{User}' with generated password: {Pwd}", adminUserName, pwd);
+                        // Console.Error, deliberately NOT the logging pipeline: the SQLite
+                        // sink persists log rows durably and serves them to admins, so the
+                        // secret must never enter it. Operators read this via `docker logs`.
+                        Console.Error.WriteLine($"[AdminSeeder] Seeded admin user '{adminUserName}' with generated password: {pwd}");
+                        _logger.LogWarning("Seeded admin user '{User}' with a generated password (printed to stderr only).", adminUserName);
                     }
                     else
                     {
@@ -114,7 +118,24 @@ public class AdminSeeder(
 
     private static string GenerateStrongPassword()
     {
-        return $"Adm!n{Guid.NewGuid():N}".Substring(0, 16);
+        // Uniform CSPRNG draw, redrawn until every character class is present so the
+        // result always satisfies the Identity password policy. No fixed prefix or
+        // format shape; confusable characters (I/l/O/0/1) are excluded because an
+        // operator transcribes this once from the container output.
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+";
+
+        while (true)
+        {
+            string candidate = RandomNumberGenerator.GetString(alphabet, 24);
+
+            if (candidate.Any(char.IsUpper)
+                && candidate.Any(char.IsLower)
+                && candidate.Any(char.IsDigit)
+                && candidate.Any(c => !char.IsLetterOrDigit(c)))
+            {
+                return candidate;
+            }
+        }
     }
 }
 

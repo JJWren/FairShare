@@ -89,7 +89,19 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
 
         await _userManager.AddToRoleAsync(user, model.Role);
         await _audit.WriteAsync(AuditActions.UserCreated, target: user.UserName, detail: $"role {model.Role}");
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+
+        // A DTO, never the Identity entity: serializing ApplicationUser leaks
+        // PasswordHash, SecurityStamp, and ConcurrencyStamp into the response body.
+        UserListItem created = new()
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            IsDisabled = user.IsDisabled,
+            CreatedUtc = user.CreatedUtc,
+            Role = model.Role
+        };
+
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, created);
     }
 
     [HttpPut("{id}")]
