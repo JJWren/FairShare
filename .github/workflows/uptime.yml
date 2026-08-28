@@ -1,0 +1,127 @@
+# External availability monitoring (#177): GitHub's runners probe the production web
+# host and the API's /healthz from outside the home network, so an outage the box
+# can't see (dead tunnel, DNS, proxy) still alerts. Alerting is a GitHub issue labeled
+# "uptime": opened on failure (with per-probe detail), auto-closed on recovery -
+# GitHub's own notifications deliver it. GitHub's cron is best-effort - */5 is
+# the platform minimum and real firing often drifts, so a short blip between probes can
+# be missed (#177's acceptance criteria were amended to match: sustained outages alert,
+# and the alert path itself is verified by the deterministic simulate_failure input below).
+#
+# Alert-path test without touching prod: run workflow_dispatch with
+# simulate_failure=true - it probes a known-404 path, the issue opens; run again
+# normally and the issue closes as recovered.
+name: Uptime check
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: "Probe a known-404 path to test the alert path (no prod impact)"
+        type: boolean
+        default: false
+
+permissions:
+  issues: write
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe production endpoints
+        id: probe
+        env:
+          SIMULATE: ${{ inputs.simulate_failure }}
+        run: |
+          failures=""
+          check() {
+            local name="$1" url="$2"
+            local code
+            # On a transport failure curl prints "000" via -w AND exits nonzero; an
+            # appended fallback echo would yield "000000", so assign-or-overwrite instead.
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 --retry 2 --retry-delay 5 "$url") || code="000"
+            echo "$name: $code ($url)"
+            if [ "$code" != "200" ]; then
+              failures="${failures}- **$name** \`$url\` returned \`$code\`"$'\n'
+            fi
+          }
+
+          if [ "$SIMULATE" = "true" ]; then
+            check "Alert-path test" "https://easychildsupport.fyi/uptime-simulated-failure"
+          else
+            check "Web" "https://easychildsupport.fyi/"
+            check "API" "https://api.easychildsupport.fyi/healthz"
+          fi
+
+          # Run-unique heredoc delimiter so probe output can never terminate the block early.
+          delim="FAILURES_${GITHUB_RUN_ID}_${RANDOM}"
+          {
+            echo "failures<<$delim"
+            printf '%s' "$failures"
+            echo "$delim"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open, update, or resolve the uptime issue
+        uses: actions/github-script@v7
+        env:
+          FAILURES: ${{ steps.probe.outputs.failures }}
+        with:
+          script: |
+            const failures = (process.env.FAILURES ?? "").trim();
+            const title = "uptime: production probe failing";
+            const marker = "<!-- fairshare-uptime-monitor -->";
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "uptime",
+              // The monitor's own issues are authored by the Actions token identity;
+              // a human-filed issue with the same label/title never matches this.
+              creator: "github-actions[bot]",
+              sort: "created",
+              direction: "asc",
+              per_page: 100,
+            });
+            // Belt and suspenders on top of the creator filter: not a PR, the exact
+            // title, and the monitor's body marker - only the monitor's issue is ever
+            // commented on or auto-closed as "recovered".
+            const existing = open.find((issue) =>
+              !issue.pull_request && issue.title === title && (issue.body ?? "").includes(marker));
+            const stamp = new Date().toISOString();
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            if (failures) {
+              const body = `${marker}\nProbes failing as of ${stamp} ([run](${runUrl})):\n\n${failures}`;
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number, body: `Still failing.\n\n${body}`,
+                });
+                core.setFailed("Uptime probes still failing (existing issue updated).");
+              } else {
+                await github.rest.issues.create({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  title,
+                  labels: ["uptime"],
+                  body,
+                });
+                core.setFailed("Uptime probes failing (issue opened).");
+              }
+            } else if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Recovered - all probes 200 as of ${stamp} ([run](${runUrl})). Closing.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number, state: "closed",
+              });
+            } else {
+              core.info("All probes healthy.");
+            }
