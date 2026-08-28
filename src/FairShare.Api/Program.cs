@@ -233,14 +233,28 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 
+    // Blank entries (a compose env var left empty) are skipped; a malformed CIDR still
+    // fails startup on purpose - silently dropping a typo'd network would silently leave
+    // the whole site on one shared bucket - but with an error that names the entry.
     string[] knownNetworks =
-        builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [];
+        (builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [])
+        .Select(entry => entry?.Trim() ?? string.Empty)
+        .Where(entry => entry.Length > 0)
+        .ToArray();
     if (knownNetworks.Length > 0)
     {
         options.ForwardedHeaders |= Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor;
         foreach (string cidr in knownNetworks)
         {
-            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+            try
+            {
+                options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException(
+                    $"ForwardedHeaders:KnownNetworks entry '{cidr}' is not a valid CIDR network (expected e.g. 172.16.0.0/12).", ex);
+            }
         }
     }
 });
