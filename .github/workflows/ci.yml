@@ -42,6 +42,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # SEO snapshots (#173): boot the stack from this checkout, render the public routes
+      # into snapshots/ with headless Chromium, and tear the stack down - the image builds
+      # below bake the rendered files into /_snapshot/ (see src/FairShare.Web/Dockerfile).
+      # The renderer exits non-zero on any missing or shell-captured route, failing the
+      # publish rather than shipping a snapshot-less image.
+      - name: Render SEO snapshots
+        run: |
+          cp .env.example .env
+          sed -i "s|^JWT_SIGNING_KEY=$|JWT_SIGNING_KEY=$(openssl rand -base64 48)|" .env
+          docker compose up -d --build --wait --wait-timeout 180
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+          node scripts/render-seo-snapshots.mjs
+          docker compose down -v
+          rm -f .env
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
