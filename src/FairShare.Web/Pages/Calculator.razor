@@ -68,6 +68,12 @@
     }
     else
     {
+    @* Parity affordance (#162): the Oregon page links its plain-language guide in this
+       spot, so the absence of an Alabama one must read as "not built yet", not broken. *@
+    <p class="text-center small text-muted mb-3">
+        A plain-language Alabama guide isn't available yet.
+    </p>
+
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-12 col-sm-5 col-lg-3 text-center">
             <label class="form-label" for="NumberOfChildren">Number of Children</label>
@@ -239,6 +245,13 @@
         {
             <p class="text-muted text-center small mt-2 mb-0">
                 Implements @result!.RuleVintage.
+            </p>
+        }
+        @* Parity affordance (#162): the Oregon page renders its court-prep card here. *@
+        @if (submitted && result is { Success: true })
+        {
+            <p class="text-muted text-center small mt-2 mb-0">
+                Court-preparation view isn't available for Alabama yet.
             </p>
         }
         @* Body size on purpose: the most legally load-bearing sentence on the page
