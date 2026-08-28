@@ -1,8 +1,10 @@
 /* Warm Counsel tokens - the single source of truth for FairShare's visual identity.
-   Locked 2026-08-28 (issue #183); every pair here is WCAG-AA-verified by
-   test/contrast.test.mjs. The Blazor app consumes this same file (#184).
-   Fonts load separately (fonts.css or self-hosted) - no network fetch here, so the
-   app's default-src 'self' CSP can consume this file untouched. */
+   Locked 2026-08-28 (issue #183). test/contrast.test.mjs asserts WCAG AA, in both
+   themes, for the curated foreground/background PAIRS the components actually compose
+   (not every token combination) - change a color here and the affected pairs fail the
+   build. The Blazor app consumes this same file (#184). Fonts load separately
+   (fonts.css or self-hosted) - no network fetch here, so the app's
+   default-src 'self' CSP can consume this file untouched. */
 
 :root,
 .fs-root {
