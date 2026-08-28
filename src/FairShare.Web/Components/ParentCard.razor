@@ -136,11 +136,13 @@
     //
     // The visible values are component state, not derived from the DTO per render: deriving
     // null from 0 every render made an explicitly typed 0 vanish from the field on the next
-    // render. They re-derive only when a DIFFERENT DTO instance is bound (page reset, stash
-    // restore), a saved profile is applied, or Clear runs - a stored 0 renders empty there
-    // by design.
+    // render. OnParametersSet re-derives a field only when its DTO value no longer matches
+    // what the field maps to - i.e. something OTHER than this card wrote the DTO. That
+    // catches both a swapped instance and the page's in-place ApplyFrom writes (reset,
+    // sign-in stash restore, scenario load) without disturbing a typed 0, whose DTO value
+    // equals the field's mapping and so never resyncs away. A stored/loaded 0 renders
+    // empty by design.
     private int? _income, _support, _alimony, _childcare, _healthcare;
-    private ParentDataDto? _syncedData;
 
     private int? Income { get => _income; set { _income = value; Data.MonthlyGrossIncome = value ?? 0; } }
     private int? Support { get => _support; set { _support = value; Data.PreexistingChildSupport = value ?? 0; } }
@@ -150,9 +152,12 @@
 
     protected override void OnParametersSet()
     {
-        if (!ReferenceEquals(_syncedData, Data))
+        if (Data.MonthlyGrossIncome != (_income ?? 0)
+            || Data.PreexistingChildSupport != (_support ?? 0)
+            || Data.PreexistingAlimony != (_alimony ?? 0)
+            || Data.WorkRelatedChildcareCosts != (_childcare ?? 0)
+            || Data.HealthcareCoverageCosts != (_healthcare ?? 0))
         {
-            _syncedData = Data;
             SyncFieldsFromData();
         }
     }
