@@ -1,0 +1,109 @@
+@page "/guides/alabama-cs42"
+@attribute [AllowAnonymous]
+
+@* Plain-language walkthrough of Alabama's CS-42 and CS-42-S worksheets, distilled from
+   Rule 32 (Ala. R. Jud. Admin.) and the official AOC workbooks this app implements
+   line-for-line. This is the "why is my number what it is" page; the field-level
+   "what do I type here" hints live on the calculator itself. Like /terms, keep the
+   copy literally true against the rules it cites. *@
+
+<PageTitle>FairShare - Understanding the Alabama CS-42</PageTitle>
+
+<HeadContent>
+    <link rel="canonical" href="@FairShare.Web.PublicSite.Canonical("/guides/alabama-cs42")" />
+</HeadContent>
+
+<div class="container my-5" style="max-width: 780px;">
+    <h1 class="h3 mb-1">Understanding the Alabama CS-42</h1>
+    <p class="text-muted mb-4">
+        Rule 32, Alabama Rules of Judicial Administration &middot; the rules behind
+        <a href="/States/AL/CS42">FairShare's Alabama calculator</a>, computed with the
+        official AOC workbooks (CS-42 Rev. 5/2022 and CS-42-S Eff. 6/2023).
+    </p>
+
+    <h2 class="h5">The big picture</h2>
+    <p>
+        Alabama uses the <strong>income shares</strong> model: the guideline estimates what the
+        parents would spend on the children if they lived together, then splits that amount in
+        proportion to each parent's income. There are two worksheets - <strong>CS-42</strong> for
+        standard custody, and <strong>CS-42-S</strong> when the parents share 50/50 physical
+        custody. Both work in whole dollars per month, exactly like the official workbooks.
+    </p>
+
+    <h2 class="h5 mt-4">Adjusted gross income (lines 1-2)</h2>
+    <p>
+        Each parent starts from <strong>monthly gross income</strong> - income from essentially any
+        source - then subtracts child support actually paid under preexisting orders for other
+        children (line 1a) and preexisting periodic alimony actually paid (line 1b). What remains is
+        <strong>adjusted gross income</strong> (line 2), and each parent's share of the combined
+        total (line 3) sets their share of everything that follows.
+    </p>
+
+    <h2 class="h5 mt-4">The basic obligation (line 4)</h2>
+    <p>
+        The combined adjusted income and the number of children look up a monthly amount on
+        Alabama's <strong>basic child-support obligation schedule</strong> - the table realigned in
+        September 2021, which is why FairShare's results cite the vintage
+        <em>"AL Realigned Sept 2021"</em>. The lookup uses the nearest $50 row; combined income
+        below the schedule's first row uses the $250 row, and above the schedule's top
+        ($30,000 a month) the guideline does not set an amount - that is left to the court.
+    </p>
+
+    <h2 class="h5 mt-4">Child care and health care (lines 5-10)</h2>
+    <p>
+        <strong>Work-related child-care costs</strong> and the cost of the
+        <strong>children's health-care coverage</strong> are added to the basic obligation, and the
+        combined total (line 7) is split between the parents by their income shares (line 8). Each
+        parent is then credited for the child-care and health-coverage costs they actually pay
+        (lines 9-10), so nothing is paid twice.
+    </p>
+
+    <h2 class="h5 mt-4">The self-support reserve (lines 11-13)</h2>
+    <p>
+        Since the May 2022 revision, the worksheet protects a basic amount for the paying parent's
+        own needs: each parent keeps a <strong>$981-a-month self-support reserve</strong>, and only
+        <strong>85%</strong> of the income above that reserve is treated as available for support -
+        though never less than <strong>$50</strong>. The recommended order (line 13) is the
+        <em>lesser</em> of the parent's share of the obligation and that available income, so low
+        incomes produce reduced orders down to a $50 floor. A parent with no gross income at all is
+        set to $0.
+    </p>
+
+    <h2 class="h5 mt-4">Who pays</h2>
+    <p>
+        The worksheet computes both columns, but the recommended order applies to the parent
+        <em>without</em> primary physical custody. FairShare's results name that parent and
+        highlight the recommended row, with every line above it showing exactly where the number
+        came from.
+    </p>
+
+    <h2 class="h5 mt-4">Shared 50/50 custody (CS-42-S)</h2>
+    <p>
+        When the parents genuinely split physical custody 50/50, the CS-42-S applies instead. It
+        raises the basic obligation to <strong>150%</strong> - two households cost more than one -
+        adds both parents' child-care and health-coverage costs, and then credits each parent
+        <strong>half</strong> of the shared-custody obligation for the time the children are with
+        them. After those credits, the parent with the higher remaining amount pays it; when the
+        two sides effectively cancel out, no money changes hands and FairShare says so rather than
+        naming a payer.
+    </p>
+
+    <h2 class="h5 mt-4">The number is a starting point</h2>
+    <p>
+        The guideline amount is presumed correct, but Rule 32 lets a court deviate where applying
+        it would be manifestly unjust or inequitable - shared or split custody arrangements and
+        extraordinary costs are among the stated reasons - and any deviation requires written
+        findings. If a figure surprises you, the worksheet lines on the calculator show exactly
+        where it came from.
+    </p>
+
+    <p class="text-muted small mt-4 mb-0">
+        FairShare provides estimates for informational purposes only - not legal advice. Actual
+        support obligations are determined by the court under your state's guidelines. See the
+        <a href="/terms">terms</a>.
+    </p>
+
+    <div class="mt-4">
+        <a href="/States/AL/CS42" class="btn btn-link">&larr; Back to the Alabama calculator</a>
+    </div>
+</div>

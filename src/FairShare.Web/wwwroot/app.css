@@ -135,3 +135,13 @@ h1:focus {
     --bs-table-bg-state: var(--fs-results-bg-subtle);
     --bs-table-color-state: var(--fs-results-emphasis);
 }
+
+/* Nav dropdowns (Guides, Admin - #225/#226) open on hover for desktop pointers; the
+   click/tap toggle (Bootstrap's dropdown JS) still works everywhere and is the only
+   path on touch and keyboard. margin-top 0 closes the hover gap under the toggle. */
+@media (hover: hover) and (min-width: 992px) {
+    .navbar .nav-item.dropdown:hover > .dropdown-menu {
+        display: block;
+        margin-top: 0;
+    }
+}

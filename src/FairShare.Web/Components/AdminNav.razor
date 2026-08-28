@@ -1,0 +1,14 @@
+@* One admin area, three sections (#226): shared tabs so Users/Stats/Logs read as a single
+   dashboard whichever page an admin lands on. Prefix match keeps Users lit on its
+   create/edit sub-pages. *@
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="admin/users" Match="NavLinkMatch.Prefix">Users</NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="admin/stats">Stats</NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="admin/logs">Logs</NavLink>
+    </li>
+</ul>
