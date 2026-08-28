@@ -27,6 +27,7 @@ const routes = [
   ['/States/AL/CS42S', 'CS-42-S', 'Number of Children'],
   ['/States/OR', 'Calculator', 'Oregon worksheet'],
   ['/States/OR/Worksheet', 'Worksheet', 'Joint minor children'],
+  ['/guides/alabama-cs42', 'Understanding the Alabama CS-42', 'Rule 32'],
   ['/guides/oregon-worksheet', 'Understanding the Oregon worksheet', 'self-support reserve'],
   ['/privacy', 'Privacy', 'privacy'],
   ['/terms', 'Terms', 'Estimates, not legal advice'],

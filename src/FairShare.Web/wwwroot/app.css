@@ -135,3 +135,13 @@ h1:focus {
     --bs-table-bg-state: var(--fs-results-bg-subtle);
     --bs-table-color-state: var(--fs-results-emphasis);
 }
+
+/* Nav dropdowns (Guides, Admin - #225/#226): hover-open itself is driven through
+   Bootstrap's Dropdown API in js/site.js so .show and aria-expanded stay in sync;
+   this only closes the toggle-to-menu gap so the pointer never leaves the item
+   (and hides) while crossing into the open menu. */
+@media (hover: hover) and (min-width: 992px) {
+    .navbar .nav-item.dropdown > .dropdown-menu {
+        margin-top: 0;
+    }
+}
