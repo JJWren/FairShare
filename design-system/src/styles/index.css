@@ -1,0 +1,6 @@
+/* Single import entry for the Warm Counsel stylesheet set. The build flattens this
+   into dist/warm-counsel.css (one file for consumers and for design-sync's cssEntry);
+   the Blazor app keeps importing tokens.css directly and self-hosts its fonts. */
+@import "./tokens.css";
+@import "./fonts.css";
+@import "./components.css";
