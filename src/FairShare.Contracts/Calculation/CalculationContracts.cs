@@ -7,19 +7,21 @@ public class ParentDataDto
 {
     public bool HasPrimaryCustody { get; set; }
 
-    [Range(0, int.MaxValue)]
+    // Money fields cap at $10M/month: far above any real case, far below the values
+    // where downstream arithmetic (int sums, Excel-style rounding) can overflow.
+    [Range(0, 10_000_000)]
     public int MonthlyGrossIncome { get; set; }
 
-    [Range(0, int.MaxValue)]
+    [Range(0, 10_000_000)]
     public int PreexistingChildSupport { get; set; }
 
-    [Range(0, int.MaxValue)]
+    [Range(0, 10_000_000)]
     public int PreexistingAlimony { get; set; }
 
-    [Range(0, int.MaxValue)]
+    [Range(0, 10_000_000)]
     public int WorkRelatedChildcareCosts { get; set; }
 
-    [Range(0, int.MaxValue)]
+    [Range(0, 10_000_000)]
     public int HealthcareCoverageCosts { get; set; }
 
     public void ApplyFrom(ParentDataDto source)
@@ -54,35 +56,39 @@ public class CalculationRequest
 /// <summary>One parent's column of the Oregon worksheet. Monthly dollars, cents allowed.</summary>
 public class OregonParentDto
 {
-    [Range(0, double.MaxValue)]
+    // Money fields cap at $10M/month (see ParentDataDto). The decimal-typed Range is
+    // load-bearing: int/double-typed operands make RangeAttribute convert the decimal,
+    // and a posted value beyond the operand type's range throws OverflowException out
+    // of validation itself - a 500 before the calculator is ever reached.
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal MonthlyIncome { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal SpousalSupportReceived { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal SpousalSupportPaid { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal UnionDues { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal OwnHealthInsuranceCost { get; set; }
 
     [Range(0, int.MaxValue)]
     public int NonJointChildren { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal ChildCareCosts { get; set; }
 
     /// <summary>Cost to enroll the joint children in this parent's coverage; null = no appropriate coverage available.</summary>
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal? ChildrensHealthCoverageCost { get; set; }
 
-    [Range(0, 365)]
+    [Range(typeof(decimal), "0", "365")]
     public decimal AverageOvernights { get; set; }
 
-    [Range(0, double.MaxValue)]
+    [Range(typeof(decimal), "0", "10000000")]
     public decimal SocialSecurityVeteransBenefits { get; set; }
 
     public bool MinimumOrderException { get; set; }

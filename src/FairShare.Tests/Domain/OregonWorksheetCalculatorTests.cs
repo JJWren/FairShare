@@ -35,6 +35,21 @@ public class OregonWorksheetCalculatorTests
     }
 
     [Fact]
+    public void Calculate_ComputationFailure_ReturnsFailedOutcome_NeverThrows()
+    {
+        // decimal.MaxValue passes the negative-value validation but overflows the
+        // arithmetic - the envelope must turn that into a failed outcome, mirroring
+        // BaseChildSupportCalculator, instead of letting the exception escape as a 500.
+        OregonCalculationOutcome outcome = Calculator.Calculate(Input(
+            plaintiff: new OregonParentInput { MonthlyIncome = decimal.MaxValue, AverageOvernights = 365 },
+            defendant: new OregonParentInput { MonthlyIncome = decimal.MaxValue }));
+
+        Assert.False(outcome.Success);
+        Assert.Contains(outcome.Errors, e => e.Code == CalcErrorCodes.UnexpectedError);
+        Assert.NotNull(outcome.RuleEffectiveDate);
+    }
+
+    [Fact]
     public void Calculate_OvernightsNotTotaling365_ReturnsError()
     {
         OregonCalculationOutcome outcome = Calculator.Calculate(Input(

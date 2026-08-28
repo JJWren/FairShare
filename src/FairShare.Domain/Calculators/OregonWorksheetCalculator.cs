@@ -4,6 +4,8 @@ using FairShare.Domain.Helpers;
 using FairShare.Domain.Interfaces;
 using FairShare.Domain.Models;
 using FairShare.Domain.Seeds;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using static FairShare.Domain.Helpers.Enums;
 
 namespace FairShare.Domain.Calculators
@@ -15,8 +17,10 @@ namespace FairShare.Domain.Calculators
     /// rounds (to 2 or 4 places, or to the dollar) and where it deliberately does not.
     /// The caretaker/state-care variant is not modeled (both-parents cases only).
     /// </summary>
-    public sealed class OregonWorksheetCalculator : IWorksheetForm
+    public sealed class OregonWorksheetCalculator(ILogger<OregonWorksheetCalculator>? logger = null) : IWorksheetForm
     {
+        private readonly ILogger _logger = logger ?? NullLogger<OregonWorksheetCalculator>.Instance;
+
         public string State => States.OR.ToString();
         public string Form => Forms.Worksheet.ToString();
         public string DisplayName => "Child Support Worksheet (CSF 02 0910)";
@@ -36,6 +40,36 @@ namespace FairShare.Domain.Calculators
                 return new OregonCalculationOutcome { Success = false, Errors = errors, RuleEffectiveDate = rules.EffectiveDate };
             }
 
+            try
+            {
+                return CalculateValidated(input, rules, errors);
+            }
+            catch (Exception ex)
+            {
+                // The same envelope BaseChildSupportCalculator gives the Alabama forms: a
+                // computation failure becomes a failed outcome, never an exception the API
+                // would surface as an unhandled 500.
+                _logger.LogError(ex, "Unexpected error in {Form} calculation.", Form);
+                return new OregonCalculationOutcome
+                {
+                    Success = false,
+                    Errors =
+                    [
+                        new CalcError
+                        {
+                            Code = CalcErrorCodes.UnexpectedError,
+                            Message = "An unexpected error occurred during calculation.",
+                            Field = null,
+                            Severity = ErrorSeverity.Error,
+                        }
+                    ],
+                    RuleEffectiveDate = rules.EffectiveDate,
+                };
+            }
+        }
+
+        private static OregonCalculationOutcome CalculateValidated(OregonWorksheetInput input, OregonRuleParameters rules, List<CalcError> errors)
+        {
             OregonParentInput p = input.Plaintiff;
             OregonParentInput d = input.Defendant;
             int jointMinor = input.JointMinorChildren;
