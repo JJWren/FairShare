@@ -39,7 +39,10 @@
                     <select id="state" @bind="selectedState" class="form-select">
                         @foreach (var state in states)
                         {
-                            <option value="@state.State">@state.State</option>
+                            @* Full names: the first decision on the site must never be made
+                               against a bare two-letter code. Fallback covers an API that
+                               predates DisplayName. *@
+                            <option value="@state.State">@(string.IsNullOrWhiteSpace(state.DisplayName) ? state.State : $"{state.DisplayName} ({state.State})")</option>
                         }
                     </select>
                 </div>

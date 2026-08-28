@@ -65,35 +65,35 @@
                 <label class="form-label" for="@($"{Prefix}_Income")">Monthly Gross Income</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Income")" @bind="Data.MonthlyGrossIncome" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Income")" @bind="Income" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Support")">Pre-existing Child Support</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Support")" @bind="Data.PreexistingChildSupport" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Support")" @bind="Support" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Alimony")">Pre-existing Alimony</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Alimony")" @bind="Data.PreexistingAlimony" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Alimony")" @bind="Alimony" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Childcare")">Work-related Childcare Costs</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Childcare")" @bind="Data.WorkRelatedChildcareCosts" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Childcare")" @bind="Childcare" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-0">
                 <label class="form-label" for="@($"{Prefix}_Healthcare")">Healthcare Coverage Costs</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Healthcare")" @bind="Data.HealthcareCoverageCosts" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Healthcare")" @bind="Healthcare" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
         </div>
@@ -128,6 +128,16 @@
     /// </summary>
     [Parameter] public string? SelectedProfileId { get; set; }
     [Parameter] public EventCallback<string?> SelectedProfileIdChanged { get; set; }
+
+    // Nullable proxies over the int DTO fields so empty fields render EMPTY instead of a
+    // prefilled 0 the user must select-and-delete ("05000" typos). Empty means 0 at
+    // calculate time; the DTO wire shape is unchanged. inputmode=numeric on the inputs
+    // brings up the number pad on phones.
+    private int? Income { get => Data.MonthlyGrossIncome == 0 ? null : Data.MonthlyGrossIncome; set => Data.MonthlyGrossIncome = value ?? 0; }
+    private int? Support { get => Data.PreexistingChildSupport == 0 ? null : Data.PreexistingChildSupport; set => Data.PreexistingChildSupport = value ?? 0; }
+    private int? Alimony { get => Data.PreexistingAlimony == 0 ? null : Data.PreexistingAlimony; set => Data.PreexistingAlimony = value ?? 0; }
+    private int? Childcare { get => Data.WorkRelatedChildcareCosts == 0 ? null : Data.WorkRelatedChildcareCosts; set => Data.WorkRelatedChildcareCosts = value ?? 0; }
+    private int? Healthcare { get => Data.HealthcareCoverageCosts == 0 ? null : Data.HealthcareCoverageCosts; set => Data.HealthcareCoverageCosts = value ?? 0; }
 
     private string SignInHref =>
         $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";

@@ -39,6 +39,21 @@ namespace FairShare.Domain.Helpers
         }
 
         /// <summary>
+        /// Human names for <see cref="States"/> codes. The landing picker shows these -
+        /// a stressed parent should never have to decode a two-letter abbreviation.
+        /// A new state registers its name here alongside its enum member.
+        /// </summary>
+        public static class StateNames
+        {
+            public static string For(string stateCode) => stateCode switch
+            {
+                nameof(States.AL) => "Alabama",
+                nameof(States.OR) => "Oregon",
+                _ => stateCode
+            };
+        }
+
+        /// <summary>
         /// Represents the available forms used in the application.
         /// </summary>
         public enum Forms
