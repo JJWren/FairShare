@@ -7,6 +7,13 @@ using FairShare.Web;
 using FairShare.Web.Auth;
 using FairShare.Web.Services;
 
+// The app is English-only and ships only the EFIGS ICU shard (see the csproj): pin the
+// culture so every browser locale formats identically ($, en-US numbers) instead of a
+// non-EFIGS locale meeting ICU data that doesn't cover it.
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture =
+    System.Globalization.CultureInfo.DefaultThreadCurrentUICulture =
+        new System.Globalization.CultureInfo("en-US");
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.RootComponents.Add<App>("#app");
