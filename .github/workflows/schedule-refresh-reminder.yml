@@ -1,0 +1,58 @@
+# Yearly reminder to refresh the guideline data BEFORE it goes stale: Oregon resets its
+# self-support reserve every July 1 (OAR 137-050-0745), and Alabama revises its schedule
+# periodically. Fires June 1 so a month of lead time exists; workflow_dispatch covers
+# testing and a missed run.
+name: Guideline refresh reminder
+
+on:
+  schedule:
+    - cron: "0 12 1 6 *" # June 1, 12:00 UTC, yearly
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  open-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open the yearly refresh issue (skip if already open)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const year = new Date().getUTCFullYear();
+            const title = `chore: refresh Oregon SSR / schedule vintages (effective July 1, ${year})`;
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "schedule-refresh",
+              per_page: 100,
+            });
+            if (open.some((issue) => issue.title === title)) {
+              core.info(`"${title}" is already open - nothing to do.`);
+              return;
+            }
+
+            const body = [
+              `Oregon's rule values reset **July 1, ${year}** (the self-support reserve changes every year; other OAR 137-050 values can move too). Alabama revises its schedule less often but check it while here.`,
+              "",
+              "- [ ] Fetch the new OAR 137-050 values from the [Oregon DOJ guidelines site](https://www.doj.state.or.us/child-support/) (self-support reserve, minimum order, medical cost cap, child-care caps) and the current official calculator/workbook",
+              "- [ ] Add the new vintage to `OregonRuleParameters` (effective-dated - do not overwrite the prior year's values)",
+              "- [ ] Check whether the Obligation Scale appendix changed; if so, refresh `OregonScaleLookup` from the official workbook",
+              "- [ ] Check Alabama's AOC forms/schedule for a revision; refresh `BcsoLookup` + form calculators if changed",
+              "- [ ] Regenerate/add golden cases for the new vintage from the official workbook (`src/FairShare.Tests/Domain/Golden/`) - existing vintages' goldens must stay byte-identical",
+              "- [ ] Release note discloses the new effective date",
+              "",
+              "Opened automatically by `.github/workflows/schedule-refresh-reminder.yml` (#180).",
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["schedule-refresh"],
+            });
+            core.info(`Opened "${title}".`);
