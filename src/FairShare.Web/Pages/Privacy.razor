@@ -18,9 +18,11 @@
         choose to save it</strong>. Guests can calculate and export freely; no incomes, names,
         or case details are kept. If you sign in, the two things you can save - parent profiles
         and scenarios - are stored for your account only. Saved items have no expiry of their
-        own: a scenario you delete is gone permanently at once; removing a saved parent archives
-        it out of use; and deleting your account permanently deletes everything it ever saved,
-        archived parents included.
+        own: a scenario you delete is removed from the live database at once; removing a saved
+        parent archives it out of use; and deleting your account removes everything it ever
+        saved, archived parents included. Short-lived backup snapshots exist for disaster
+        recovery only - they are never served by the app and rotate out on their own within
+        about 30 days.
     </p>
 
     <h2 class="h5 mt-4">Saved scenarios</h2>
@@ -49,9 +51,10 @@
     </p>
     <p>
         <strong>Deleting your account deletes everything it owns</strong> - profiles, sessions,
-        the account itself - immediately and permanently. Minimal security records (for example,
-        that an account signed in or was deleted, with its name at the time) are kept for up to
-        one year and then erased; they never contain case content.
+        the account itself - immediately from the live database, and from backup snapshots as
+        they rotate out (about 30 days). Minimal security records (for example, that an account
+        signed in or was deleted, with its name at the time) are kept for up to one year and
+        then erased; they never contain case content.
     </p>
 
     <h2 class="h5 mt-4">Counting visits without tracking you</h2>

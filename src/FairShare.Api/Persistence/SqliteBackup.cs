@@ -12,6 +12,10 @@ namespace FairShare.Api.Persistence;
 /// </summary>
 public static class SqliteBackup
 {
+    // The privacy page promises deleted data does not linger indefinitely in backup
+    // snapshots (it says "about 30 days"); this retention makes that sentence true.
+    private const int RetentionDays = 30;
+
     public static void CreateSnapshot(string dbPath, string backupDir)
     {
         if (!File.Exists(dbPath))
@@ -20,6 +24,7 @@ public static class SqliteBackup
         }
 
         Directory.CreateDirectory(backupDir);
+        PruneExpiredSnapshots(backupDir);
 
         // Timestamp alone collides when two instances start in the same second (e.g.
         // parallel test hosts); the random suffix keeps every backup name unique.
@@ -39,5 +44,18 @@ public static class SqliteBackup
         using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
         zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
         File.Delete(backupFile);
+    }
+
+    private static void PruneExpiredSnapshots(string backupDir)
+    {
+        DateTime cutoffUtc = DateTime.UtcNow.AddDays(-RetentionDays);
+
+        foreach (FileInfo stale in new DirectoryInfo(backupDir).GetFiles("fairshare_*.zip"))
+        {
+            if (stale.LastWriteTimeUtc < cutoffUtc)
+            {
+                stale.Delete();
+            }
+        }
     }
 }
