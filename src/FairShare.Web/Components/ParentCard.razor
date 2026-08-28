@@ -65,35 +65,35 @@
                 <label class="form-label" for="@($"{Prefix}_Income")">Monthly Gross Income</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Income")" @bind="Data.MonthlyGrossIncome" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Income")" @bind="Income" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Support")">Pre-existing Child Support</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Support")" @bind="Data.PreexistingChildSupport" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Support")" @bind="Support" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Alimony")">Pre-existing Alimony</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Alimony")" @bind="Data.PreexistingAlimony" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Alimony")" @bind="Alimony" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="@($"{Prefix}_Childcare")">Work-related Childcare Costs</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Childcare")" @bind="Data.WorkRelatedChildcareCosts" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Childcare")" @bind="Childcare" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
             <div class="mb-0">
                 <label class="form-label" for="@($"{Prefix}_Healthcare")">Healthcare Coverage Costs</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" id="@($"{Prefix}_Healthcare")" @bind="Data.HealthcareCoverageCosts" class="form-control" />
+                    <input type="number" id="@($"{Prefix}_Healthcare")" @bind="Healthcare" class="form-control" min="0" step="1" inputmode="numeric" placeholder="0" />
                 </div>
             </div>
         </div>
@@ -128,6 +128,48 @@
     /// </summary>
     [Parameter] public string? SelectedProfileId { get; set; }
     [Parameter] public EventCallback<string?> SelectedProfileIdChanged { get; set; }
+
+    // Nullable proxies over the int DTO fields so empty fields render EMPTY instead of a
+    // prefilled 0 the user must select-and-delete ("05000" typos). Empty means 0 at
+    // calculate time; the DTO wire shape is unchanged. inputmode=numeric on the inputs
+    // brings up the number pad on phones.
+    //
+    // The visible values are component state, not derived from the DTO per render: deriving
+    // null from 0 every render made an explicitly typed 0 vanish from the field on the next
+    // render. OnParametersSet re-derives a field only when its DTO value no longer matches
+    // what the field maps to - i.e. something OTHER than this card wrote the DTO. That
+    // catches both a swapped instance and the page's in-place ApplyFrom writes (reset,
+    // sign-in stash restore, scenario load) without disturbing a typed 0, whose DTO value
+    // equals the field's mapping and so never resyncs away. A stored/loaded 0 renders
+    // empty by design.
+    private int? _income, _support, _alimony, _childcare, _healthcare;
+
+    private int? Income { get => _income; set { _income = value; Data.MonthlyGrossIncome = value ?? 0; } }
+    private int? Support { get => _support; set { _support = value; Data.PreexistingChildSupport = value ?? 0; } }
+    private int? Alimony { get => _alimony; set { _alimony = value; Data.PreexistingAlimony = value ?? 0; } }
+    private int? Childcare { get => _childcare; set { _childcare = value; Data.WorkRelatedChildcareCosts = value ?? 0; } }
+    private int? Healthcare { get => _healthcare; set { _healthcare = value; Data.HealthcareCoverageCosts = value ?? 0; } }
+
+    protected override void OnParametersSet()
+    {
+        if (Data.MonthlyGrossIncome != (_income ?? 0)
+            || Data.PreexistingChildSupport != (_support ?? 0)
+            || Data.PreexistingAlimony != (_alimony ?? 0)
+            || Data.WorkRelatedChildcareCosts != (_childcare ?? 0)
+            || Data.HealthcareCoverageCosts != (_healthcare ?? 0))
+        {
+            SyncFieldsFromData();
+        }
+    }
+
+    private void SyncFieldsFromData()
+    {
+        _income = Data.MonthlyGrossIncome == 0 ? null : Data.MonthlyGrossIncome;
+        _support = Data.PreexistingChildSupport == 0 ? null : Data.PreexistingChildSupport;
+        _alimony = Data.PreexistingAlimony == 0 ? null : Data.PreexistingAlimony;
+        _childcare = Data.WorkRelatedChildcareCosts == 0 ? null : Data.WorkRelatedChildcareCosts;
+        _healthcare = Data.HealthcareCoverageCosts == 0 ? null : Data.HealthcareCoverageCosts;
+    }
 
     private string SignInHref =>
         $"login?returnUrl={Uri.EscapeDataString("/" + Navigation.ToBaseRelativePath(Navigation.Uri))}";
@@ -173,6 +215,7 @@
                 Data.WorkRelatedChildcareCosts = profile.WorkRelatedChildcareCosts;
                 Data.HealthcareCoverageCosts = profile.HealthcareCoverageCosts;
                 Data.HasPrimaryCustody = profile.HasPrimaryCustody;
+                SyncFieldsFromData();
 
                 ParentName = profile.DisplayName;
                 await ParentNameChanged.InvokeAsync(ParentName);
@@ -196,6 +239,7 @@
         Data.WorkRelatedChildcareCosts = 0;
         Data.HealthcareCoverageCosts = 0;
         Data.HasPrimaryCustody = false;
+        SyncFieldsFromData();
 
         ParentName = string.Empty;
         await ParentNameChanged.InvokeAsync(ParentName);

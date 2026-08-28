@@ -185,7 +185,7 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
-    public async Task States_WithGuestToken_ReturnsAlabama()
+    public async Task States_WithGuestToken_ReturnsRegisteredStatesWithDisplayNames()
     {
         HttpResponseMessage guestResponse = await _client.PostAsync("api/v1/auth/guest", content: null);
         AuthTokenResponse tokens = (await guestResponse.Content.ReadFromJsonAsync<AuthTokenResponse>())!;
@@ -200,6 +200,8 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
         List<StateSummaryDto>? states = await response.Content.ReadFromJsonAsync<List<StateSummaryDto>>();
 
         Assert.NotNull(states);
-        Assert.Contains(states!, s => s.State == "AL");
+        // Codes carry the routing; DisplayName is what the landing picker shows.
+        Assert.Contains(states!, s => s.State == "AL" && s.DisplayName == "Alabama");
+        Assert.Contains(states!, s => s.State == "OR" && s.DisplayName == "Oregon");
     }
 }

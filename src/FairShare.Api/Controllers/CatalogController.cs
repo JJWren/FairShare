@@ -4,6 +4,7 @@ using FairShare.Contracts.Catalog;
 using FairShare.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static FairShare.Domain.Helpers.Enums;
 
 namespace FairShare.Api.Controllers;
 
@@ -20,7 +21,8 @@ public class CatalogController(IStateGuidelineCatalog catalog) : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<StateSummaryDto>> GetStates()
     {
-        IEnumerable<StateSummaryDto> states = _catalog.GetStates().Select(s => new StateSummaryDto { State = s });
+        IEnumerable<StateSummaryDto> states = _catalog.GetStates()
+            .Select(s => new StateSummaryDto { State = s, DisplayName = StateNames.For(s) });
         return Ok(states);
     }
 
