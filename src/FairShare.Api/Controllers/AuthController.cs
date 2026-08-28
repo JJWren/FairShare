@@ -33,10 +33,9 @@ public class AuthController(
 {
     private const string RefreshCookieName = "fairshare_refresh";
 
-    // Required on the anonymous endpoints that set or act on the refresh cookie
-    // (guest/refresh/logout); see MissingCsrfHeader below. The Web client sends it
-    // on every auth call.
-    private const string CsrfHeaderName = "X-FairShare-Auth";
+    // The CSRF-guard header (see MissingCsrfHeader below) lives in the shared contract
+    // so the API and its clients can never drift apart.
+    private const string CsrfHeaderName = AuthHeaders.CsrfHeaderName;
 
     /// <summary>Cookie scheme the Google handler signs its external principal into.</summary>
     public const string ExternalScheme = "External";

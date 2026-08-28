@@ -11,11 +11,10 @@ namespace FairShare.Web.Auth;
 public class AuthApiClient(HttpClient http, ITokenStore tokenStore, JwtAuthenticationStateProvider authStateProvider)
 {
     /// <summary>
-    /// The API requires this header on the cookie-acting auth endpoints (guest/refresh/
-    /// logout) as its CSRF guard - a custom header forces cross-origin posts into a CORS
-    /// preflight. Must match the API's constant.
+    /// The API's CSRF-guard header on the cookie-acting auth endpoints (guest/refresh/
+    /// logout) - aliased from the shared contract so client and API cannot drift.
     /// </summary>
-    public const string CsrfHeaderName = "X-FairShare-Auth";
+    public const string CsrfHeaderName = AuthHeaders.CsrfHeaderName;
 
     private readonly HttpClient _http = http;
     private readonly ITokenStore _tokenStore = tokenStore;

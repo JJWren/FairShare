@@ -170,7 +170,7 @@ public class AuthEndpointsTests : IClassFixture<FairShareApiFactory>
     }
 
     [Fact]
-    public async Task CookieActingEndpoints_WithoutCsrfHeader_ReturnBadRequest()
+    public async Task CookieActingEndpoints_WithoutCsrfHeader_ReturnsBadRequest()
     {
         // A fresh client WITHOUT the default header stands in for a cross-site form post:
         // guest/refresh/logout all set or act on the refresh cookie and must refuse it.
