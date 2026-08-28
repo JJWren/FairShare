@@ -17,10 +17,6 @@ RUN dotnet publish src/FairShare.Web/FairShare.Web.csproj -c Release -o /app/pub
 FROM nginx:alpine AS runtime
 
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
-# SEO snapshots (#173): CI renders the public routes into snapshots/ before this build
-# (scripts/render-seo-snapshots.mjs); a local build ships only the committed .gitkeep,
-# which changes nothing - routes then fall through to the shell as before.
-COPY snapshots/ /usr/share/nginx/html/_snapshot/
 COPY src/FairShare.Web/nginx.conf /etc/nginx/conf.d/default.conf
 # .inc extension keeps it out of nginx's conf.d/*.conf auto-include; nginx.conf includes it.
 COPY src/FairShare.Web/fairshare-security-headers.inc /etc/nginx/conf.d/fairshare-security-headers.inc
