@@ -283,7 +283,10 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
 
             if (!string.Equals(result, "ok", StringComparison.OrdinalIgnoreCase))
             {
-                app.Logger.LogError("SQLite integrity check failed: {Result}. Aborting migration.", result);
+                // Fail fast: serving against a corrupt database is strictly worse than a
+                // crash loop - the compose healthcheck keeps the container red and the
+                // operator's rollback path is the previous pinned tag + a backup.
+                throw new InvalidOperationException($"SQLite integrity check failed: {result}. Refusing to start.");
             }
             else if (db.Database.GetPendingMigrations().Any())
             {
@@ -295,7 +298,7 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
                     try
                     {
                         string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
-                        BackupSqliteDatabase(dbPath, backupDir);
+                        SqliteBackup.CreateSnapshot(dbPath, backupDir);
                     }
                     catch (Exception backupEx)
                     {
@@ -309,7 +312,10 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
         }
         catch (Exception ex)
         {
-            app.Logger.LogError(ex, "Migration sequence failed.");
+            // Rethrow so the process exits instead of answering requests against an
+            // unmigrated (or unreadable) schema.
+            app.Logger.LogError(ex, "Migration sequence failed; refusing to serve.");
+            throw;
         }
         finally
         {
@@ -377,24 +383,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-static void BackupSqliteDatabase(string dbPath, string backupDir)
-{
-    if (!File.Exists(dbPath))
-    {
-        return;
-    }
-
-    Directory.CreateDirectory(backupDir);
-    // Timestamp alone collides when two instances start in the same second (e.g. parallel
-    // test hosts); the random suffix keeps every backup name unique.
-    string stamp = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}"[..24];
-    string backupFile = Path.Combine(backupDir, $"fairshare_{stamp}.db");
-    File.Copy(dbPath, backupFile, overwrite: false);
-    string zipPath = backupFile + ".zip";
-    using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
-    zip.CreateEntryFromFile(backupFile, Path.GetFileName(backupFile));
-    File.Delete(backupFile);
-}
 
 public partial class Program;
