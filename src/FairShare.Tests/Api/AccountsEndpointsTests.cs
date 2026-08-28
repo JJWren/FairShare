@@ -4,7 +4,9 @@ using FairShare.Api.Observability;
 using FairShare.Api.Persistence;
 using FairShare.Contracts.Admin;
 using FairShare.Contracts.Auth;
+using FairShare.Contracts.Calculation;
 using FairShare.Contracts.Parents;
+using FairShare.Contracts.Scenarios;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -207,6 +209,23 @@ public class AccountsEndpointsTests : IClassFixture<FairShareApiFactory>
         HttpResponseMessage profileResponse = await _client.SendAsync(createProfile);
         Assert.True(profileResponse.IsSuccessStatusCode);
 
+        // ... and a saved scenario, which stores the full worksheet inputs.
+        HttpRequestMessage createScenario = new(HttpMethod.Post, "api/v1/scenarios")
+        {
+            Content = JsonContent.Create(EphemeralScenario("ephemeral-scenario"))
+        };
+        createScenario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        HttpResponseMessage scenarioResponse = await _client.SendAsync(createScenario);
+        Assert.Equal(HttpStatusCode.Created, scenarioResponse.StatusCode);
+
+        Guid userId;
+        using (IServiceScope preScope = _factory.Services.CreateScope())
+        {
+            FairShareDbContext preDb = preScope.ServiceProvider.GetRequiredService<FairShareDbContext>();
+            userId = preDb.Users.Single(u => u.UserName == "deleting-user").Id;
+            Assert.True(preDb.RefreshTokens.Any(t => t.UserId == userId), "login should have minted a refresh token");
+        }
+
         HttpRequestMessage deleteRequest = new(HttpMethod.Delete, "api/v1/auth/account")
         {
             Content = JsonContent.Create(new DeleteAccountRequest { Confirm = "DELETE" })
@@ -229,9 +248,71 @@ public class AccountsEndpointsTests : IClassFixture<FairShareApiFactory>
 
         Assert.False(db.Users.Any(u => u.UserName == "deleting-user"));
         Assert.False(db.ParentProfiles.Any(p => p.DisplayName == "Ephemeral Parent"));
+        Assert.False(db.Scenarios.Any(s => s.OwnerUserId == userId));
+        Assert.False(db.RefreshTokens.Any(t => t.UserId == userId));
         // The accountability record outlives the account (ADR 0004), until its own retention.
         Assert.True(db.AuditEvents.Any(a => a.Action == AuditActions.AccountDeleted && a.Target == "deleting-user"));
     }
+
+    [Fact]
+    public async Task AdminDeleteUser_RemovesOwnedRows_NeverOrphansThem()
+    {
+        string token = await CreateAndLoginUserAsync("admin-deleted-user");
+
+        HttpRequestMessage createProfile = new(HttpMethod.Post, "api/v1/parents")
+        {
+            Content = JsonContent.Create(new ParentProfileCreateRequest
+            {
+                DisplayName = "Admin Delete Parent",
+                MonthlyGrossIncome = 2000
+            })
+        };
+        createProfile.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        Assert.True((await _client.SendAsync(createProfile)).IsSuccessStatusCode);
+
+        HttpRequestMessage createScenario = new(HttpMethod.Post, "api/v1/scenarios")
+        {
+            Content = JsonContent.Create(EphemeralScenario("admin-delete-scenario"))
+        };
+        createScenario.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        Assert.Equal(HttpStatusCode.Created, (await _client.SendAsync(createScenario)).StatusCode);
+
+        Guid userId;
+        using (IServiceScope preScope = _factory.Services.CreateScope())
+        {
+            FairShareDbContext preDb = preScope.ServiceProvider.GetRequiredService<FairShareDbContext>();
+            userId = preDb.Users.Single(u => u.UserName == "admin-deleted-user").Id;
+        }
+
+        string adminToken = await LoginAsAdminAsync();
+        HttpRequestMessage deleteRequest = new(HttpMethod.Delete, $"api/v1/admin/users/{userId}");
+        deleteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.SendAsync(deleteRequest)).StatusCode);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        FairShareDbContext db = scope.ServiceProvider.GetRequiredService<FairShareDbContext>();
+
+        Assert.False(db.Users.Any(u => u.Id == userId));
+        // Deleted outright - the FK's SetNull must never get the chance to strand
+        // ownerless income rows with no retention path.
+        Assert.False(db.ParentProfiles.Any(p => p.DisplayName == "Admin Delete Parent"));
+        Assert.False(db.Scenarios.Any(s => s.OwnerUserId == userId));
+        Assert.False(db.RefreshTokens.Any(t => t.UserId == userId));
+    }
+
+    // The CS-42 workbook sample case, as in ScenariosEndpointsTests.
+    private static ScenarioSaveRequest EphemeralScenario(string name) => new()
+    {
+        Name = name,
+        State = "AL",
+        Form = "CS42",
+        Inputs = new CalculationRequest
+        {
+            NumberOfChildren = 1,
+            Plaintiff = new ParentDataDto { HasPrimaryCustody = true, MonthlyGrossIncome = 1200, HealthcareCoverageCosts = 100 },
+            Defendant = new ParentDataDto { MonthlyGrossIncome = 1000, WorkRelatedChildcareCosts = 20 }
+        }
+    };
 
     [Fact]
     public async Task DeleteAccount_WithoutTypedConfirmation_Refuses()

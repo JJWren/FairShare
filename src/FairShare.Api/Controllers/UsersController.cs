@@ -6,10 +6,12 @@ using System;
 using FairShare.Api.Auth;
 using FairShare.Api.Models;
 using FairShare.Api.Observability;
+using FairShare.Api.Persistence;
 using FairShare.Contracts.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace FairShare.Api.Controllers;
@@ -17,12 +19,13 @@ namespace FairShare.Api.Controllers;
 [Authorize(Policy = "AdminOnly")]
 [ApiController]
 [Route("api/v1/admin/users")]
-public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm, ITokenService tokenService, IAuditService audit) : ControllerBase
+public class UsersController(UserManager<ApplicationUser> um, RoleManager<IdentityRole<Guid>> rm, ITokenService tokenService, IAuditService audit, FairShareDbContext db) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = um;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = rm;
     private readonly ITokenService _tokenService = tokenService;
     private readonly IAuditService _audit = audit;
+    private readonly FairShareDbContext _db = db;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserListItem>>> GetUsers(string filter = "all")
@@ -170,7 +173,7 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
                 .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray())));
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(Guid id)
+    public async Task<IActionResult> DeleteUser(Guid id, CancellationToken ct)
     {
         Guid me = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (me == id) return BadRequest("Cannot delete self.");
@@ -178,8 +181,27 @@ public class UsersController(UserManager<ApplicationUser> um, RoleManager<Identi
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user is null) return NotFound();
 
-        await _userManager.DeleteAsync(user);
-        await _audit.WriteAsync(AuditActions.UserDeleted, target: user.UserName);
+        // Same posture as self-delete: the account's saved rows go with it, in one
+        // transaction. Relying on the FKs here left ownerless income rows behind -
+        // ParentProfile's owner FK is SetNull for legacy reasons, and RefreshToken
+        // has no FK at all.
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+        await _db.ParentProfiles.Where(p => p.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
+        await _db.Scenarios.Where(s => s.OwnerUserId == user.Id).ExecuteDeleteAsync(ct);
+        await _db.RefreshTokens.Where(t => t.UserId == user.Id).ExecuteDeleteAsync(ct);
+
+        IdentityResult deleted = await _userManager.DeleteAsync(user);
+
+        if (!deleted.Succeeded)
+        {
+            await tx.RollbackAsync(ct);
+            return BadRequest(deleted.Errors);
+        }
+
+        await tx.CommitAsync(ct);
+
+        await _audit.WriteAsync(AuditActions.UserDeleted, target: user.UserName, ct: ct);
         return NoContent();
     }
 }
