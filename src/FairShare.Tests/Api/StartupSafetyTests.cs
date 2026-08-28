@@ -53,8 +53,8 @@ public class StartupSafetyTests
                 create.ExecuteNonQuery();
             }
 
-            // An expired snapshot from a previous era: the privacy page promises backup
-            // copies rotate out within about 30 days, so taking a new snapshot must prune it.
+            // An expired snapshot from a previous era: pruning runs before each new
+            // snapshot (and on every app start), so this copy must not survive the call.
             Directory.CreateDirectory(backupDir);
             string expired = Path.Combine(backupDir, "fairshare_expired.zip");
             File.WriteAllBytes(expired, [0x50, 0x4B]);

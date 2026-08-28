@@ -12,8 +12,8 @@ namespace FairShare.Api.Persistence;
 /// </summary>
 public static class SqliteBackup
 {
-    // The privacy page promises deleted data does not linger indefinitely in backup
-    // snapshots (it says "about 30 days"); this retention makes that sentence true.
+    // The privacy page says expired snapshots are cleared when the app starts or takes
+    // a new snapshot; PruneExpiredSnapshots runs on both of those paths, with this window.
     private const int RetentionDays = 30;
 
     public static void CreateSnapshot(string dbPath, string backupDir)
@@ -46,8 +46,17 @@ public static class SqliteBackup
         File.Delete(backupFile);
     }
 
-    private static void PruneExpiredSnapshots(string backupDir)
+    /// <summary>
+    /// Deletes snapshots past the retention window. Runs on every app start (Program)
+    /// and before each new snapshot, so an expired copy never survives either path.
+    /// </summary>
+    public static void PruneExpiredSnapshots(string backupDir)
     {
+        if (!Directory.Exists(backupDir))
+        {
+            return;
+        }
+
         DateTime cutoffUtc = DateTime.UtcNow.AddDays(-RetentionDays);
 
         foreach (FileInfo stale in new DirectoryInfo(backupDir).GetFiles("fairshare_*.zip"))

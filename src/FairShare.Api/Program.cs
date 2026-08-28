@@ -273,6 +273,18 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
     if (db.Database.IsSqlite())
     {
         string dbPath = db.Database.GetDbConnection().DataSource;
+        string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
+
+        // Every start, not just migration starts: /privacy promises expired backup
+        // snapshots are cleared when the app starts or takes a new snapshot.
+        try
+        {
+            SqliteBackup.PruneExpiredSnapshots(backupDir);
+        }
+        catch (Exception pruneEx)
+        {
+            app.Logger.LogWarning(pruneEx, "Backup snapshot pruning failed; continuing startup.");
+        }
 
         try
         {
@@ -297,7 +309,6 @@ if (builder.Configuration.GetValue<bool>("AutoMigrate", true))
                 {
                     try
                     {
-                        string backupDir = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "backups");
                         SqliteBackup.CreateSnapshot(dbPath, backupDir);
                     }
                     catch (Exception backupEx)

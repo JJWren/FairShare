@@ -21,8 +21,8 @@
         own: a scenario you delete is removed from the live database at once; removing a saved
         parent archives it out of use; and deleting your account removes everything it ever
         saved, archived parents included. Short-lived backup snapshots exist for disaster
-        recovery only - they are never served by the app and rotate out on their own within
-        about 30 days.
+        recovery only - they are never served by the app, and any older than 30 days are
+        cleared whenever the app starts or takes a new snapshot.
     </p>
 
     <h2 class="h5 mt-4">Saved scenarios</h2>
@@ -52,7 +52,8 @@
     <p>
         <strong>Deleting your account deletes everything it owns</strong> - profiles, sessions,
         the account itself - immediately from the live database, and from backup snapshots as
-        they rotate out (about 30 days). Minimal security records (for example, that an account
+        those expire (30 days, cleared on the app's next start or snapshot). Minimal security
+        records (for example, that an account
         signed in or was deleted, with its name at the time) are kept for up to one year and
         then erased; they never contain case content.
     </p>
