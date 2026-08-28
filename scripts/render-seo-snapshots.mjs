@@ -48,6 +48,11 @@ for (const [route, titlePart, marker] of routes) {
 
     const title = await page.title();
     const body = await page.evaluate(() => document.body.innerText);
+    // Blazor's HeadOutlet appends its own <title> beside the shell's; a snapshot must
+    // carry exactly one (the first is the live-updated one the browser displays).
+    await page.evaluate(() => {
+      document.head.querySelectorAll('title').forEach((el, i) => { if (i > 0) el.remove(); });
+    });
     const html = '<!DOCTYPE html>\n' + await page.evaluate(() => document.documentElement.outerHTML);
 
     if (!title.includes(titlePart)) {
@@ -63,7 +68,8 @@ for (const [route, titlePart, marker] of routes) {
       console.log(`ok ${route} -> ${file} (${(html.length / 1024).toFixed(0)}KB, title "${title}")`);
     }
   } catch (err) {
-    console.error(`FAIL ${route}: ${err.message.split('\n')[0]}`);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`FAIL ${route}: ${msg.split('\n')[0]}`);
     failures++;
   } finally {
     await page.close();
