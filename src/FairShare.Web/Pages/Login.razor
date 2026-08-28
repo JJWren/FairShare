@@ -63,12 +63,12 @@
 
             <div class="mb-3">
                 <label class="form-label" for="userName">Username</label>
-                <InputText id="userName" class="form-control" @bind-Value="_model.UserName" />
+                <InputText id="userName" class="form-control" autocomplete="username" @bind-Value="_model.UserName" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="password">Password</label>
-                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+                <InputText id="password" type="password" class="form-control" autocomplete="current-password" @bind-Value="_model.Password" />
             </div>
 
             @if (_twoFactorRequired)

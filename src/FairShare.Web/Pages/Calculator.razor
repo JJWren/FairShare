@@ -159,55 +159,57 @@
     <div class="mt-5">
         <div class="card shadow-sm fs-results-card">
             <div class="card-header text-center"><strong>Results</strong></div>
-            @* aria-live so screen-reader users hear the outcome (or the failure) they asked
-               for - results used to appear silently. *@
-            <div class="card-body" aria-live="polite">
-                @if (submitted && result is not null && result.Success)
-                {
-                    <p class="fw-bold text-center mb-0">@ResultSentence(result)</p>
-
-                    @if (result.Lines.Any())
+            <div class="card-body">
+                @* The live region announces only the outcome (sentence or failure) - on the
+                   whole body it re-read every worksheet row per Calculate. The table sits
+                   outside it and is keyboard-scrollable instead. *@
+                <div aria-live="polite">
+                    @if (submitted && result is not null && result.Success)
                     {
-                        <div class="table-responsive mt-3">
-                            <table class="table table-sm table-striped mb-0 worksheet-table">
-                                <caption class="visually-hidden">@(CurrentForm?.DisplayName ?? Form) worksheet lines</caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Line</th>
-                                        <th scope="col">Item</th>
-                                        <th scope="col" class="text-end">Plaintiff</th>
-                                        <th scope="col" class="text-end">Defendant</th>
-                                        <th scope="col" class="text-end">Combined</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var line in result.Lines)
-                                    {
-                                        <tr class="@(IsFinalLine(line) ? "fs-row-recommended-order fw-bold" : "")">
-                                            <th scope="row" class="fw-normal text-start">@line.Number</th>
-                                            <td>@line.Label</td>
-                                            <td class="text-end">@FormatCell(line, line.Plaintiff)</td>
-                                            <td class="text-end">@FormatCell(line, line.Defendant)</td>
-                                            <td class="text-end">@FormatCell(line, line.Combined)</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                        <p class="fw-bold text-center mb-0">@ResultSentence(result)</p>
                     }
-                }
-                else if (submitted && result is not null && !result.Success)
+                    else if (submitted && result is not null && !result.Success)
+                    {
+                        <ul class="text-danger mb-0">
+                            @foreach (var e in result.Errors)
+                            {
+                                <li>@e.Code: @e.Message</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                    }
+                </div>
+                @if (submitted && result is { Success: true } && result.Lines.Any())
                 {
-                    <ul class="text-danger mb-0">
-                        @foreach (var e in result.Errors)
-                        {
-                            <li>@e.Code: @e.Message</li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                    <div class="table-responsive mt-3" tabindex="0" role="region" aria-label="Worksheet lines">
+                        <table class="table table-sm table-striped mb-0 worksheet-table">
+                            <caption class="visually-hidden">@(CurrentForm?.DisplayName ?? Form) worksheet lines</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Line</th>
+                                    <th scope="col">Item</th>
+                                    <th scope="col" class="text-end">Plaintiff</th>
+                                    <th scope="col" class="text-end">Defendant</th>
+                                    <th scope="col" class="text-end">Combined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in result.Lines)
+                                {
+                                    <tr class="@(IsFinalLine(line) ? "fs-row-recommended-order fw-bold" : "")">
+                                        <th scope="row" class="fw-normal text-start">@line.Number</th>
+                                        <td>@line.Label</td>
+                                        <td class="text-end">@FormatCell(line, line.Plaintiff)</td>
+                                        <td class="text-end">@FormatCell(line, line.Defendant)</td>
+                                        <td class="text-end">@FormatCell(line, line.Combined)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
             </div>
         </div>

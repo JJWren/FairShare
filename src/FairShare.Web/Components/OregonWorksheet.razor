@@ -80,8 +80,10 @@
 
 @if (jointMinorChildren > 0)
 {
-    <div class="text-center small mb-3 @(OvernightsTotal == 365 ? "text-muted" : "text-danger")">
-        Overnights entered: @OvernightsTotal.ToString("0.##") of 365
+    @* Untouched (0) is neutral, not an error; a wrong nonzero total says so in words
+       (color is never the only signal) and role=status announces the change. *@
+    <div class="text-center small mb-3 @(OvernightsTotal == 0 || OvernightsTotal == 365 ? "text-muted" : "text-danger fw-semibold")" role="status">
+        Overnights entered: @OvernightsTotal.ToString("0.##") of 365@(OvernightsTotal > 0 && OvernightsTotal != 365 ? " - must total exactly 365" : "")
     </div>
 }
 
@@ -118,22 +120,39 @@
 <div class="mt-5">
     <div class="card shadow-sm fs-results-card">
         <div class="card-header text-center"><strong>Results</strong></div>
-        <div class="card-body" aria-live="polite">
-            @if (submitted && result is not null && result.Success)
-            {
-                <p class="fw-bold text-center mb-0">@ResultSentence()</p>
-
-                @if (result.Oregon is { } extras)
+        <div class="card-body">
+            @* Scoped live region: announce the outcome and the coverage note, never the
+               ~45-row worksheet. The table below is keyboard-scrollable instead. *@
+            <div aria-live="polite">
+                @if (submitted && result is not null && result.Success)
                 {
-                    <p class="text-center text-muted small mb-0 mt-1">
-                        Health care coverage: @ProviderText(extras.CoverageProvider)
-                        (reasonable cost cap $@extras.ReasonableCostTotal.ToString("N0")/month).
-                    </p>
+                    <p class="fw-bold text-center mb-0">@ResultSentence()</p>
+
+                    @if (result.Oregon is { } extras)
+                    {
+                        <p class="text-center text-muted small mb-0 mt-1">
+                            Health care coverage: @ProviderText(extras.CoverageProvider)
+                            (reasonable cost cap $@extras.ReasonableCostTotal.ToString("N0")/month).
+                        </p>
+                    }
                 }
-
-                @if (result.Lines.Any())
+                else if (submitted && result is not null && !result.Success)
                 {
-                    <div class="table-responsive mt-3">
+                    <ul class="text-danger mb-0">
+                        @foreach (var e in result.Errors)
+                        {
+                            <li>@e.Code: @e.Message</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                }
+            </div>
+            @if (submitted && result is { Success: true } && result.Lines.Any())
+            {
+                <div class="table-responsive mt-3" tabindex="0" role="region" aria-label="Worksheet lines">
                         <table class="table table-sm table-striped mb-0 worksheet-table">
                             <caption class="visually-hidden">Oregon Child Support Worksheet lines</caption>
                             <thead>
@@ -158,21 +177,7 @@
                                 }
                             </tbody>
                         </table>
-                    </div>
-                }
-            }
-            else if (submitted && result is not null && !result.Success)
-            {
-                <ul class="text-danger mb-0">
-                    @foreach (var e in result.Errors)
-                    {
-                        <li>@e.Code: @e.Message</li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="text-muted mb-0">Enter inputs and Calculate.</p>
+                </div>
             }
         </div>
     </div>
