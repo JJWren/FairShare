@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FairShare.Api.Services.Forms;
 using FairShare.Contracts.Calculation;
 
