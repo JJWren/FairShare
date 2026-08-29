@@ -1,0 +1,100 @@
+@using FairShare.Contracts.Calculation
+
+@* The Alabama court-prep surface (#235), the CS-42 sibling of OregonCourtPrep: informational
+   only, no deviation math. Alabama has no Oregon-style +/-15% agreed band - the presumption
+   moves through Rule 32(A)'s written-agreement or written-findings paths instead - so this
+   card explains those, the Rule 32(A)(1) deviation reasons, and the standardized filings.
+   Copy follows the /terms discipline: literally true against Rule 32, Ala. R. Jud. Admin.
+   The deviation list stays rendered (hidden) while collapsed so the toggle's aria-controls
+   target exists whether the disclosure is open or closed. *@
+
+<div class="card mt-3">
+    <div class="card-header text-center"><strong>Preparing for court or mediation</strong></div>
+    <div class="card-body">
+        <p class="mb-1">
+            <strong>The recommended order is presumed correct.</strong>
+            @if (Result is { FinalAmount: > 0 } r && !string.IsNullOrWhiteSpace(r.Payer))
+            {
+                <text>
+                    A court starts from the presumption that the worksheet amount above -
+                    $@r.FinalAmount.ToString("N0") a month from the @r.Payer.ToLowerInvariant() -
+                    is the right child-support award (Rule 32(A), Ala. R. Jud. Admin.).
+                </text>
+            }
+            else
+            {
+                <text>
+                    A court starts from the presumption that the worksheet result above is the
+                    right child-support award (Rule 32(A), Ala. R. Jud. Admin.).
+                </text>
+            }
+        </p>
+        <p class="mb-3">
+            That presumption can be rebutted two ways: a <strong>fair, written agreement</strong>
+            between the parents establishing a different amount and stating the reasons for it,
+            or the court determining from the evidence that applying the guidelines would be
+            <strong>manifestly unjust or inequitable</strong>. Either way, a deviation must be
+            supported by the court's written findings - Alabama has no fixed percentage band for
+            agreed amounts.
+        </p>
+
+        <p class="mb-1">
+            <strong>The judge may ask about things the worksheet doesn't show.</strong>
+            Rule 32(A)(1) lists reasons that may support a deviation - be ready to speak to any
+            that apply to you:
+        </p>
+        <button type="button" class="btn btn-link btn-sm px-0"
+                @onclick="() => reasonsExpanded = !reasonsExpanded"
+                aria-expanded="@reasonsExpanded"
+                aria-controls="AL_DeviationReasons">
+            @(reasonsExpanded ? "Hide the deviation reasons" : "Show the deviation reasons")
+        </button>
+        <div id="AL_DeviationReasons" hidden="@(!reasonsExpanded)">
+            <ul class="small mb-1">
+                <li>Shared physical custody or visitation giving the paying parent substantially more time with the children than courts customarily order</li>
+                <li>Extraordinary transportation costs for visitation, borne substantially by one parent</li>
+                <li>College-education expenses incurred before a child reaches the age of majority (19 in Alabama)</li>
+                <li>Assets of, or unearned income received by or for, the children</li>
+                <li>The custodial parent will not be claiming the income-tax exemptions for the children (the guidelines assume they will)</li>
+            </ul>
+            <p class="small text-muted mb-0">
+                The list is not exclusive, and none of these reasons requires the court to
+                deviate - they may simply be considered.
+            </p>
+        </div>
+
+        <p class="mb-1 mt-3">
+            <strong>Income can be imputed.</strong>
+            If a parent is voluntarily unemployed or underemployed, the court estimates what that
+            parent could earn and calculates support from that imputed income (Rule 32(B)(5)).
+            FairShare uses the incomes you enter - if imputation is on the table, run the numbers
+            with the imputed figure too.
+        </p>
+        <p class="mb-3">
+            <strong>Extraordinary expenses can be added.</strong>
+            Beyond the recommended order, a court may make additional awards for extraordinary
+            medical, dental, and educational expenses (Rule 32(C)(4)).
+        </p>
+
+        <p class="mb-1">
+            <strong>Bring the standardized paperwork.</strong>
+            Alabama's child-support filings use standardized forms:
+        </p>
+        <ul class="small mb-0">
+            <li>Form <strong>CS-41</strong> - each parent's Child-Support-Obligation Income Statement/Affidavit</li>
+            <li>Form <strong>CS-42</strong> (or <strong>CS-42-S</strong> for shared 50/50 custody) - the worksheet itself; the Export button fills the official workbook for the form you are viewing</li>
+            <li>Form <strong>CS-43</strong> - the Child-Support-Guidelines Notice of Compliance</li>
+        </ul>
+
+        <p class="text-muted small mt-3 mb-0">
+            This is preparation guidance, not a prediction - whether any reason changes the amount
+            is the court's call. FairShare does not compute deviations.
+        </p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CalculationResponse? Result { get; set; }
+
+    private bool reasonsExpanded;
+}
