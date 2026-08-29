@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 > Everything older than 1.0.0 (the former 0.1.0–7.0.0 releases) is unsupported and was retired
 > along with its tags and release pages.
 
+## [4.8.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.7.0...fairshare-v4.8.0) (2026-08-29)
+
+
+### Features
+
+* **web:** Alabama court-prep card (Rule 32) ([#236](https://github.com/JJWren/FairShare/issues/236)) ([78a2cea](https://github.com/JJWren/FairShare/commit/78a2ceabd6c7dfa180229254ac7aba7fa88d5075))
+
 ## [4.7.0](https://github.com/JJWren/FairShare/compare/fairshare-v4.6.0...fairshare-v4.7.0) (2026-08-28)
 
 
