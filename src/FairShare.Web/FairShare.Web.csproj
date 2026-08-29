@@ -13,10 +13,10 @@
          is the Blazor-SDK property (WasmIcuDataFileName is the wasm-workload one and has
          no effect here); the name resolves inside the runtime pack's native dir. -->
     <BlazorIcuDataFileName>icudt_EFIGS.dat</BlazorIcuDataFileName>
-    <Version>4.7.0</Version>
-    <AssemblyVersion>4.7.0</AssemblyVersion>
-    <FileVersion>4.7.0</FileVersion>
-    <InformationalVersion>4.7.0</InformationalVersion>
+    <Version>4.8.0</Version>
+    <AssemblyVersion>4.8.0</AssemblyVersion>
+    <FileVersion>4.8.0</FileVersion>
+    <InformationalVersion>4.8.0</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
