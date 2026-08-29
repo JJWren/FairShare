@@ -252,12 +252,11 @@
                 Implements @result!.RuleVintage.
             </p>
         }
-        @* Parity affordance (#162): the Oregon page renders its court-prep card here. *@
+        @* Court-prep parity (#235): the Rule 32 sibling of the Oregon page's card, replacing
+           the old "isn't available for Alabama yet" affordance (#162). *@
         @if (IsAlabamaState && submitted && result is { Success: true })
         {
-            <p class="text-muted text-center small mt-2 mb-0">
-                Court-preparation view isn't available for Alabama yet.
-            </p>
+            <AlabamaCourtPrep Result="result" />
         }
         @* Body size on purpose: the most legally load-bearing sentence on the page
            must not be the least readable one. *@
