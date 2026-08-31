@@ -68,6 +68,10 @@ The ubiquitous language of the FairShare domain: child-support worksheets as the
 | **Guest work** | A guest's in-progress calculation. It lives only in their browser and is never stored unless they sign in and choose to save it. |
 | **Gated feature** | A capability reserved for users (e.g. saving a profile). The moment a guest reaches one is the invitation to sign in. |
 | **Scenario** | A named, saved snapshot of one worksheet's inputs for a state and form, stamped with the rule version and the result they produced. Never call this a "case" — only a court has cases. |
+| **Passkey** | A one-tap credential an admin registers on a device (approved by fingerprint, face, or PIN). It answers the second-factor challenge after a password, or signs the admin in by itself with no username or password typed. Having at least one registered is what enables it — there is no separate on/off setting. |
+| **Authenticator code** | The six-digit code from an admin's authenticator app — the second factor every admin always has, and the fallback whenever a passkey can't be used. A passkey is a convenience on top of it, never a replacement. |
+| **Step-up challenge** | A fresh second-factor confirmation demanded at the moment of a sensitive action, even in the middle of a signed-in session. |
+| **Elevation window** | The short period after any successful second-factor confirmation — at sign-in or at a step-up challenge — during which sensitive actions proceed without a fresh one. |
 
 ## Observability vocabulary
 
