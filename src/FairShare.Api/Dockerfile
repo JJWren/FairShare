@@ -16,7 +16,7 @@ COPY src/FairShare.Api/       src/FairShare.Api/
 RUN dotnet publish src/FairShare.Api/FairShare.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # ---------- Runtime ----------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS runtime
 WORKDIR /app
 
 # SQLite database + backups live on this volume (see docker-compose.yml)
